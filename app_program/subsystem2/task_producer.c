@@ -11,12 +11,14 @@
 
 #include "subsystem2.h"
 #include "../subsystem3/subsystem3.h"	/* IF-01: mbx_samples */
+#include "../subsystem5/drv_ultrasonic.h"
 
 /* A fake measurement: a triangle wave between 0 and 100 */
 EXPORT INT s2_make_value(UW seq)
 {
 	INT	phase = (INT)(seq % 20);
-	return (phase < 10 ? phase : 20 - phase) * 10;
+	/* return (phase < 10 ? phase : 20 - phase) * 10; */
+	return (INT)ultrasonic_read_distance_cm();
 }
 
 EXPORT void producer_task(INT stacd, void *exinf)

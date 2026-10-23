@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "name": "Mac",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/include/**",
+        "${workspaceFolder}/config/**",
+        "${workspaceFolder}/kernel/**",
+        "${workspaceFolder}/mtkernel_3/**"
+      ],
+      "defines": [
+        "_PICO_RP2040_",
+        "CNF_SMP=1",
+        "APP_TEST=1",
+        "TM_CONSOLE_UART=1"
+      ],
+      "compilerPath": "/opt/homebrew/bin/arm-none-eabi-gcc",
+      "cStandard": "gnu11",
+      "intelliSenseMode": "macos-clang-arm64"
+    }
+  ],
+  "version": 4
+}
