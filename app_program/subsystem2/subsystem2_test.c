@@ -4,6 +4,7 @@
  *	Record results in testing/subsystem2/TEST_LOG.md.
  */
 
+#include "motion_control.h"
 #include "subsystem2.h"
 #include "../test_report.h"
 
@@ -32,6 +33,33 @@ EXPORT void subsystem2_test(void)
 		   tk_ref_mpf(mpf_samples, &rmpf) == E_OK &&
 		   rmpf.frbcnt <= S2_POOL_COUNT,
 		   "free slots and free blocks within pool size");
+
+		   /* 
+		   Buddy 2: Basic motor movement test under micro T-kernel
+		   */
+		   // tm_printf((UB*)"[S2-M01] Starting motor test\n");
+
+		   /* Allow time to connect the serial monitor */
+		   // tk_dly_tsk(5000);
+
+		   /* Move both wheels at 40% PWM */
+		   // tm_printf((UB*)"[S2-M01] Moving forward now\n");
+		   // tm_printf((UB*)"[S2-M01] Moving backward now\n");
+		   // tm_printf((UB*)"[S2-M01] Moving left now\n");
+		   // tm_printf((UB*)"[S2-M01] Moving right now\n");
+		   
+		   // motion_moveForward(40);
+		   // motion_moveBackward(40);
+		   // motion_turnLeft(40);
+		   // motion_turnRight(40);
+
+		   /* Move for 300 milliseconds */
+		   // tk_dly_tsk(300);
+
+		   /* Stop both motors */
+		   // motion_stop();
+
+		   // tm_printf((UB*)"[S2-M01] Motors stopped\n");
 
 	TEST_SUMMARY("subsystem2");
 }
