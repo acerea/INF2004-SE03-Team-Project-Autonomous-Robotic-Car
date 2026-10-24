@@ -5,6 +5,7 @@
  *	APIs shown: tk_cre_sem, tk_cre_mpf
  */
 
+#include "motion_control.h"
 #include "subsystem2.h"
 
 EXPORT ID	sem_slots;	/* IF-02, see subsystem2.h */
@@ -12,6 +13,8 @@ EXPORT ID	mpf_samples;
 
 EXPORT ER subsystem2_init(void)
 {
+	motion_init(); /* Initialise motor control */
+
 	T_CSEM	csem = {0};
 	T_CMPF	cmpf = {0};
 
