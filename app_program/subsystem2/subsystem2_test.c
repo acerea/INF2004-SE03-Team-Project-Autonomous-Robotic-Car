@@ -87,9 +87,9 @@ EXPORT void subsystem2_test(void)
 		* Change '#if 0' to '#if 1' to enable the test
 		* ===================================================================================== */
 		
-		#if 0
+		#if 1
 
-		tm_printf((UB*)"[S2-E01] Starting wheel encoder counting test\n");
+		tm_printf((UB*)"[S2-E01] Starting wheel encoder test\n");
 
 		/* Allow time to connect the serial monitor */
 		tk_dly_tsk(10000);
@@ -106,10 +106,19 @@ EXPORT void subsystem2_test(void)
 						(long)current_leftCount,
               			(long)current_rightCount);
 
+			/* Calculate wheel distance (cm) */
+			int left_mm = (int)(encoder_getLeftDistance() * 10.0f);
+			int right_mm = (int)(encoder_getRightDistance() * 10.0f);
+
+// 			/* Display distance (cm) */
+			tm_printf((UB*)"Left distance: %d.%01d cm | Right distance: %d.%01d cm\n",
+						left_mm / 10, left_mm % 10,
+           				right_mm / 10, right_mm % 10);
+
 			tk_dly_tsk(200);
 		}
 		
-		tm_printf((UB*)"[S2-E01] Wheel encoder counting test completed\n");
+		tm_printf((UB*)"[S2-E01] Wheel encoder test completed\n");
 
 		#endif 
 
