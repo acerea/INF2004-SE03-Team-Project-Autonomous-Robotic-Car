@@ -94,6 +94,10 @@ EXPORT void subsystem2_test(void)
 		/* Allow time to connect the serial monitor */
 		tk_dly_tsk(10000);
 
+		/* Initialise previous encoder counts */
+        int32_t prev_leftCount = encoder_getLeftCount();
+        int32_t prev_rightCount = encoder_getRightCount();
+
 		/* Monitor encoder readings */
 		for (int i = 0; i < 300; i++) {
 
@@ -110,10 +114,31 @@ EXPORT void subsystem2_test(void)
 			int left_mm = (int)(encoder_getLeftDistance() * 10.0f);
 			int right_mm = (int)(encoder_getRightDistance() * 10.0f);
 
-// 			/* Display distance (cm) */
+			/* Display distance (cm) */
 			tm_printf((UB*)"Left distance: %d.%01d cm | Right distance: %d.%01d cm\n",
 						left_mm / 10, left_mm % 10,
            				right_mm / 10, right_mm % 10);
+
+			/* Calculate encoder count changes */
+            int32_t leftCount_change = current_leftCount - prev_leftCount;
+            int32_t rightCount_change = current_rightCount - prev_rightCount;
+
+            /* Estimate wheel speed (cm/s) */
+            float left_speed = encoder_calculateLeftSpeed(leftCount_change, 0.2f);
+            float right_speed = encoder_calculateRightSpeed(rightCount_change, 0.2f);
+            
+            /* Update previous counts */
+            prev_leftCount = current_leftCount;
+            prev_rightCount = current_rightCount;
+
+            /* Convert speed to cm/s */
+            int left_speed10 = (int)(left_speed * 10.0f);
+            int right_speed10 = (int)(right_speed * 10.0f);
+
+            /* Display wheel speed */
+            tm_printf((UB*)"Speed L: %d.%01d cm/s | R: %d.%01d cm/s\n",
+                        left_speed10 / 10, left_speed10 % 10,
+                        right_speed10 / 10, right_speed10 % 10);
 
 			tk_dly_tsk(200);
 		}
