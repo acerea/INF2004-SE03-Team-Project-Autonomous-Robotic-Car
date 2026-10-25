@@ -34,32 +34,47 @@ EXPORT void subsystem2_test(void)
 		   rmpf.frbcnt <= S2_POOL_COUNT,
 		   "free slots and free blocks within pool size");
 
-		   /* 
-		   Buddy 2: Basic motor movement test under micro T-kernel
-		   */
-		   // tm_printf((UB*)"[S2-M01] Starting motor test\n");
+		/* ====================================================================================
+		* S2-M01: Basic Motor Movement Test
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* Ensure the robot car is stationary and connect to serial monitor to see the output.
+		* ===================================================================================== */
+		
+		#if 0
 
-		   /* Allow time to connect the serial monitor */
-		   // tk_dly_tsk(5000);
+		tm_printf((UB*)"[S2-M01] Starting motor test\n");
 
-		   /* Move both wheels at 40% PWM */
-		   // tm_printf((UB*)"[S2-M01] Moving forward now\n");
-		   // tm_printf((UB*)"[S2-M01] Moving backward now\n");
-		   // tm_printf((UB*)"[S2-M01] Moving left now\n");
-		   // tm_printf((UB*)"[S2-M01] Moving right now\n");
-		   
-		   // motion_moveForward(40);
-		   // motion_moveBackward(40);
-		   // motion_turnLeft(40);
-		   // motion_turnRight(40);
+		/* Allow time to connect the serial monitor */
+		tk_dly_tsk(5000);
 
-		   /* Move for 300 milliseconds */
-		   // tk_dly_tsk(300);
+		/* Move both wheels forward at 40% PWM and stop after 300ms */
+		tm_printf((UB*)"[S2-M01] Moving forward now\n");
+		motion_moveForward(40);
+		tk_dly_tsk(300);
+		motion_stop();
 
-		   /* Stop both motors */
-		   // motion_stop();
+		/* Move both wheels backward at 40% PWM and stop after 300ms */
+		tm_printf((UB*)"[S2-M01] Moving backward now\n");
+		motion_moveBackward(40);
+		tk_dly_tsk(300);
+		motion_stop();
 
-		   // tm_printf((UB*)"[S2-M01] Motors stopped\n");
+		/* Turn left at 40% PWM and stop after 300ms */
+		tm_printf((UB*)"[S2-M01] Turning left now\n");
+		motion_turnLeft(40);
+		tk_dly_tsk(300);
+		motion_stop();
+
+		/* Turn right at 40% PWM and stop after 300ms */
+		tm_printf((UB*)"[S2-M01] Turning right now\n");
+		motion_turnRight(40);
+		tk_dly_tsk(300);
+		motion_stop();
+
+		tm_printf((UB*)"[S2-M01] Motor test completed\n");
+
+		#endif
 
 	TEST_SUMMARY("subsystem2");
 }

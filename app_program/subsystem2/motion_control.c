@@ -1,20 +1,26 @@
-/* Import the necessary headers */
-#include "motion_control.h"
 #include <tk/tkernel.h>
 #include <bsp/libbsp.h>
 #include <sys/sysdef.h>
 
-/* Define Cytron Robo Pico motor pins */
+#include "motion_control.h"
+
+/* --------------------------------
+ * 1. Motor GPIO Configuration
+ * -------------------------------- */
+
+/* Cytron Robo Pico motor pins */
 #define M1A 8
 #define M1B 9
 #define M2A 10
 #define M2B 11
 
-/* PWM slices 4 and 5 clock dividers */
+/* M1 uses PWM slice 4, M2 uses PWM slice 5. */
 #define PWM_DIV_REG(slice) \
     (*(volatile unsigned int *)(0x40050004u + (slice) * 0x14u))
 
-/* Initialise motor PWM */
+/* --------------------------------
+ * 2. Motor PWM Initialisation
+ * -------------------------------- */
 void motion_init(void)
 {
     const UINT pins[] = {M1A, M1B, M2A, M2B};
@@ -30,6 +36,7 @@ void motion_init(void)
     PWM_DIV_REG(4u) = 125u << 4;
     PWM_DIV_REG(5u) = 125u << 4;
 
+    /* Set motor pins for PWM output */
     for (int i = 0; i < 4; i++) {
         pwm_set_cc(pins[i], 0);
         pwm_set_wrap(pins[i], 999);
@@ -38,7 +45,11 @@ void motion_init(void)
     }
 }
 
-// Set PWM duty cycle: 0-100%
+/* --------------------------------
+ * 3. PWM Duty Cycle Control
+ * -------------------------------- */
+
+ /* Set PWM duty cycle (0-100%) */
 static void motor_pwm(UINT pin, int speed)
 {
     if (speed < 0) speed = 0;
@@ -47,11 +58,24 @@ static void motor_pwm(UINT pin, int speed)
     pwm_set_cc(pin, (UW)speed * 10u);
 }
 
-/* Left Motor: M1B forward, M1A backward */
-static void left_motor(int speed)
+/* --------------------------------
+ * 4. Motor Control Functions
+ * -------------------------------- */
+
+/* 
+ * Left Motor (M1) 
+ * Positive speed: Forward (M1B) 
+ * Negative speed: Backward (M1A) 
+*/
+static void motor_leftm1(int speed)
 {
-    if (speed > 100) speed = 100;
-    if (speed < -100) speed = -100;
+    if (speed > 100) {
+        speed = 100;
+    }
+
+    if (speed < -100) {
+        speed = -100;
+    }
 
     if (speed > 0) {
         motor_pwm(M1A, 0);
@@ -62,11 +86,20 @@ static void left_motor(int speed)
     }
 }
 
-/* Right motor: M2A forward, M2B backward */
-static void right_motor(int speed)
+/* 
+ * Right Motor (M2) 
+ * Positive speed: Forward (M2A) 
+ * Negative speed: Backward (M2B) 
+ */
+static void motor_rightm2(int speed)
 {
-    if (speed > 100) speed = 100;
-    if (speed < -100) speed = -100;
+    if (speed > 100) {
+        speed = 100;
+    }
+
+    if (speed < -100) {
+        speed = -100;
+    }
 
     if (speed > 0) {
         motor_pwm(M2B, 0);
@@ -77,33 +110,41 @@ static void right_motor(int speed)
     }
 }
 
-/* Public movement APIs */
+/* --------------------------------
+ * 5. Public Motor Control APIs
+ * -------------------------------- */
+
+/* Move both wheels forward */
 void motion_moveForward(int speed)
 {
-    left_motor(speed);
-    right_motor(speed);
+    motor_leftm1(speed);
+    motor_rightm2(speed);
 }
 
+/* Move both wheels backward */
 void motion_moveBackward(int speed)
 {
-    left_motor(-speed);
-    right_motor(-speed);
+    motor_leftm1(-speed);
+    motor_rightm2(-speed);
 }
 
+/* Turn left by rotating wheels in opposite directions */
 void motion_turnLeft(int speed)
 {
-    left_motor(-speed);
-    right_motor(speed);
+    motor_leftm1(-speed);
+    motor_rightm2(speed);
 }
 
+/* Turn right by rotating wheels in opposite directions */
 void motion_turnRight(int speed)
 {
-    left_motor(speed);
-    right_motor(-speed);
+    motor_leftm1(speed);
+    motor_rightm2(-speed);
 }
 
+/* Stop both motors */
 void motion_stop(void)
 {
-    left_motor(0);
-    right_motor(0);
+    motor_leftm1(0);
+    motor_rightm2(0);
 }
