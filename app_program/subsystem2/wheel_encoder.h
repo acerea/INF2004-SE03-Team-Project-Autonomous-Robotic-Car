@@ -16,4 +16,8 @@ int encoder_getLeftB(void);
 int encoder_getRightA(void);
 int encoder_getRightB(void);
 
+/* Get wheel distance (cm) */
+float encoder_getLeftDistance(void);
+float encoder_getRightDistance(void);
+
 #endif /* WHEEL_ENCODER_H */

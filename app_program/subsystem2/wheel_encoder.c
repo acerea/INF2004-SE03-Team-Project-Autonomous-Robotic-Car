@@ -53,8 +53,28 @@
 #define RIGHT_IRQ_MASK \
     (ENCODER_IRQ_MASK(RIGHT_ENCODER_A) | ENCODER_IRQ_MASK(RIGHT_ENCODER_B))
 
+
 /* -----------------------------------------
- * 3. Encoder State Varaiables
+ * 3. Wheel Calibration Constants
+ * ----------------------------------------- */
+
+/* Preliminary calibration from 5 manual wheel revolutions:
+ *
+ * Left wheel:  12615 / 5 = 2523 counts/revolution
+ * Right wheel: 12675 / 5 = 2535 counts/revolution
+ * Wheel diameter: 6 cm
+ * Circumference: 3.14159265 * 6 = 18.8495559 cm
+ * 
+ * NOTE: Calibration should be verified during motor-driven testing.
+ */
+#define LEFT_COUNTS_PER_REV         2523 
+#define RIGHT_COUNTS_PER_REV        2535 
+#define WHEEL_DIAMETER_CM           6.0f 
+#define WHEEL_CIRCUMFERENCE_CM      (3.14159265f * WHEEL_DIAMETER_CM)
+
+
+/* -----------------------------------------
+ * 4. Encoder State Varaiables
  * ----------------------------------------- */
 
 /* Updated by GPIO interrupts */
@@ -66,7 +86,7 @@ static uint8_t left_prev = 0;
 static uint8_t right_prev = 0;
 
 /* -----------------------------------------
- * 4. Quadrature Encoder Decoding
+ * 5. Quadrature Encoder Decoding
  * ----------------------------------------- */
 
 /*
@@ -102,7 +122,7 @@ static uint8_t encoder_readState(int pin_a, int pin_b)
 
 
 /* -----------------------------------------
- * 5. Encoder Initialisation
+ * 6. Encoder Initialisation
  * ----------------------------------------- */
 
 static ER encoder_registerInterrupt(void);
@@ -152,7 +172,7 @@ void encoder_init(void)
 
 
 /* -----------------------------------------
- * 6. Encoder Interrupt Handling
+ * 7. Encoder Interrupt Handling
  * ----------------------------------------- */
 
 /* Update encoder counts based on interrupt events only */
@@ -213,7 +233,7 @@ static ER encoder_registerInterrupt(void)
 
 
 /* -----------------------------------------
- * 7. Encoder GPIO State Getters
+ * 8. Encoder GPIO State Getters
  * ----------------------------------------- */
 
 /* Read left encoder's current GPIO state */
@@ -240,7 +260,7 @@ int encoder_getRightB(void)
 
 
 /* -----------------------------------------
- * 8. Encoder Count Getters
+ * 9. Encoder Count Getters
  * ----------------------------------------- */
 
 /* Get the left wheel's encoder count */
@@ -253,4 +273,24 @@ int32_t encoder_getLeftCount(void)
 int32_t encoder_getRightCount(void)
 {
     return right_count;
+}
+
+/* -----------------------------------------
+ * 10. Distance Estimation (cm)
+ * ----------------------------------------- */
+
+ /* 
+  * Distance = (Encoder count / Counts per revolution) x Wheel circumference
+ */
+
+/* Get the distance traveled by the left wheel */
+float encoder_getLeftDistance(void)
+{
+    return ((float)encoder_getLeftCount() / LEFT_COUNTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM;
+}
+
+/* Get the distance traveled by the right wheel */
+float encoder_getRightDistance(void)
+{
+    return ((float)encoder_getRightCount() / RIGHT_COUNTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM;
 }
