@@ -20,4 +20,8 @@ int encoder_getRightB(void);
 float encoder_getLeftDistance(void);
 float encoder_getRightDistance(void);
 
+/* Calculate average wheel speed (cm/s) */
+float encoder_calculateLeftSpeed(int32_t count_change, float dt_seconds);
+float encoder_calculateRightSpeed(int32_t count_change, float dt_seconds);
+
 #endif /* WHEEL_ENCODER_H */

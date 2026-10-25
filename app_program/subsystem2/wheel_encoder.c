@@ -294,3 +294,32 @@ float encoder_getRightDistance(void)
 {
     return ((float)encoder_getRightCount() / RIGHT_COUNTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM;
 }
+
+
+/* -----------------------------------------
+ * 11. Speed Estimation (cm/s)
+ * ----------------------------------------- */
+
+/*
+ * Speed = (Change in encoder counts / Counts per revolution) x (Wheel circumference / Time interval)
+ */
+
+/* Calculate the speed of the left wheel (cm/s) */
+float encoder_calculateLeftSpeed(int32_t count_change, float dt_seconds)
+{
+    if (dt_seconds <= 0.0f) {
+        return 0.0f;
+    }
+
+    return ((float)count_change / LEFT_COUNTS_PER_REV) * (WHEEL_CIRCUMFERENCE_CM / dt_seconds);
+}
+
+/* Calculate the speed of the right wheel (cm/s) */
+float encoder_calculateRightSpeed(int32_t count_change, float dt_seconds)
+{
+    if (dt_seconds <= 0.0f) {
+        return 0.0f;
+    }
+
+    return ((float)count_change / RIGHT_COUNTS_PER_REV) * (WHEEL_CIRCUMFERENCE_CM / dt_seconds);
+}
