@@ -4,6 +4,7 @@
  *	Record results in testing/subsystem2/TEST_LOG.md.
  */
 
+#include "wheel_encoder.h"
 #include "motion_control.h"
 #include "subsystem2.h"
 #include "../test_report.h"
@@ -75,6 +76,42 @@ EXPORT void subsystem2_test(void)
 		tm_printf((UB*)"[S2-M01] Motor test completed\n");
 
 		#endif
+
+
+		/* ====================================================================================
+		* S2-E01: Wheel Encoder Test
+		*
+		* Tests:
+		* - Encoder Pulse Counting
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		
+		#if 0
+
+		tm_printf((UB*)"[S2-E01] Starting wheel encoder counting test\n");
+
+		/* Allow time to connect the serial monitor */
+		tk_dly_tsk(10000);
+
+		/* Monitor encoder readings */
+		for (int i = 0; i < 300; i++) {
+
+			/* Read current encoder counts */
+			int32_t current_leftCount = encoder_getLeftCount();
+			int32_t current_rightCount = encoder_getRightCount();
+				
+			/* Display encoder counts */
+			tm_printf((UB*)"[S2-ENC] Left count: %ld | Right count: %ld\n",
+						(long)current_leftCount,
+              			(long)current_rightCount);
+
+			tk_dly_tsk(200);
+		}
+		
+		tm_printf((UB*)"[S2-E01] Wheel encoder counting test completed\n");
+
+		#endif 
 
 	TEST_SUMMARY("subsystem2");
 }
