@@ -78,6 +78,30 @@ EXPORT void subsystem2_test(void)
 		#endif
 
 		/* ====================================================================================
+		* S2-M02: Independent Wheel PWM Test
+		*
+		* Tests:
+		* - Set left wheel to 40% PWM and right wheel to 60% PWM
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		#if 1
+		{
+			tm_printf((UB*)"[S2-M02] Independent wheel PWM test\n");
+
+			tk_dly_tsk(5000);
+
+			tm_printf((UB*)"[S2-M02] Left=40%%, Right=60%%\n");
+			motion_setWheelPWM(40, 60);
+
+			tk_dly_tsk(2000);
+			motion_stop();
+
+			tm_printf((UB*)"[S2-M02] Test completed\n");
+		}
+		#endif
+
+		/* ====================================================================================
 		* S2-E01: Manual Encoder Counting Test
 		*
 		* Tests:

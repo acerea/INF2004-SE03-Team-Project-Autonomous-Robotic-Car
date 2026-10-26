@@ -5,6 +5,7 @@
  *	APIs shown: tk_cre_sem, tk_cre_mpf
  */
 
+#include "pid_control.h"
 #include "wheel_encoder.h"
 #include "motion_control.h"
 #include "subsystem2.h"

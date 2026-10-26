@@ -114,6 +114,17 @@ static void motor_rightm2(int speed)
  * 5. Public Motor Control APIs
  * -------------------------------- */
 
+ /* Set left and right wheel PWM independently.
+ * Positive values = forward.
+ * Negative values = backward.
+ * Range: -100 to 100.
+ */
+void motion_setWheelPWM(int left_pwm, int right_pwm)
+{
+    motor_leftm1(left_pwm);
+    motor_rightm2(right_pwm);
+}
+
 /* Move both wheels forward */
 void motion_moveForward(int speed)
 {
