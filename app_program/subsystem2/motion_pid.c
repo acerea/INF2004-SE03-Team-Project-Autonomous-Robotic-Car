@@ -15,15 +15,26 @@ static int32_t right_previous_count;
 static float target_speed = 0.0f;
 static int pid_active = 0;
 
-/* Distance-based movement */
+/* FR6: Distance-based movement */
 static float left_start_distance = 0.0f;
 static float right_start_distance = 0.0f;
 static float target_distance = 0.0f;
 static int distance_mode = 0;
 static int motion_complete = 0;
 
-/* Preliminary straight-line correction gain */
+/* FR5: Preliminary straight-line correction gain */
 #define STRAIGHT_KP 0.1f
+
+/* FR6: Encoder-based turning */
+#define WHEEL_TRACK_CM 9.9f
+#define PI_VALUE 3.14159265f
+#define TURN_PWM 25
+
+static int turn_mode = 0;
+static int turn_direction = 0;  /* -1 = left, +1 = right */
+static float turn_target_cm = 0.0f;
+static float turn_left_start = 0.0f;
+static float turn_right_start = 0.0f;
 
 /* Initialise both PID controllers */
 void motion_pidInit(void)
@@ -39,6 +50,7 @@ void motion_pidInit(void)
     pid_active = 0;
     distance_mode = 0;
     motion_complete = 0;
+    turn_mode = 0;
 }
 
 /* Set the target speed for forward movement */
@@ -65,6 +77,39 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
 /* Run one PID control iteration */
 void motion_pidUpdate(float dt_seconds)
 {
+    if (turn_mode) {
+        float left_travelled =
+            encoder_getLeftDistance() - turn_left_start;
+
+        float right_travelled =
+            encoder_getRightDistance() - turn_right_start;
+
+        /* Convert to absolute distances */
+        if (left_travelled < 0.0f)
+            left_travelled = -left_travelled;
+
+        if (right_travelled < 0.0f)
+            right_travelled = -right_travelled;
+
+        /* Stop each wheel independently when its target is reached */
+        int left_pwm = (left_travelled >= turn_target_cm)
+               ? 0 : turn_direction * TURN_PWM;
+
+        int right_pwm = (right_travelled >= turn_target_cm)
+               ? 0 : -turn_direction * TURN_PWM;
+
+        motion_setWheelPWM(left_pwm, right_pwm);
+
+        /* Complete only when both wheels reach their targets */
+        if (left_travelled >= turn_target_cm &&
+            right_travelled >= turn_target_cm) {
+            motion_pidStop();
+            motion_complete = 1;
+        }
+
+        return;
+    }
+
     if (!pid_active || dt_seconds <= 0.0f) {
         return;
     }
@@ -133,6 +178,7 @@ void motion_pidStop(void)
     pid_active = 0;
     target_speed = 0.0f;
     distance_mode = 0;
+    turn_mode = 0;
     motion_stop();
 }
 
@@ -159,4 +205,44 @@ void motion_pidMoveDistance(float distance_cm, float speed_cm_s)
 int motion_pidIsComplete(void)
 {
     return motion_complete;
+}
+
+static void motion_pidStartTurn(float angle_degrees, int direction)
+{
+    if (angle_degrees <= 0.0f) {
+        motion_pidStop();
+        motion_complete = 0;
+        return;
+    }
+
+    /* Disable forward PID and distance movement */
+    motion_pidStop();
+    motion_complete = 0;
+
+    turn_left_start = encoder_getLeftDistance();
+    turn_right_start = encoder_getRightDistance();
+
+    /* Distance each wheel travels for an in-place turn */
+    turn_target_cm =
+        PI_VALUE * WHEEL_TRACK_CM * angle_degrees / 360.0f;
+
+    turn_direction = direction;
+    turn_mode = 1;
+
+    /* Opposite wheel directions */
+    if (direction < 0) {
+        motion_setWheelPWM(-TURN_PWM, TURN_PWM);
+    } else {
+        motion_setWheelPWM(TURN_PWM, -TURN_PWM);
+    }
+}
+
+void motion_pidTurnLeft(float angle_degrees)
+{
+    motion_pidStartTurn(angle_degrees, -1);
+}
+
+void motion_pidTurnRight(float angle_degrees)
+{
+    motion_pidStartTurn(angle_degrees, 1);
 }

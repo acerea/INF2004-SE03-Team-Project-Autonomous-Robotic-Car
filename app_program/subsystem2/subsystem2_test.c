@@ -1048,7 +1048,7 @@ EXPORT void subsystem2_test(void)
 		*
 		* Change '#if 0' to '#if 1' to enable
 		* ============================================================ */
-		#if 1
+		#if 0
 		{
 			SYSTIM start, end;
 			uint64_t start_ms, end_ms;
@@ -1115,6 +1115,64 @@ EXPORT void subsystem2_test(void)
 
 			tm_printf((UB*)"[S2-D01] Completed=%d\n", completed);
 			tm_printf((UB*)"[S2-D01] Test finished\n");
+		}
+		#endif
+
+		/* ============================================================
+		* S2-T01: Encoder-Based 90 Degree Turning Test (FR6)
+		*
+		* Change '#if 0' to '#if 1' to enable
+		* ============================================================ */
+		#if 0
+		{
+			// tm_printf((UB*)"[S2-T01] Starting 90-degree left turn\n");
+			// tm_printf((UB*)"[S2-T01] Starting 90-degree right turn\n");
+			// tm_printf((UB*)"[S2-T01] Starting 180-degree right turn\n");
+			tm_printf((UB*)"[S2-T01] Starting 180-degree left turn\n");
+
+			tk_dly_tsk(5000);
+
+			motion_pidInit();
+
+			float left_start = encoder_getLeftDistance();
+			float right_start = encoder_getRightDistance();
+
+			/* 90° turn test */
+			// motion_pidTurnLeft(90.0f);
+			// motion_pidTurnRight(90.0f);
+
+			/* 180° turn test */
+			// motion_pidTurnRight(180.0f);
+			motion_pidTurnLeft(180.0f);
+			
+			int completed = 0;
+
+			for (int i = 0; i < 200; i++) {
+				tk_dly_tsk(10);
+				motion_pidUpdate(0.02f);
+
+				if (motion_pidIsComplete()) {
+					completed = 1;
+					break;
+				}
+			}
+
+			motion_pidStop();
+
+			float left_travel =
+    		encoder_getLeftDistance() - left_start;
+
+			float right_travel =
+				encoder_getRightDistance() - right_start;
+
+			tm_printf((UB*)"[S2-T01] Left travel: %ld mm\n",
+          			(long)(left_travel * 10.0f));
+
+			tm_printf((UB*)"[S2-T01] Right travel: %ld mm\n",
+					(long)(right_travel * 10.0f));
+
+			tm_printf((UB*)"[S2-T01] Completed=%d\n", completed);
+			tm_printf((UB*)"[S2-T01] Test finished\n");
 		}
 		#endif
 
