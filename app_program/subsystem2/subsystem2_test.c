@@ -1043,7 +1043,80 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
+		/* ============================================================
+		* S2-DM01: Encoder-Based Distance Movement Test (FR6)
+		*
+		* Change '#if 0' to '#if 1' to enable
+		* ============================================================ */
+		#if 1
+		{
+			SYSTIM start, end;
+			uint64_t start_ms, end_ms;
+			float dt;
+			int completed = 0;
 
+			tm_printf((UB*)"[S2-D01] Move forward 30 cm test\n");
+			tk_dly_tsk(5000);
+
+			motion_pidInit();
+			motion_pidMoveDistance(20.0f, 15.0f);
+
+			/* Start movement */
+			motion_setWheelPWM(30, 30);
+
+			tk_get_tim(&start);
+
+			for (int i = 0; i < 300; i++) {
+				tk_dly_tsk(10);
+
+				tk_get_tim(&end);
+
+				start_ms = ((uint64_t)(uint32_t)start.hi << 32)
+						| (uint32_t)start.lo;
+				end_ms = ((uint64_t)(uint32_t)end.hi << 32)
+					| (uint32_t)end.lo;
+
+				if (end_ms <= start_ms) {
+					break;
+				}
+
+				dt = (float)(end_ms - start_ms) / 1000.0f;
+
+				motion_pidUpdate(dt);
+
+				if (motion_pidIsComplete()) {
+					completed = 1;
+
+					tm_printf((UB*)"[S2-D01] Left encoder: %d cm\n",
+							(int)encoder_getLeftDistance());
+
+					tm_printf((UB*)"[S2-D01] Right encoder: %d cm\n",
+							(int)encoder_getRightDistance());
+
+					break;
+				}
+
+				start = end;
+			}
+
+			/* Always stop motors after the test */
+			motion_pidStop();
+
+			tk_dly_tsk(500);
+
+			float left = encoder_getLeftDistance();
+			float right = encoder_getRightDistance();
+
+			tm_printf((UB*)"[S2-D01] Final left: %d.%02d cm\n",
+					(int)left, ((int)(left * 100)) % 100);
+
+			tm_printf((UB*)"[S2-D01] Final right: %d.%02d cm\n",
+					(int)right, ((int)(right * 100)) % 100);
+
+			tm_printf((UB*)"[S2-D01] Completed=%d\n", completed);
+			tm_printf((UB*)"[S2-D01] Test finished\n");
+		}
+		#endif
 
 	TEST_SUMMARY("subsystem2");
 }

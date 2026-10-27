@@ -13,4 +13,10 @@ void motion_pidUpdate(float dt_seconds);
 /* Stop PID-controlled movement */
 void motion_pidStop(void);
 
+/* Start moving forward for a specified distance (cm) */
+void motion_pidMoveDistance(float distance_cm, float speed_cm_s);
+
+/* Check whether distance-based movement is complete */
+int motion_pidIsComplete(void);
+
 #endif /* MOTION_PID_H */
