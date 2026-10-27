@@ -17,7 +17,7 @@ subsystem, ask its owner or open a pull request for them to review.
 
 | # | Subsystem (what it does) | Student ID | GitHub username | Code | Tests |
 |---|---|---|---|---|---|
-| 1 | *example:* LED heartbeat on GP19 | | | `app_program/subsystem1/` | `testing/subsystem1/` |
+| 1 | WiFi, MQTT and telemetry (comms) | 2502049 | thrynky | `app_program/subsystem1/` | `testing/subsystem1/` |
 | 2 | *example:* Producer: makes a sample every 300 ms | | | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | *example:* Consumer: collects samples into statistics | | | `app_program/subsystem3/` | `testing/subsystem3/` |
 | 4 | *example:* Monitor: prints reports, pauses the LED | | | `app_program/subsystem4/` | `testing/subsystem4/` |
@@ -146,11 +146,11 @@ change it only by team agreement. Write down every task you create.
 
 | Subsystem | Priority band | Tasks (name – priority – core) |
 |---|---|---|
-| 1 | 12–13 | *example:* led_task – 12 – any |
-| 2 | 14–15 | *example:* producer_task – 14 – core 1 |
-| 3 | 16–17 | *example:* consumer_task – 16 – core 0 |
-| 4 | 18–19 | *example:* monitor_task – 18 – any |
-| 5 | 20–21 | |
+| 1 | 12, 22 | vehicle_task – 12 – core 1; comms_task – 22 – core 0 |
+| 2 | 14–15 | motion_task – 14 – core 1 |
+| 3 | 16–17 | line_task – 16 – core 1; barcode_task – 17 – core 0 |
+| 4 | 18–19 | imu_task – 18 – core 1 |
+| 5 | 20–21 | obstacle_task – 20 – core 0 |
 
 Core: `TP_PRC1` = core 0, `TP_PRC2` = core 1, or "any".
 
@@ -166,8 +166,11 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-02 | S3 → S2 | semaphore + fixed memory pool (owned by S2) | `sem_slots`, `mpf_samples` | receiver returns the block, then 1 slot | *example* |
 | IF-03 | S3 → S4 | message buffer + event flag (owned by S4) | `mbf_summary`, `flg_events` | text line ≤ `S4_SUMMARY_MAX` bytes, then `FLG_BATCH` | *example* |
 | IF-04 | S4 → S3 | shared data under a mutex (owned by S3) | `app_stats`, `mtx_stats` | `APP_STATS`, read only while locked | *example* |
-| IF-05 | S4 → S1 | task control | `tid_led` | `tk_sus_tsk` / `tk_rsm_tsk` / `tk_chg_pri` | *example* |
-| IF-06 | | | | | |
+| IF-05 | S4 → S1 | task control | `tid_led` | `tk_sus_tsk` / `tk_rsm_tsk` / `tk_chg_pri` | *example*; removed, S1 LED task deleted (S4 to update) |
+| IF-06 | S2–S5 → S1 | message buffer (owned by S1) | `g_mbf_telemetry` | flag byte + bit-packed frame, up to 17 bytes. Frame layout: frame types 1 to 6 (see report). Sender uses `TMO_POL`; a full buffer drops the frame. | pending team |
+| IF-07 | S1 → Vehicle Controller | message buffer + event flag (owned by S1) | `g_mbf_remote_cmd`, `g_flg_remote` | 3-byte command frame; flags `S1_FLG_ESTOP` 0x01, `S1_FLG_STOP` 0x02, `S1_FLG_LINK_LOST` 0x04, `S1_FLG_CMD_READY` 0x08 | pending team |
+| IF-08 | S1 → Vehicle Controller | shared byte (owned by S1) | `g_s1_fault_bits` | single writer; bits WIFI_LOST 0x01, MQTT_LOST 0x02, CMD_OVERFLOW 0x04, TLM_DROP 0x08 | pending team |
+| IF-09 | S1 ↔ MQTT library | change to `lib/liblwip/sysdepend/pico_rp2040/mqtt_utk.c` and `.h` | `mqtt_utk_bind()` | adds Last-Will, bind guard, retry, TX flush, RX into the command buffer; topics `picocar-01/tlm`, `/hb`, `/cmd` | approved by prof fauzi on 26 Oct |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
@@ -181,13 +184,13 @@ limit there. The numbers below are the example's usage.
 |---|---|---|---|---|---|---|
 | Task | 32 | 1 | 1 | 1 | 1 | |
 | Semaphore | 16 | | 1 | | | |
-| Event flag | 16 | | | | 1 | |
+| Event flag | 16 | 2 | | | 1 | |
 | Mailbox | 12 | | | 1 | | |
 | Mutex | 12 | | | 1 | | |
-| Message buffer | 12 | | | | 1 | |
+| Message buffer | 12 | 3 | | | 1 | |
 | Fixed memory pool | 12 | | 1 | | | |
 | Variable memory pool | 12 | | | | | |
-| Cyclic handler | 12 | 1 | | | | |
+| Cyclic handler | 12 | | | | | |
 | Alarm handler | 12 | | | | 1 | |
 
 (The kernel's USB and WiFi service tasks also use a few of these.)
