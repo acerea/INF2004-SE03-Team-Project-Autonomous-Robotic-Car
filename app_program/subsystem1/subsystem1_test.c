@@ -29,6 +29,9 @@
 #define TEST_S10_BITS   (10u)
 #define TEST_S10_MIN    (-512)
 #define TEST_S10_MAX    (511)
+#define TEST_SEQ_BASE   (50u)   // Last accepted sequence for S1-U09.
+#define TEST_SEQ_FRESH  (60u)   // Delta 10: would be accepted if length passed.
+#define TEST_MARKER_LEN (1u)    // Size of the library's oversize marker.
 
 static void
 make_cmd (uint8_t * p_buf, uint32_t seq, uint32_t ver, uint32_t cmd,
@@ -222,6 +225,34 @@ subsystem1_test (void)
                    "frame type bits match the MQTT library");
     }
 #endif
+
+    // S1-U09: the 1-byte marker the MQTT library sends for an oversize
+    // command is rejected by the length check and leaves the sequence
+    // state untouched.
+    {
+        bool b_marker;
+        bool b_marker_frame;
+
+        seq_state.last_seq   = (uint8_t) TEST_SEQ_BASE;
+        seq_state.b_have_seq = true;
+
+        // The marker itself: one zero byte.
+        raw[0] = 0u;
+        b_marker = s1_cmd_check(raw, TEST_MARKER_LEN, &seq_state, &packed);
+
+        // A frame that WOULD be valid at 3 bytes, cut to 1 byte. It would be
+        // accepted if the length check were missing, so this proves the
+        // length check is what rejects it.
+        make_cmd(raw, TEST_SEQ_FRESH, PROTO_VERSION, S1_CMD_START, 0u);
+        b_marker_frame = s1_cmd_check(raw, TEST_MARKER_LEN, &seq_state,
+                                      &packed);
+
+        TEST_CHECK("S1-U09",
+                   (false == b_marker) && (false == b_marker_frame)
+                   && seq_state.b_have_seq
+                   && (TEST_SEQ_BASE == (uint32_t) seq_state.last_seq),
+                   "1-byte oversize marker rejected, sequence unchanged");
+    }
 
     TEST_SUMMARY("subsystem1");
 
