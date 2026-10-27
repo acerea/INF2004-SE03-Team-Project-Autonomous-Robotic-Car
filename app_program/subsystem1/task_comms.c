@@ -381,10 +381,10 @@ handle_command (comms_ctx_t * p_ctx, uint8_t const * p_raw, uint32_t len)
     if (s1_cmd_check(p_raw, len, &p_ctx->seq, &packed))
     {
         p_ctx->cmd_ok = (uint8_t) (p_ctx->cmd_ok + 1u);     // Wraps
-    #if S1_DEBUG_CMD
-            tm_printf((UB*)"s1: cmd accepted cmd=%d arg=%d\n",
-                    (int) s1_cmd_of(packed), (int) s1_arg_of(packed));
-    #endif
+#if S1_DEBUG_CMD
+        tm_printf((UB*)"s1: cmd accepted cmd=%d arg=%d\n",
+                  (int) s1_cmd_of(packed), (int) s1_arg_of(packed));
+#endif
         forward_command(p_ctx, packed);
     }
     else
