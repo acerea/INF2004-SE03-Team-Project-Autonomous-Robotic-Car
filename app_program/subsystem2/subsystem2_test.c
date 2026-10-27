@@ -4,6 +4,8 @@
  *	Record results in testing/subsystem2/TEST_LOG.md.
  */
 
+#include "motion_pid.h"
+#include "pid_control.h"
 #include "wheel_encoder.h"
 #include "motion_control.h"
 #include "subsystem2.h"
@@ -453,6 +455,726 @@ EXPORT void subsystem2_test(void)
 		tm_printf((UB*)"[S2-ED01] Test completed\n");
 		}
 		#endif 
+
+		/* ====================================================================================
+		* S2-M02: Independent Wheel PWM Control Test
+		*
+		* Tests:
+		* - Set left wheel to 40% PWM and right wheel to 60% PWM
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		#if 0
+		{
+			tm_printf((UB*)"[S2-M02] Independent wheel PWM test\n");
+
+			tk_dly_tsk(5000);
+
+			tm_printf((UB*)"[S2-M02] Left=40%%, Right=60%%\n");
+			motion_setWheelPWM(40, 60);
+
+			tk_dly_tsk(2000);
+			motion_stop();
+
+			tm_printf((UB*)"[S2-M02] Test completed\n");
+		}
+		#endif
+
+		/* ====================================================================================
+		* S2-P01: P Controller PWM Calculation Test
+		*
+		* Tests:
+		* - Verify that the speed_p_update function calculates the correct PWM output based on 
+		* target speed, measured speed, base PWM, and proportional gain (kp).
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		#if 0
+		{
+			float pwm;
+
+			tm_printf((UB*)"[S2-P01] P controller calculation test\n");
+
+			pwm = speed_p_update(15.0f, 12.0f, 40.0f, 2.0f);
+
+			tm_printf((UB*)"[S2-P01] Calculated PWM: %d%%\n",
+					(int)pwm);
+
+			if ((int)pwm == 46) {
+				tm_printf((UB*)"[S2-P01] PASS\n");
+			} else {
+				tm_printf((UB*)"[S2-P01] FAIL\n");
+			}
+		}
+		#endif
+
+		/* ====================================================================================
+		* S2-P02: P Control with Encoder Feedback Test
+		*
+		* Tests:
+		* - Verify that the proportional control algorithm adjusts the PWM output based on 
+		*   encoder feedback to maintain the target speed.
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		#if 0
+		{
+			const float target_speed = 15.0f;
+			const float base_pwm = 40.0f;
+			const float kp = 2.0f;
+
+			int i;
+			int32_t l0, r0, l1, r1;
+			SYSTIM start, end;
+			uint64_t start_ms, end_ms;
+			float dt, left_speed, right_speed;
+			float left_pwm = base_pwm;
+			float right_pwm = base_pwm;
+
+			tm_printf((UB*)"[S2-P02] P control feedback test\n");
+			tk_dly_tsk(5000);
+
+			motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+
+			for (i = 0; i < 10; i++) {
+				l0 = encoder_getLeftCount();
+				r0 = encoder_getRightCount();
+				tk_get_tim(&start);
+
+				tk_dly_tsk(200);
+
+				l1 = encoder_getLeftCount();
+				r1 = encoder_getRightCount();
+				tk_get_tim(&end);
+
+				start_ms = ((uint64_t)(uint32_t)start.hi << 32)
+						| (uint32_t)start.lo;
+				end_ms = ((uint64_t)(uint32_t)end.hi << 32)
+					| (uint32_t)end.lo;
+
+				dt = (float)(end_ms - start_ms) / 1000.0f;
+
+				if (dt <= 0.0f) {
+					tm_printf((UB*)"[S2-P02] Invalid elapsed time\n");
+					break;
+				}
+
+				left_speed = encoder_calculateLeftSpeed(l1 - l0, dt);
+				right_speed = encoder_calculateRightSpeed(r1 - r0, dt);
+
+				left_pwm = speed_p_update(
+					target_speed, left_speed, base_pwm, kp);
+
+				right_pwm = speed_p_update(
+					target_speed, right_speed, base_pwm, kp);
+
+				motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+
+				tm_printf((UB*)"[S2-P02] Cycle %d: L PWM=%d%%, R PWM=%d%%\n",
+						i + 1, (int)left_pwm, (int)right_pwm);
+				tm_printf((UB*)"[S2-P02] L speed=%d, R speed=%d cm/s\n",
+						(int)left_speed, (int)right_speed);
+			}
+
+			motion_stop();
+			tm_printf((UB*)"[S2-P02] Test completed\n");
+		}
+		#endif
+
+		/* ====================================================================================
+		* S2-P03: PI Controller Calculation Test
+		*
+		* Tests:
+		* - Verify that the speed_pi_update function calculates the correct PWM output based on 
+		*   target speed, measured speed, base PWM, proportional gain (kp), integral gain (ki), 
+		*   and accumulated integral error.
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		#if 0
+		{
+			SpeedPI left_pi;
+			float pwm1, pwm2;
+
+			tm_printf((UB*)"[S2-P03] PI controller calculation test\n");
+
+			speed_pi_init(&left_pi, 2.0f, 1.0f, 40.0f);
+
+			pwm1 = speed_pi_update(&left_pi, 15.0f, 12.0f, 0.2f);
+			pwm2 = speed_pi_update(&left_pi, 15.0f, 12.0f, 0.2f);
+
+			tm_printf((UB*)"[S2-P03] First PWM: %d.%01d%%\n",
+					(int)pwm1, ((int)(pwm1 * 10)) % 10);
+
+			tm_printf((UB*)"[S2-P03] Second PWM: %d.%01d%%\n",
+					(int)pwm2, ((int)(pwm2 * 10)) % 10);
+
+			if (pwm1 > 46.5f && pwm1 < 46.7f &&
+				pwm2 > 47.1f && pwm2 < 47.3f) {
+				tm_printf((UB*)"[S2-P03] PASS\n");
+			} else {
+				tm_printf((UB*)"[S2-P03] FAIL\n");
+			}
+		}
+		#endif
+
+		/* ====================================================================================
+		* S2-P04: PI Control with Encoder Feedback Test
+		*
+		* Tests:
+		* - Verify that the PI control algorithm adjusts the PWM output based on encoder 
+		*   feedback to maintain the target speed.
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		#if 0
+		{
+			const float target_speed = 15.0f;
+			const float base_pwm = 30.0f;
+			const float kp = 2.0f;
+			const float ki = 1.0f;
+
+			SpeedPI left_pi, right_pi;
+
+			int i;
+			int32_t l0, r0, l1, r1;
+			SYSTIM start, end;
+			uint64_t start_ms, end_ms;
+			float dt, left_speed, right_speed;
+			float left_pwm = base_pwm;
+			float right_pwm = base_pwm;
+
+			tm_printf((UB*)"[S2-P04] PI encoder feedback test\n");
+
+			speed_pi_init(&left_pi, kp, ki, base_pwm);
+			speed_pi_init(&right_pi, kp, ki, base_pwm);
+
+			tk_dly_tsk(5000);
+
+			motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+
+			for (i = 0; i < 10; i++) {
+
+				l0 = encoder_getLeftCount();
+				r0 = encoder_getRightCount();
+				tk_get_tim(&start);
+
+				tk_dly_tsk(200);
+
+				l1 = encoder_getLeftCount();
+				r1 = encoder_getRightCount();
+				tk_get_tim(&end);
+
+				start_ms = ((uint64_t)(uint32_t)start.hi << 32)
+						| (uint32_t)start.lo;
+
+				end_ms = ((uint64_t)(uint32_t)end.hi << 32)
+					| (uint32_t)end.lo;
+
+				if (end_ms <= start_ms) {
+					tm_printf((UB*)"[S2-P04] Invalid elapsed time\n");
+					break;
+				}
+
+				dt = (float)(end_ms - start_ms) / 1000.0f;
+
+				left_speed = encoder_calculateLeftSpeed(l1 - l0, dt);
+				right_speed = encoder_calculateRightSpeed(r1 - r0, dt);
+
+				left_pwm = speed_pi_update(
+					&left_pi, target_speed, left_speed, dt);
+
+				right_pwm = speed_pi_update(
+					&right_pi, target_speed, right_speed, dt);
+
+				motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+
+				tm_printf((UB*)"[S2-P04] Cycle %d: L PWM=%d%%, R PWM=%d%%\n",
+						i + 1, (int)left_pwm, (int)right_pwm);
+
+				tm_printf((UB*)"[S2-P04] L speed=%d, R speed=%d cm/s\n",
+						(int)left_speed, (int)right_speed);
+			}
+
+			motion_stop();
+
+			tm_printf((UB*)"[S2-P04] Test completed\n");
+		}
+		#endif
+
+		/* ====================================================================================
+		* S2-P05: Full PID Calculation Test
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		#if 0
+		{
+			SpeedPID pid;
+			float pwm1, pwm2, pwm3;
+
+			tm_printf((UB*)"[S2-P05] PID calculation test\n");
+
+			speed_pid_init(&pid, 2.0f, 1.0f, 0.1f, 40.0f);
+
+			pwm1 = speed_pid_update(&pid, 15.0f, 12.0f, 0.2f);
+			pwm2 = speed_pid_update(&pid, 15.0f, 13.0f, 0.2f);
+			pwm3 = speed_pid_update(&pid, 15.0f, 14.0f, 0.2f);
+
+			tm_printf((UB*)"[S2-P05] PWM1=%d.%01d%%\n",
+					(int)pwm1, ((int)(pwm1 * 10)) % 10);
+
+			tm_printf((UB*)"[S2-P05] PWM2=%d.%01d%%\n",
+					(int)pwm2, ((int)(pwm2 * 10)) % 10);
+
+			tm_printf((UB*)"[S2-P05] PWM3=%d.%01d%%\n",
+					(int)pwm3, ((int)(pwm3 * 10)) % 10);
+
+			if (pwm1 > 46.5f && pwm1 < 46.7f &&
+				pwm2 > 44.4f && pwm2 < 44.6f &&
+				pwm3 > 42.6f && pwm3 < 42.8f) {
+				tm_printf((UB*)"[S2-P05] PASS\n");
+			} else {
+				tm_printf((UB*)"[S2-P05] FAIL\n");
+			}
+		}
+		#endif
+
+		/* ====================================================================================
+		* S2-P06: Full PID with Encoder Feedback Test
+		*
+		* Change '#if 0' to '#if 1' to enable the test
+		* ===================================================================================== */
+		#if 0
+		{
+			const float target_speed = 15.0f;
+			const float base_pwm = 30.0f;
+			const float kp = 2.0f;
+			const float ki = 1.0f;
+			const float kd = 0.01f;
+
+			SpeedPID left_pid, right_pid;
+			float left_pwm = base_pwm;
+			float right_pwm = base_pwm;
+
+			tm_printf((UB*)"[S2-P06] Full PID encoder feedback test\n");
+
+			speed_pid_init(&left_pid, kp, ki, kd, base_pwm);
+			speed_pid_init(&right_pid, kp, ki, kd, base_pwm);
+
+			tk_dly_tsk(5000);
+
+			motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+
+			for (int i = 0; i < 10; i++) {
+				int32_t l0, r0, l1, r1;
+				SYSTIM start, end;
+				uint64_t start_ms, end_ms;
+				float dt, left_speed, right_speed;
+
+				l0 = encoder_getLeftCount();
+				r0 = encoder_getRightCount();
+				tk_get_tim(&start);
+
+				tk_dly_tsk(200);
+
+				l1 = encoder_getLeftCount();
+				r1 = encoder_getRightCount();
+				tk_get_tim(&end);
+
+				start_ms = ((uint64_t)(uint32_t)start.hi << 32)
+						| (uint32_t)start.lo;
+				end_ms = ((uint64_t)(uint32_t)end.hi << 32)
+					| (uint32_t)end.lo;
+
+				if (end_ms <= start_ms) {
+					tm_printf((UB*)"[S2-P06] Invalid elapsed time\n");
+					break;
+				}
+
+				dt = (float)(end_ms - start_ms) / 1000.0f;
+
+				left_speed = encoder_calculateLeftSpeed(l1 - l0, dt);
+				right_speed = encoder_calculateRightSpeed(r1 - r0, dt);
+
+				left_pwm = speed_pid_update(
+					&left_pid, target_speed, left_speed, dt);
+
+				right_pwm = speed_pid_update(
+					&right_pid, target_speed, right_speed, dt);
+
+				motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+
+				tm_printf((UB*)"[S2-P06] Cycle %d: L PWM=%d%%, R PWM=%d%%\n",
+						i + 1, (int)left_pwm, (int)right_pwm);
+
+				tm_printf((UB*)"[S2-P06] L speed=%d, R speed=%d cm/s\n",
+						(int)left_speed, (int)right_speed);
+			}
+
+			motion_stop();
+			tm_printf((UB*)"[S2-P06] Test completed\n");
+		}
+		#endif
+
+		/* ============================================================
+		* S2-P07: Integrated PID Wheel Speed Control Test (FR5)
+		*
+		* Tests:
+		* - PID integration using motion_pid.c
+		* - Encoder feedback and wheel speed response
+		* - Target speed: 15 cm/s
+		*
+		* Change '#if 0' to '#if 1' to enable
+		* ============================================================ */
+		#if 0
+		{
+			SYSTIM previous_time, current_time;
+			uint64_t previous_ms, current_ms;
+			int32_t left_before, right_before;
+			int32_t left_after, right_after;
+			float dt, left_speed, right_speed;
+
+			tm_printf((UB*)"[S2-P07] Integrated PID test\n");
+			tm_printf((UB*)"[S2-P07] Target speed: 15 cm/s\n");
+
+			tk_dly_tsk(5000);
+
+			/* Initialise PID and set target speed */
+			motion_pidInit();
+			motion_pidSetTargetSpeed(15.0f);
+
+			/* Begin at the preliminary base PWM */
+			motion_setWheelPWM(30, 30);
+
+			left_before = encoder_getLeftCount();
+			right_before = encoder_getRightCount();
+
+			tk_get_tim(&previous_time);
+
+			previous_ms =
+				((uint64_t)(uint32_t)previous_time.hi << 32)
+				| (uint32_t)previous_time.lo;
+
+			for (int i = 0; i < 10; i++) {
+
+				tk_dly_tsk(200);
+
+				tk_get_tim(&current_time);
+
+				current_ms =
+					((uint64_t)(uint32_t)current_time.hi << 32)
+					| (uint32_t)current_time.lo;
+
+				if (current_ms <= previous_ms) {
+					tm_printf((UB*)"[S2-P07] Invalid elapsed time\n");
+					break;
+				}
+
+				dt = (float)(current_ms - previous_ms) / 1000.0f;
+
+				left_after = encoder_getLeftCount();
+				right_after = encoder_getRightCount();
+
+				left_speed = encoder_calculateLeftSpeed(
+					left_after - left_before, dt);
+
+				right_speed = encoder_calculateRightSpeed(
+					right_after - right_before, dt);
+
+				/* Integrated PID performs its own encoder feedback */
+				motion_pidUpdate(dt);
+
+				tm_printf((UB*)"[S2-P07] Cycle %d, dt=%lu ms\n",
+						i + 1,
+						(unsigned long)(current_ms - previous_ms));
+
+				tm_printf((UB*)"[S2-P07] Left=%d, Right=%d cm/s\n",
+						(int)left_speed,
+						(int)right_speed);
+
+				previous_ms = current_ms;
+				left_before = left_after;
+				right_before = right_after;
+			}
+
+			motion_pidStop();
+
+			tm_printf((UB*)"[S2-P07] Test completed\n");
+		}
+		#endif
+
+		/* ============================================================
+		* S2-P08: S2-P08: PID Control Loop Timing Test (NFR2) 
+		*
+		* Change '#if 0' to '#if 1' to enable
+		* ============================================================ */
+		#if 0
+		{
+			SYSTIM previous, current;
+			uint64_t previous_ms, current_ms;
+			uint64_t min_ms = 0, max_ms = 0, total_ms = 0;
+			uint64_t elapsed_ms;
+			int completed = 0;
+
+			tm_printf((UB*)"[S2-P08] PID timing test\n");
+			tk_dly_tsk(5000);
+
+			motion_pidInit();
+			motion_pidSetTargetSpeed(15.0f);
+			motion_setWheelPWM(30, 30);
+
+			tk_get_tim(&previous);
+			previous_ms =
+				((uint64_t)(uint32_t)previous.hi << 32) |
+				(uint32_t)previous.lo;
+
+			for (int i = 0; i < 20; i++) {
+				tk_dly_tsk(10);
+
+				tk_get_tim(&current);
+				current_ms =
+					((uint64_t)(uint32_t)current.hi << 32) |
+					(uint32_t)current.lo;
+
+				if (current_ms <= previous_ms) {
+					tm_printf((UB*)"[S2-P08] Invalid elapsed time\n");
+					break;
+				}
+
+				elapsed_ms = current_ms - previous_ms;
+
+				motion_pidUpdate((float)elapsed_ms / 1000.0f);
+
+				if (completed == 0 || elapsed_ms < min_ms)
+					min_ms = elapsed_ms;
+
+				if (elapsed_ms > max_ms)
+					max_ms = elapsed_ms;
+
+				total_ms += elapsed_ms;
+				completed++;
+
+				previous_ms = current_ms;
+			}
+
+			motion_pidStop();
+
+			if (completed > 0) {
+				tm_printf((UB*)"[S2-P08] Min=%lu ms, Max=%lu ms, Avg=%lu ms\n",
+						(unsigned long)min_ms,
+						(unsigned long)max_ms,
+						(unsigned long)(total_ms / completed));
+			}
+
+			tm_printf((UB*)"[S2-P08] Completed=%d/20\n", completed);
+
+			tm_printf((UB*)"[S2-P08] NFR2 timing: %s\n",
+					(completed == 20 && max_ms <= 20)
+					? "PASS" : "FAIL");
+		}
+		#endif
+
+		/* ============================================================
+		* S2-P09: Straight-Line Motion Correction Test (FR5)
+		*
+		* Change '#if 0' to '#if 1' to enable
+		* ============================================================ */
+		#if 0
+		{
+			SYSTIM start, end;
+			uint64_t start_ms, end_ms;
+			int32_t l0, r0, l1, r1;
+			float dt, left_speed, right_speed;
+			float speed_difference;
+
+			tm_printf((UB*)"[S2-P09] Straight-line correction test\n");
+			tk_dly_tsk(5000);
+
+			motion_pidInit();
+			motion_pidSetTargetSpeed(15.0f);
+
+			/* Begin with preliminary base PWM */
+			motion_setWheelPWM(30, 30);
+
+			l0 = encoder_getLeftCount();
+			r0 = encoder_getRightCount();
+			tk_get_tim(&start);
+
+			for (int i = 0; i < 20; i++) {
+				/* Initial test interval; not NFR2 validation */
+				tk_dly_tsk(200);
+
+				tk_get_tim(&end);
+				end_ms = ((uint64_t)(uint32_t)end.hi << 32)
+						| (uint32_t)end.lo;
+				start_ms = ((uint64_t)(uint32_t)start.hi << 32)
+						| (uint32_t)start.lo;
+
+				if (end_ms <= start_ms) {
+					tm_printf((UB*)"[S2-P09] Invalid elapsed time\n");
+					break;
+				}
+
+				dt = (float)(end_ms - start_ms) / 1000.0f;
+
+				l1 = encoder_getLeftCount();
+				r1 = encoder_getRightCount();
+
+				left_speed = encoder_calculateLeftSpeed(l1 - l0, dt);
+				right_speed = encoder_calculateRightSpeed(r1 - r0, dt);
+
+				speed_difference = left_speed - right_speed;
+				if (speed_difference < 0.0f)
+					speed_difference = -speed_difference;
+
+				motion_pidUpdate(dt);
+
+				tm_printf((UB*)"[S2-P09] Cycle %d: L=%d, R=%d, Diff=%d cm/s\n",
+						i + 1, (int)left_speed, (int)right_speed,
+						(int)speed_difference);
+
+				l0 = l1;
+				r0 = r1;
+				start = end;
+			}
+
+			motion_pidStop();
+			tm_printf((UB*)"[S2-P09] Test completed\n");
+		}
+		#endif
+
+		/* ============================================================
+		* S2-DM01: Encoder-Based Distance Movement Test (FR6)
+		*
+		* Change '#if 0' to '#if 1' to enable
+		* ============================================================ */
+		#if 0
+		{
+			SYSTIM start, end;
+			uint64_t start_ms, end_ms;
+			float dt;
+			int completed = 0;
+
+			tm_printf((UB*)"[S2-D01] Move forward 30 cm test\n");
+			tk_dly_tsk(5000);
+
+			motion_pidInit();
+			motion_pidMoveDistance(20.0f, 15.0f);
+
+			/* Start movement */
+			motion_setWheelPWM(30, 30);
+
+			tk_get_tim(&start);
+
+			for (int i = 0; i < 300; i++) {
+				tk_dly_tsk(10);
+
+				tk_get_tim(&end);
+
+				start_ms = ((uint64_t)(uint32_t)start.hi << 32)
+						| (uint32_t)start.lo;
+				end_ms = ((uint64_t)(uint32_t)end.hi << 32)
+					| (uint32_t)end.lo;
+
+				if (end_ms <= start_ms) {
+					break;
+				}
+
+				dt = (float)(end_ms - start_ms) / 1000.0f;
+
+				motion_pidUpdate(dt);
+
+				if (motion_pidIsComplete()) {
+					completed = 1;
+
+					tm_printf((UB*)"[S2-D01] Left encoder: %d cm\n",
+							(int)encoder_getLeftDistance());
+
+					tm_printf((UB*)"[S2-D01] Right encoder: %d cm\n",
+							(int)encoder_getRightDistance());
+
+					break;
+				}
+
+				start = end;
+			}
+
+			/* Always stop motors after the test */
+			motion_pidStop();
+
+			tk_dly_tsk(500);
+
+			float left = encoder_getLeftDistance();
+			float right = encoder_getRightDistance();
+
+			tm_printf((UB*)"[S2-D01] Final left: %d.%02d cm\n",
+					(int)left, ((int)(left * 100)) % 100);
+
+			tm_printf((UB*)"[S2-D01] Final right: %d.%02d cm\n",
+					(int)right, ((int)(right * 100)) % 100);
+
+			tm_printf((UB*)"[S2-D01] Completed=%d\n", completed);
+			tm_printf((UB*)"[S2-D01] Test finished\n");
+		}
+		#endif
+
+		/* ============================================================
+		* S2-T01: Encoder-Based 90 Degree Turning Test (FR6)
+		*
+		* Change '#if 0' to '#if 1' to enable
+		* ============================================================ */
+		#if 0
+		{
+			// tm_printf((UB*)"[S2-T01] Starting 90-degree left turn\n");
+			// tm_printf((UB*)"[S2-T01] Starting 90-degree right turn\n");
+			// tm_printf((UB*)"[S2-T01] Starting 180-degree right turn\n");
+			tm_printf((UB*)"[S2-T01] Starting 180-degree left turn\n");
+
+			tk_dly_tsk(5000);
+
+			motion_pidInit();
+
+			float left_start = encoder_getLeftDistance();
+			float right_start = encoder_getRightDistance();
+
+			/* 90° turn test */
+			// motion_pidTurnLeft(90.0f);
+			// motion_pidTurnRight(90.0f);
+
+			/* 180° turn test */
+			// motion_pidTurnRight(180.0f);
+			motion_pidTurnLeft(180.0f);
+			
+			int completed = 0;
+
+			for (int i = 0; i < 200; i++) {
+				tk_dly_tsk(10);
+				motion_pidUpdate(0.02f);
+
+				if (motion_pidIsComplete()) {
+					completed = 1;
+					break;
+				}
+			}
+
+			motion_pidStop();
+
+			float left_travel =
+    		encoder_getLeftDistance() - left_start;
+
+			float right_travel =
+				encoder_getRightDistance() - right_start;
+
+			tm_printf((UB*)"[S2-T01] Left travel: %ld mm\n",
+          			(long)(left_travel * 10.0f));
+
+			tm_printf((UB*)"[S2-T01] Right travel: %ld mm\n",
+					(long)(right_travel * 10.0f));
+
+			tm_printf((UB*)"[S2-T01] Completed=%d\n", completed);
+			tm_printf((UB*)"[S2-T01] Test finished\n");
+		}
+		#endif
 
 	TEST_SUMMARY("subsystem2");
 }

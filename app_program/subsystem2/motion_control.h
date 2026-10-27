@@ -11,4 +11,7 @@ void motion_turnLeft(int speed);
 void motion_turnRight(int speed);
 void motion_stop(void);
 
+/* Set left and right wheel PWM independently */
+void motion_setWheelPWM(int left_pwm, int right_pwm);
+
 #endif /* MOTION_CONTROL_H */
