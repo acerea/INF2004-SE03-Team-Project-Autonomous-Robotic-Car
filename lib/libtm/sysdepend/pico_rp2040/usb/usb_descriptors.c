@@ -1,6 +1,6 @@
 /* Minimal USB CDC ACM descriptors for the Thread-Metric console. */
 
-#include <string.h>
+#include <tstdlib.h>
 #include "tusb.h"
 
 #define USB_VID 0x2e8a
