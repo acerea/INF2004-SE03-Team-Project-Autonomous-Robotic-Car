@@ -128,6 +128,7 @@ EXPORT INT usermain(void)
 	   here in the initial task, while the system is running.  Tests may
 	   call tk_dly_tsk() to let the other tasks work for a while. */
 	tm_printf((UB*)"[TEST] === test run start ===\n");
+	tk_dly_tsk(10000);	/* let Wi-Fi and MQTT connect before testing */
 	subsystem1_test();
 	subsystem2_test();
 	subsystem3_test();
