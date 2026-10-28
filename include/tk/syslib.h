@@ -121,7 +121,9 @@ IMPORT ER MUnlock( FastMLock *lock, INT no );
  */
 #if TK_SUPPORT_MEMLIB
 
-#ifndef PROHIBIT_DEF_SIZE_T
+#if defined(_PICO_RP2040_)
+#include <stddef.h>
+#elif !defined(PROHIBIT_DEF_SIZE_T)
 typedef SZ		size_t;
 #endif
 
