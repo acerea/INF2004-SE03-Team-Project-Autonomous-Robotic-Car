@@ -63,3 +63,12 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-27 | S1-M03 | `227e948` + local changes | Kathryn | PASS | `logs/2026-10-27_heartbeat_lastwill.png` | Last-Will ffc1ffffffffff01 (seq=255) published about 16 s after the last heartbeat (15:20:46 to 15:21:02) |
 | 2026-10-27 | S1-M04 | `227e948` + local changes | Kathryn | PASS | `logs/2026-10-27_reconnect.png` | Pico replugged; heartbeats resumed at 15:23:08 with seq restarting at 00|
 | 2026-10-27 | S1-M06 | `227e948` + local changes | Kathryn | PASS | `logs/2026-10-27_cmd_counters.jpg` | After reboot, heartbeat bytes 5 and 6 start at 00 00. After STOP and START byte 5 goes 00 to 04 and byte 6 stays 00. After 3-byte `abc` and 5-byte `abcde` byte 6 goes 00 to 04 and byte 5 stays 04. So cmd_ok +2 and cmd_bad +2; built with S1_DEBUG_CMD=1 |
+| 2026-10-29 | S1-U01 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | Re-run after merge of origin/main (`9a94a38`) |
+| 2026-10-29 | S1-U02 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | |
+| 2026-10-29 | S1-U03 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | |
+| 2026-10-29 | S1-U04 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | |
+| 2026-10-29 | S1-U05 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | Depends on S1-U04 state; runs in order |
+| 2026-10-29 | S1-U06 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | |
+| 2026-10-29 | S1-U07 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | |
+| 2026-10-29 | S1-U08 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | Test checks constants only |
+| 2026-10-29 | S1-U09 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | 1-byte oversize marker rejected, sequence unchanged |
