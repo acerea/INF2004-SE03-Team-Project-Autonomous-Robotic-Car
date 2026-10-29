@@ -18,6 +18,14 @@ RM := rm -rf
 # The subdir.mk files included below define the first explicit rules make
 # sees, so a bare 'make' would otherwise pick one of their object files as
 # the default goal and quietly leave the image stale.
+# wy added this
+INCPATH = -I"../include" -I"../config" -I"../kernel/knlinc"
+
+ifeq ($(TEST),1)
+CFLAGS += -DAPP_TEST=1
+CPPFLAGS += -DAPP_TEST=1
+endif
+
 .DEFAULT_GOAL := all
 
 INCPATH = -I"../include" -I"../config" -I"../kernel/knlinc"
@@ -98,17 +106,24 @@ clean:
 .PHONY: all clean dependents
 
 # Added this -wy
-APP_BINARY = mtk3pico_smp1_usb_cdc
+APP_BINARY = $(EXE_FILE)
 
 flash:
 	@if [ ! -d "/Volumes/RPI-RP2" ]; then \
 		echo "Plug in Pico with BOOTSEL held down..."; \
 		while [ ! -d "/Volumes/RPI-RP2" ]; do sleep 0.5; done; \
 	fi
-	@echo "Flashing $(APP_BINARY).uf2..."
-	@cp $(APP_BINARY).uf2 /Volumes/RPI-RP2/
+	@echo "Flashing $(APP_BINARY).uf2 via Finder..."
+	@osascript -e 'tell application "Finder" to duplicate POSIX file "$(CURDIR)/$(APP_BINARY).uf2" to POSIX file "/Volumes/RPI-RP2" with replacing' > /dev/null 2>&1 || true
 	@echo "Flash complete."
 
 run: flash
-	@sleep 2
-	screen /dev/tty.usbmodem* 115200
+	@echo "Waiting 3 seconds for Pico serial port to enumerate..."
+	@sleep 3
+	@PORT=$$(ls /dev/cu.usbmodem* /dev/tty.usbmodem* 2>/dev/null | head -n 1); \
+	if [ -n "$$PORT" ]; then \
+		echo "Connecting to $$PORT..."; \
+		screen $$PORT 115200; \
+	else \
+		echo "Serial port not found. Check USB connection or open Serial Monitor."; \
+	fi

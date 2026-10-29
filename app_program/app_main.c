@@ -127,6 +127,7 @@ EXPORT INT usermain(void)
 	/* Test build (make TEST=1): run every subsystem's tests in turn,
 	   here in the initial task, while the system is running.  Tests may
 	   call tk_dly_tsk() to let the other tasks work for a while. */
+	tk_dly_tsk(3000); /*wy added this*/
 	tm_printf((UB*)"[TEST] === test run start ===\n");
 	subsystem1_test();
 	subsystem2_test();
@@ -134,6 +135,7 @@ EXPORT INT usermain(void)
 	subsystem4_test();
 	subsystem5_test();
 	tm_printf((UB*)"[TEST] === test run end ===\n");
+	tk_dly_tsk(4000); /* repeats every 4 seconds */
 #endif
 
 	/* Sleep forever.  Returning from usermain() would shut down. */

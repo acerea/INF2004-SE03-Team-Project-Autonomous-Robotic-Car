@@ -56,22 +56,3 @@ float ultrasonic_read_distance_cm(void)
     /* Distance = (Time * Speed of Sound 343 m/s) / 2 */
     return (float)duration_us * 0.0343f / 2.0f;
 }
-/* Standard memory operations needed when linking without libc */
-void *memcpy(void *dest, const void *src, unsigned int n)
-{
-    char *d = (char *)dest;
-    const char *s = (const char *)src;
-    while (n--) {
-        *d++ = *s++;
-    }
-    return dest;
-}
-
-void *memset(void *s, int c, unsigned int n)
-{
-    unsigned char *p = (unsigned char *)s;
-    while (n--) {
-        *p++ = (unsigned char)c;
-    }
-    return s;
-}
