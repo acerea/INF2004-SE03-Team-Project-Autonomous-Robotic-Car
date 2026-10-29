@@ -7,6 +7,7 @@
 
 #include "buddy4_data.h"
 #include "buddy4_classifier.h"
+#include "buddy4_ramp.h"
 #include "subsystem4.h"
 #include "../test_report.h"
 
@@ -18,6 +19,7 @@ EXPORT void subsystem4_test(void)
 	UW before;
 	B4_MOTION_INPUT input;
 	B4_EVENT classified;
+	B4_RAMP_RESULT ramp;
 
 	TEST_INIT();
 
@@ -175,7 +177,7 @@ EXPORT void subsystem4_test(void)
 	/* B4-U14: Negative yaw rate should also detect turning. */
 	input.motion_level_mg = 100;
 	input.vertical_delta_mg = 0;
-	input.yaw_rate_mdps = -35000;
+	input.yaw_rate_mdps = -30000;
 	input.imu_fault = 0u;
 
 	classified = b4_classify_motion(input);
@@ -197,6 +199,37 @@ EXPORT void subsystem4_test(void)
 				   b4_event_has_imu_fault(classified) &&
 				   !b4_event_has_collision(classified),
 			   "IMU fault takes priority over impact classification");
+
+	/* Ramp-estimator tests use synthetic inputs; these do not test the IMU. */
+	/* B4-R01: a 100 mm ramp distance at 30 degrees gives about 50 mm rise. */
+	ramp = b4_estimate_ramp_height(100u, 300u);
+	TEST_CHECK("B4-R01",
+			   ramp.valid && ramp.height_mm >= 49u && ramp.height_mm <= 51u,
+			   "30 degree ramp height calculation is approximately correct");
+
+	/* B4-R02: zero angle is rejected as an invalid ramp estimate. */
+	ramp = b4_estimate_ramp_height(100u, 0u);
+	TEST_CHECK("B4-R02",
+			   !ramp.valid && ramp.height_mm == B4_RAMP_INVALID_HEIGHT,
+			   "zero ramp angle returns invalid result");
+
+	/* B4-R03: an angle above 90 degrees is rejected. */
+	ramp = b4_estimate_ramp_height(100u, 901u);
+	TEST_CHECK("B4-R03",
+			   !ramp.valid && ramp.height_mm == B4_RAMP_INVALID_HEIGHT,
+			   "angle above 90 degrees returns invalid result");
+
+	/* B4-R04: zero distance is rejected. */
+	ramp = b4_estimate_ramp_height(0u, 300u);
+	TEST_CHECK("B4-R04",
+			   !ramp.valid && ramp.height_mm == B4_RAMP_INVALID_HEIGHT,
+			   "zero ramp distance returns invalid result");
+
+	/* B4-R05: input beyond the configured distance bound is rejected. */
+	ramp = b4_estimate_ramp_height(B4_RAMP_MAX_DISTANCE_MM + 1u, 300u);
+	TEST_CHECK("B4-R05",
+			   !ramp.valid && ramp.height_mm == B4_RAMP_INVALID_HEIGHT,
+			   "distance beyond supported bound returns invalid result");
 
 	TEST_SUMMARY("subsystem4");
 }
