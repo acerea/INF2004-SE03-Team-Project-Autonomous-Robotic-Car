@@ -5,6 +5,8 @@
  *	APIs shown: tk_cre_sem, tk_cre_mpf
  */
 
+#include "pid_control.h"
+#include "wheel_encoder.h"
 #include "motion_control.h"
 #include "subsystem2.h"
 
@@ -14,6 +16,7 @@ EXPORT ID	mpf_samples;
 EXPORT ER subsystem2_init(void)
 {
 	motion_init(); /* Initialise motor control */
+	encoder_init(); /* Initialise wheel encoders */
 
 	T_CSEM	csem = {0};
 	T_CMPF	cmpf = {0};

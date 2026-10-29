@@ -156,14 +156,17 @@ CFLAGS := -mcpu=cortex-m0plus -mthumb -ffreestanding\
     -std=gnu11 \
     -O2 -g3 \
     -MMD -MP \
-    -mfloat-abi=soft \
+    -mfloat-abi=soft
+
+CFLAGS += -isystem $(shell arm-none-eabi-gcc -print-file-name=include)
+CFLAGS += -isystem $(shell dirname $$(arm-none-eabi-gcc -print-file-name=libc.a))/../../../../arm-none-eabi/include
 
 ASFLAGS := -mcpu=cortex-m0plus -mthumb -ffreestanding\
     -x assembler-with-cpp \
     -O2 -g3 \
     -MMD -MP \
 
-LFLAGS := -mcpu=cortex-m0plus -mthumb -ffreestanding \
+LFLAGS := -mcpu=cortex-m0plus -mthumb -ffreestanding -nostartfiles -nodefaultlibs -lgcc \
     -nostartfiles \
     -O2 -g3 \
     -mfloat-abi=soft \
@@ -469,3 +472,5 @@ include mtkernel_3/lib/libbsp/sysdepend/cpu/rp2040/subdir.mk
 include mtkernel_3/kernel/sysdepend/pico_rp2040/subdir.mk
 include mtkernel_3/kernel/sysdepend/cpu/rp2040/subdir.mk
 include mtkernel_3/kernel/sysdepend/cpu/core/armv6m/subdir.mk
+# Pure C library routines used by TinyUSB and the CYW43 driver.
+LDLIBS += -lc
