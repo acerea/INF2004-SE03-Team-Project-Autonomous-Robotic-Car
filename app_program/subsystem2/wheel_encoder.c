@@ -60,15 +60,15 @@
 
 /* Preliminary calibration from 5 manual wheel revolutions:
  *
- * Left wheel:  12615 / 5 = 2523 counts/revolution
- * Right wheel: 12675 / 5 = 2535 counts/revolution
+ * Left wheel:  12567 / 5 = 2513.4 counts/revolution
+ * Right wheel: 12666 / 5 = 2533.2 counts/revolution
  * Wheel diameter: 6 cm
  * Circumference: 3.14159265 * 6 = 18.8495559 cm
  * 
  * NOTE: Calibration should be verified during motor-driven testing.
  */
-#define LEFT_COUNTS_PER_REV         2523 
-#define RIGHT_COUNTS_PER_REV        2535 
+#define LEFT_COUNTS_PER_REV         2513.4f 
+#define RIGHT_COUNTS_PER_REV        2533.2f 
 #define WHEEL_DIAMETER_CM           6.0f 
 #define WHEEL_CIRCUMFERENCE_CM      (3.14159265f * WHEEL_DIAMETER_CM)
 

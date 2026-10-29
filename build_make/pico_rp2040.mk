@@ -472,3 +472,5 @@ include mtkernel_3/lib/libbsp/sysdepend/cpu/rp2040/subdir.mk
 include mtkernel_3/kernel/sysdepend/pico_rp2040/subdir.mk
 include mtkernel_3/kernel/sysdepend/cpu/rp2040/subdir.mk
 include mtkernel_3/kernel/sysdepend/cpu/core/armv6m/subdir.mk
+# Pure C library routines used by TinyUSB and the CYW43 driver.
+LDLIBS += -lc

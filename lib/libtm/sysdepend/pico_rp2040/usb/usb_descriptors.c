@@ -1,6 +1,7 @@
 /* Minimal USB CDC ACM descriptors for the Thread-Metric console. */
 
-#include <tstdlib.h>
+#include <stddef.h>
+#include <string.h>
 #include "tusb.h"
 
 #define USB_VID 0x2e8a
@@ -48,8 +49,10 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index)
     return configuration_descriptor;
 }
 
+static char const language_id[] = { 0x09, 0x04 };
+
 static char const *const string_table[] = {
-    (const char[]){ 0x09, 0x04 },
+    language_id,
     "micro T-Kernel Forum",
     "MTK3 Thread-Metric RP2040",
     "MTK3PICO",
