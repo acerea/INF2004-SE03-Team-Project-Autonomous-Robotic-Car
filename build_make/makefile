@@ -96,3 +96,13 @@ clean:
 	-@echo ' '
 
 .PHONY: all clean dependents
+
+# Added this -wy
+TARGET = mtk3pico_smp1_usb_cdc
+
+flash:
+	picotool load -f -x $(TARGET).uf2
+
+run: flash
+	@sleep 1.5
+	screen /dev/tty.usbmodem* 115200
