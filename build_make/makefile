@@ -98,11 +98,17 @@ clean:
 .PHONY: all clean dependents
 
 # Added this -wy
-TARGET = mtk3pico_smp1_usb_cdc
+APP_BINARY = mtk3pico_smp1_usb_cdc
 
 flash:
-	picotool load -f -x $(TARGET).uf2
+	@if [ ! -d "/Volumes/RPI-RP2" ]; then \
+		echo "Plug in Pico with BOOTSEL held down..."; \
+		while [ ! -d "/Volumes/RPI-RP2" ]; do sleep 0.5; done; \
+	fi
+	@echo "Flashing $(APP_BINARY).uf2..."
+	@cp $(APP_BINARY).uf2 /Volumes/RPI-RP2/
+	@echo "Flash complete."
 
 run: flash
-	@sleep 1.5
+	@sleep 2
 	screen /dev/tty.usbmodem* 115200
