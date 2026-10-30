@@ -12,6 +12,7 @@
 #include "../app.h"
 
 #define S4_PRI_MONITOR		18	/* priority band 18-19 (TEAM.md) */
+#define S4_PRI_IMU		19	/* GY-511 sampling task; same S4 priority band */
 #define S4_ALARM_MS		2000	/* report anyway if nothing for 2 s */
 #define S4_LED_TOGGLE_REPORTS	6	/* pause/resume the LED every N reports */
 
@@ -29,5 +30,6 @@ IMPORT ID	alm_monitor;
 IMPORT UW	s4_lines_received;	/* for the tests */
 IMPORT void	monitor_task(INT stacd, void *exinf);
 IMPORT void	monitor_alarm_handler(void *exinf);
+IMPORT void	b4_imu_task(INT stacd, void *exinf);
 
 #endif /* SUBSYSTEM4_H */

@@ -88,10 +88,10 @@ EXPORT void subsystem4_test(void)
 			   b4_event_state(classified) == B4_STATE_MOVING,
 			   "sufficient activity is classified as moving");
 
-	/* B4-U07: High yaw rate should classify as turning. */
+	/* B4-U07: A valid int16 yaw-rate test value at the threshold classifies as turning. */
 	input.motion_level_mg = 100;
 	input.vertical_delta_mg = 0;
-	input.yaw_rate_mdps = 35000;
+	input.yaw_rate_mdps = 30000;
 	input.imu_fault = 0u;
 
 	classified = b4_classify_motion(input);

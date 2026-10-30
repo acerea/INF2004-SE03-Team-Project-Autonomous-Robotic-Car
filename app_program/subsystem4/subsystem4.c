@@ -46,7 +46,15 @@ EXPORT ER subsystem4_init(void)
 
 EXPORT ER subsystem4_start(void)
 {
-	/* No affinity: the scheduler may run it on either core */
-	ID tid = app_start_task(monitor_task, S4_PRI_MONITOR, 0, "monitor_task");
+	ID tid;
+
+	/* Keep the existing monitor task. */
+	tid = app_start_task(monitor_task, S4_PRI_MONITOR, 0, "monitor_task");
+	if (tid < E_OK) {
+		return tid;
+	}
+
+	/* GY-511 is owned by this one sampling task on I2C0. */
+	tid = app_start_task(b4_imu_task, S4_PRI_IMU, 0, "b4_imu_task");
 	return (tid < E_OK) ? tid : E_OK;
 }
