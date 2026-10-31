@@ -17,7 +17,7 @@ EXPORT void subsystem4_test(void)
 {
 	T_RMBF rmbf;
 	UW before;
-	B4_MOTION_INPUT input;
+	B4_MOTION_INPUT input = {0};
 	B4_EVENT classified;
 	B4_RAMP_RESULT ramp;
 
@@ -100,33 +100,53 @@ EXPORT void subsystem4_test(void)
 			   b4_event_state(classified) == B4_STATE_TURNING,
 			   "high yaw rate is classified as turning");
 
-	/* B4-U08: Positive vertical deviation suggests climbing. */
-	input.motion_level_mg = 100;
+	/*
+	 * B4-U08: A stationary sensor tilted sideways
+	 * should not be classified as climbing or descending.
+	 */
+	input.motion_level_mg = 0;
 	input.vertical_delta_mg = 900;
+	input.accel_x_mg = 900;
+	input.accel_y_mg = 0;
+	input.accel_z_mg = 435;
 	input.yaw_rate_mdps = 0;
 	input.imu_fault = 0u;
 
 	classified = b4_classify_motion(input);
 
 	TEST_CHECK("B4-U08",
-			   b4_event_state(classified) == B4_STATE_CLIMBING,
-			   "positive vertical deviation is classified as climbing");
+			   b4_event_state(classified) != B4_STATE_CLIMBING &&
+				   b4_event_state(classified) != B4_STATE_DESCENDING,
+			   "sideways sensor tilt does not indicate climbing or descending");
 
-	/* B4-U09: Negative vertical deviation suggests descending. */
-	input.motion_level_mg = 100;
+	/*
+	 * B4-U09: A stationary sensor tilted in the opposite
+	 * direction should also avoid climbing/descending classification.
+	 */
+	input.motion_level_mg = 0;
 	input.vertical_delta_mg = -900;
+	input.accel_x_mg = -900;
+	input.accel_y_mg = 0;
+	input.accel_z_mg = 435;
 	input.yaw_rate_mdps = 0;
 	input.imu_fault = 0u;
 
 	classified = b4_classify_motion(input);
 
 	TEST_CHECK("B4-U09",
-			   b4_event_state(classified) == B4_STATE_DESCENDING,
-			   "negative vertical deviation is classified as descending");
+			   b4_event_state(classified) != B4_STATE_CLIMBING &&
+				   b4_event_state(classified) != B4_STATE_DESCENDING,
+			   "opposite sensor tilt does not indicate climbing or descending");
 
-	/* B4-U10: Large vertical deviation indicates a possible impact. */
+	/*
+	 * B4-U10: Acceleration exceeding the provisional
+	 * threshold on one axis produces an impact event.
+	 */
 	input.motion_level_mg = 100;
-	input.vertical_delta_mg = 2000;
+	input.vertical_delta_mg = 0;
+	input.accel_x_mg = 1800;
+	input.accel_y_mg = 0;
+	input.accel_z_mg = 1000;
 	input.yaw_rate_mdps = 0;
 	input.imu_fault = 0u;
 
@@ -135,7 +155,7 @@ EXPORT void subsystem4_test(void)
 	TEST_CHECK("B4-U10",
 			   b4_event_state(classified) == B4_STATE_IMPACT &&
 				   b4_event_has_collision(classified),
-			   "large vertical deviation sets impact and collision");
+			   "large acceleration on one axis sets impact and collision");
 
 	/* B4-U11: An IMU fault should produce a fault event. */
 	input.motion_level_mg = 0;
@@ -153,11 +173,13 @@ EXPORT void subsystem4_test(void)
 	/* B4-U12: Motion just below the threshold should be stationary. */
 	input.motion_level_mg = 149;
 	input.vertical_delta_mg = 0;
+	input.accel_x_mg = 0;
+	input.accel_y_mg = 0;
+	input.accel_z_mg = 0;
 	input.yaw_rate_mdps = 0;
 	input.imu_fault = 0u;
 
 	classified = b4_classify_motion(input);
-
 	TEST_CHECK("B4-U12",
 			   b4_event_state(classified) == B4_STATE_STATIONARY,
 			   "activity just below threshold is stationary");
@@ -165,6 +187,9 @@ EXPORT void subsystem4_test(void)
 	/* B4-U13: Motion at the threshold should be moving. */
 	input.motion_level_mg = 150;
 	input.vertical_delta_mg = 0;
+	input.accel_x_mg = 0;
+	input.accel_y_mg = 0;
+	input.accel_z_mg = 0;
 	input.yaw_rate_mdps = 0;
 	input.imu_fault = 0u;
 
@@ -177,6 +202,9 @@ EXPORT void subsystem4_test(void)
 	/* B4-U14: Negative yaw rate should also detect turning. */
 	input.motion_level_mg = 100;
 	input.vertical_delta_mg = 0;
+	input.accel_x_mg = 0;
+	input.accel_y_mg = 0;
+	input.accel_z_mg = 0;
 	input.yaw_rate_mdps = -30000;
 	input.imu_fault = 0u;
 
@@ -188,7 +216,10 @@ EXPORT void subsystem4_test(void)
 
 	/* B4-U15: An IMU fault takes priority over an impact condition. */
 	input.motion_level_mg = 100;
-	input.vertical_delta_mg = 2000;
+	input.vertical_delta_mg = 0;
+	input.accel_x_mg = 1800;
+	input.accel_y_mg = 0;
+	input.accel_z_mg = 1000;
 	input.yaw_rate_mdps = 0;
 	input.imu_fault = 1u;
 
