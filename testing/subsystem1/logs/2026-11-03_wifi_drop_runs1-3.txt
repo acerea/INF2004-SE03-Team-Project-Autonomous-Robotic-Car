@@ -1,0 +1,42 @@
+S1-M09 Wi-Fi drop (laptop hotspot "homeschool" switched off, then on), 2026-11-03
+Firmware 0850bc5 unless stated. Lines filtered to s1:, wifi: and mqtt: (subsystem 4 monitor: lines removed).
+Runs 4-6: PowerShell serial logger, laptop clock time in front of each line.
+
+== Run 1: hotspot without internet. Hotspot on -> CONNECTED measured by stopwatch: 11.77 s
+s1: 43900 ms link CONNECTED -> LOST
+wifi: link status -> FAILED: authentication rejected (-3)
+s1: 49800 ms link LOST -> RECONNECTING
+s1: 53900 ms link RECONNECTING -> FAULT
+mqtt: connection status 257, retrying in 3s
+mqtt: mqtt_client_connect() failed, err=-4   (repeated 11 times while Wi-Fi was down)
+wifi: link up, ip=192.168.137.40
+mqtt: connected to 192.168.137.1
+mqtt: subscribed to picocar-01/cmd
+s1: 88500 ms link FAULT -> CONNECTED
+Note: no "wifi: joining" line; the Wi-Fi chip rejoined by itself.
+
+== Run 2: hotspot without internet. No recovery within 60 s of hotspot on; Pico replugged.
+s1: 230100 ms link CONNECTED -> LOST
+wifi: link status -> FAILED: authentication rejected (-3)
+s1: 236100 ms link LOST -> RECONNECTING
+s1: 240100 ms link RECONNECTING -> FAULT
+mqtt: connection status 257, retrying in 3s
+mqtt: mqtt_client_connect() failed, err=-4   (repeated until reset)
+Note: no "wifi: joining" line within 60 s.
+
+== Run 3: hotspot without internet, switched on shortly after FAULT.
+s1: 21100 ms link CONNECTED -> LOST
+wifi: link status -> FAILED: authentication rejected (-3)
+s1: 25800 ms link LOST -> RECONNECTING
+s1: 31100 ms link RECONNECTING -> FAULT
+mqtt: connection status 257, retrying in 3s
+mqtt: mqtt_client_connect() failed, err=-4   (repeated 2 times)
+wifi: link up, ip=192.168.137.152
+mqtt: connected to 192.168.137.1
+mqtt: subscribed to picocar-01/cmd
+s1: 44300 ms link FAULT -> CONNECTED
+mqtt: connection status 256, retrying in 3s
+mqtt: connected to 192.168.137.1
+mqtt: subscribed to picocar-01/cmd
+Note: no "wifi: joining" line; the Wi-Fi chip rejoined by itself.
+
