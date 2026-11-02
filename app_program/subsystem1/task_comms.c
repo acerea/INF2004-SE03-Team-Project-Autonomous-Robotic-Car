@@ -44,6 +44,7 @@ typedef struct
 } comms_ctx_t;
 
 static uint32_t now_ms(void);
+static TMO tick_wait(uint32_t last_tick_ms);
 static uint32_t contact_ms(void);
 static uint32_t lib_tx_drops(void);
 static uint32_t lib_rx_drops(void);
@@ -56,7 +57,7 @@ static void forward_command(comms_ctx_t * p_ctx, uint8_t packed);
 static void handle_command(comms_ctx_t * p_ctx, uint8_t const * p_raw,
                            uint32_t len);
 static s1_link_t escalate_link(comms_ctx_t * p_ctx, s1_link_t link,
-                           uint32_t now);
+                               uint32_t now);
 static void tick(comms_ctx_t * p_ctx);
 
 ER
@@ -145,8 +146,8 @@ comms_task (INT stacd, void * exinf)
 
     for (;;)
     {
-        // Blocks until a raw command arrives, or one tick has passed.
-        size = tk_rcv_mbf(g_mbf_cmd_raw, raw, S1_TICK_MS);
+        // Blocks until a raw command arrives, or the next tick is due.
+        size = tk_rcv_mbf(g_mbf_cmd_raw, raw, tick_wait(ctx.last_tick_ms));
 
         if (size > 0)
         {
@@ -167,7 +168,17 @@ comms_task (INT stacd, void * exinf)
 
         if ((now - ctx.last_tick_ms) >= S1_TICK_MS)
         {
-            ctx.last_tick_ms = now;
+            // Fixed 100 ms grid, so ticks do not drift. After a long stall,
+            // restart the grid instead of running a burst of late ticks.
+            if ((now - ctx.last_tick_ms) >= (2u * S1_TICK_MS))
+            {
+                ctx.last_tick_ms = now;
+            }
+            else
+            {
+                ctx.last_tick_ms += S1_TICK_MS;
+            }
+
             tick(&ctx);
         }
     }
@@ -181,6 +192,21 @@ now_ms (void)
     (void) tk_get_otm(&otm);        // Same clock as lwIP's sys_now().
 
     return (otm.lo);
+}
+
+static TMO
+tick_wait (uint32_t last_tick_ms)
+{
+    uint32_t elapsed = now_ms() - last_tick_ms;
+    uint32_t wait    = 0u;              // 0 = TMO_POL: tick is already due.
+
+    if (elapsed < S1_TICK_MS)
+    {
+        wait = S1_TICK_MS - elapsed;
+    }
+
+    // NOTE: wait is at most S1_TICK_MS (100), so the cast cannot truncate.
+    return ((TMO) wait);
 }
 
 static uint32_t
@@ -481,7 +507,17 @@ tick (comms_ctx_t * p_ctx)
 
     if ((now - p_ctx->last_hb_ms) >= S1_HEARTBEAT_MS)
     {
-        p_ctx->last_hb_ms = now;
+        // Fixed grid, so the period does not drift. After a long stall,
+        // restart the grid instead of sending a burst of heartbeats.
+        if ((now - p_ctx->last_hb_ms) >= (2u * S1_HEARTBEAT_MS))
+        {
+            p_ctx->last_hb_ms = now;
+        }
+        else
+        {
+            p_ctx->last_hb_ms += S1_HEARTBEAT_MS;
+        }
+
         send_heartbeat(p_ctx, link, now);
     }
 

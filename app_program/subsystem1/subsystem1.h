@@ -15,7 +15,7 @@
 
 #define S1_PRI_COMMS        (22)      // Lowest app priority
 #define S1_TICK_MS          (100u)    // Comms housekeeping period.
-#define S1_HEARTBEAT_MS     (2000u)   // NFR4: at least every 2 s.
+#define S1_HEARTBEAT_MS     (2000u - S1_TICK_MS) // NFR4: <= 2 s apart.
 #define S1_LINK_STALE_MS    (5000u)   // NFR6: no broker contact = "lost".
 #define S1_LINK_FAULT_MS    (10000u)  // NFR6: not restored in 10 s = FAULT.
 
@@ -29,7 +29,10 @@
 #define S1_CMD_BUF_BYTES    (32u)
 #define S1_CMD_FRAME_BYTES  PROTO_CMD_FRAME_BYTES
 
-// Bits of g_flg_remote, waited on by the Vehicle Controller.
+// Bits of g_flg_remote, waited on by the Vehicle Controller (VC).
+// TA_WSGL: only one task (the VC) may wait on this flag.
+// One CMD_READY may stand for several commands: on each wake-up the VC
+// reads g_mbf_remote_cmd with TMO_POL until it returns E_TMOUT.
 #define S1_FLG_ESTOP        (0x01u)
 #define S1_FLG_STOP         (0x02u)
 #define S1_FLG_LINK_LOST    (0x04u)   // Set whenever not CONNECTED.
