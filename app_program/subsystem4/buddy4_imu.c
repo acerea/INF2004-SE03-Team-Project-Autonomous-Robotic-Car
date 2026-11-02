@@ -22,41 +22,40 @@
 #include "../../device/include/dev_i2c.h"
 
 /* LSM303DLHC accelerometer registers. */
-#define ACC_CTRL_REG1_A       0x20u
-#define ACC_CTRL_REG4_A       0x23u
-#define ACC_OUT_X_L_A         0x28u
-#define ACC_WHO_AM_I_A        0x0Fu
-#define ACC_WHO_AM_I_VAL      0x33u
+#define ACC_CTRL_REG1_A 0x20u
+#define ACC_CTRL_REG4_A 0x23u
+#define ACC_OUT_X_L_A 0x28u
+#define ACC_WHO_AM_I_A 0x0Fu
+#define ACC_WHO_AM_I_VAL 0x33u
 
 /* LSM303DLHC magnetometer registers. */
-#define MAG_CRA_REG_M         0x00u
-#define MAG_CRB_REG_M         0x01u
-#define MAG_MR_REG_M          0x02u
-#define MAG_OUT_X_H_M         0x03u
-#define MAG_IRA_REG_M         0x0Au
-#define MAG_IRB_REG_M         0x0Bu
-#define MAG_IRC_REG_M         0x0Cu
+#define MAG_CRA_REG_M 0x00u
+#define MAG_CRB_REG_M 0x01u
+#define MAG_MR_REG_M 0x02u
+#define MAG_OUT_X_H_M 0x03u
+#define MAG_IRA_REG_M 0x0Au
+#define MAG_IRB_REG_M 0x0Bu
+#define MAG_IRC_REG_M 0x0Cu
 
-#define MAG_ID_A              ((UB)'H')
-#define MAG_ID_B              ((UB)'4')
-#define MAG_ID_C              ((UB)'3')
+#define MAG_ID_A ((UB)'H')
+#define MAG_ID_B ((UB)'4')
+#define MAG_ID_C ((UB)'3')
 
 /* Accelerometer is configured for 100 Hz. */
-#define B4_IMU_SAMPLE_MS      10u
+#define B4_IMU_SAMPLE_MS 10u
 
 /* Print diagnostic information approximately once per second. */
-#define B4_IMU_PRINT_SAMPLES  100u
+#define B4_IMU_PRINT_SAMPLES 100u
 
 /*
  * The sensor is mounted with its Z-axis pointing upwards.
  * A stationary, level sensor measures approximately +1000 mg
  * on its Z-axis because of gravity.
  */
-#define B4_GRAVITY_MG         1000
+#define B4_GRAVITY_MG 1000
 
 LOCAL ID b4_i2c_device = -1;
 LOCAL UW b4_accel_address = B4_IMU_ACCEL_ADDR_DEFAULT;
-
 
 /* --------------------------------------------------------- */
 /* I2C register access                                       */
@@ -71,7 +70,6 @@ LOCAL ER b4_write_reg(UW address, UW reg, UB value)
 {
     return i2c_write_reg(b4_i2c_device, address, reg, value);
 }
-
 
 /* --------------------------------------------------------- */
 /* Sensor detection                                          */
@@ -108,13 +106,12 @@ LOCAL ER b4_read_accel_id(void)
 
     tm_printf(
         (UB *)"[B4-IMU] accelerometer WHO_AM_I mismatch "
-               "(last=0x%02x, er=%d)\n",
+              "(last=0x%02x, er=%d)\n",
         id,
         er);
 
     return (er < E_OK) ? er : E_IO;
 }
-
 
 LOCAL ER b4_check_mag_id(void)
 {
@@ -139,7 +136,7 @@ LOCAL ER b4_check_mag_id(void)
     {
         tm_printf(
             (UB *)"[B4-IMU] magnetometer ID mismatch: "
-                   "%02x %02x %02x\n",
+                  "%02x %02x %02x\n",
             a, b, c);
 
         return E_IO;
@@ -147,7 +144,6 @@ LOCAL ER b4_check_mag_id(void)
 
     return E_OK;
 }
-
 
 /* --------------------------------------------------------- */
 /* Sensor configuration                                      */
@@ -206,17 +202,14 @@ LOCAL ER b4_configure_sensor(void)
     return er;
 }
 
-
 /* --------------------------------------------------------- */
 /* Raw sensor reading                                        */
 /* --------------------------------------------------------- */
 
 LOCAL int16_t b4_make_i16(UB low, UB high)
 {
-    return (int16_t)(
-        (UW)(((UW)high << 8) | (UW)low));
+    return (int16_t)((UW)(((UW)high << 8) | (UW)low));
 }
-
 
 LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
 {
@@ -328,18 +321,14 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
     if (er < E_OK)
         return er;
 
-    sample->mag_x = (int16_t)(
-        (UW)(((UW)xh_m << 8) | xl_m));
+    sample->mag_x = (int16_t)((UW)(((UW)xh_m << 8) | xl_m));
 
-    sample->mag_z = (int16_t)(
-        (UW)(((UW)zh_m << 8) | zl_m));
+    sample->mag_z = (int16_t)((UW)(((UW)zh_m << 8) | zl_m));
 
-    sample->mag_y = (int16_t)(
-        (UW)(((UW)yh_m << 8) | yl_m));
+    sample->mag_y = (int16_t)((UW)(((UW)yh_m << 8) | yl_m));
 
     return E_OK;
 }
-
 
 /* --------------------------------------------------------- */
 /* Motion preprocessing                                      */
@@ -360,7 +349,6 @@ LOCAL int32_t b4_abs_difference(int16_t current, int16_t previous)
     return difference;
 }
 
-
 /* Keep a calculated value within the int16_t range. */
 LOCAL int16_t b4_limit_i16(int32_t value)
 {
@@ -372,7 +360,33 @@ LOCAL int16_t b4_limit_i16(int32_t value)
 
     return (int16_t)value;
 }
+/*
+ * Calculate the largest acceleration change across
+ * the three axes between consecutive samples.
+ */
+LOCAL int16_t b4_calculate_max_axis_delta(
+    const B4_ACCEL_MG *current,
+    const B4_ACCEL_MG *previous)
+{
+    int32_t dx;
+    int32_t dy;
+    int32_t dz;
+    int32_t maximum;
 
+    dx = b4_abs_difference(current->x_mg, previous->x_mg);
+    dy = b4_abs_difference(current->y_mg, previous->y_mg);
+    dz = b4_abs_difference(current->z_mg, previous->z_mg);
+
+    maximum = dx;
+
+    if (dy > maximum)
+        maximum = dy;
+
+    if (dz > maximum)
+        maximum = dz;
+
+    return b4_limit_i16(maximum);
+}
 
 /*
  * Calculate acceleration activity using changes between
@@ -407,7 +421,6 @@ LOCAL int16_t b4_calculate_motion_level(
     return b4_limit_i16(*filtered_activity);
 }
 
-
 /*
  * Calculate vertical acceleration deviation.
  *
@@ -428,7 +441,6 @@ LOCAL int16_t b4_calculate_vertical_delta(
     return b4_limit_i16(delta);
 }
 
-
 /* --------------------------------------------------------- */
 /* Physical motion classification                            */
 /* --------------------------------------------------------- */
@@ -442,11 +454,13 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     B4_IMU_RAW sample;
     B4_MOTION_INPUT motion_input;
     B4_EVENT event;
+    int16_t impact_delta_mg = 0;
 
     ER er;
 
     int32_t filtered_activity = 0;
     uint16_t print_counter = 0u;
+    int16_t peak_impact_delta = 0;
 
     uint8_t previous_valid = 0u;
 
@@ -536,6 +550,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * Step 3: Prepare motion classifier input.
              */
             motion_input.imu_fault = 0u;
+            motion_input.impact_delta_mg = 0;
             /* Pass calibrated acceleration readings to classifier. */
             motion_input.accel_x_mg = calibrated_mg.x_mg;
             motion_input.accel_y_mg = calibrated_mg.y_mg;
@@ -557,6 +572,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                 previous_valid = 1u;
 
                 motion_input.motion_level_mg = 0;
+                impact_delta_mg = 0;
             }
             else
             {
@@ -567,14 +583,27 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                         &previous_mg,
                         &filtered_activity);
 
+                /*
+                 * Calculate the largest acceleration change
+                 * across X, Y and Z.
+                 */
+                impact_delta_mg =
+                    b4_calculate_max_axis_delta(
+                        &calibrated_mg,
+                        &previous_mg);
+                if (impact_delta_mg > peak_impact_delta)
+                {
+                    peak_impact_delta = impact_delta_mg;
+                }
+
                 /* Save the current sample for the next iteration. */
                 previous_mg = calibrated_mg;
             }
-
             /*
              * Calculate vertical acceleration deviation.
              * Positive Z is upwards.
              */
+            motion_input.impact_delta_mg = impact_delta_mg;
             motion_input.vertical_delta_mg =
                 b4_calculate_vertical_delta(&calibrated_mg);
 
@@ -591,12 +620,15 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * invalid sensor data.
              */
             motion_input.motion_level_mg = 0;
+            motion_input.impact_delta_mg = 0;
             motion_input.vertical_delta_mg = 0;
             motion_input.accel_x_mg = 0;
             motion_input.accel_y_mg = 0;
             motion_input.accel_z_mg = 0;
             motion_input.yaw_rate_mdps = 0;
             motion_input.imu_fault = 1u;
+            impact_delta_mg = 0;
+            peak_impact_delta = 0;
 
             event = b4_classify_motion(motion_input);
 
@@ -623,14 +655,18 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
             {
                 tm_printf(
                     (UB *)"[B4-IMU] "
-                           "CAL X=%d Y=%d Z=%d mg | "
-                           "Motion=%d mg | "
-                           "Vertical delta=%d mg | "
-                           "Event=0x%02x | State=%u\n",
+                          "CAL X=%d Y=%d Z=%d mg | "
+                          "Motion=%d mg | "
+                          "Impact delta=%d mg | "
+                          "Peak impact delta=%d mg | "
+                          "Vertical delta=%d mg | "
+                          "Event=0x%02x | State=%u\n",
                     calibrated_mg.x_mg,
                     calibrated_mg.y_mg,
                     calibrated_mg.z_mg,
                     motion_input.motion_level_mg,
+                    impact_delta_mg,
+                    peak_impact_delta,
                     motion_input.vertical_delta_mg,
                     (UB)event,
                     (UB)b4_event_state(event));
@@ -639,12 +675,13 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
             {
                 tm_printf(
                     (UB *)"[B4-IMU] Sensor read error=%d | "
-                           "Event=0x%02x | State=%u\n",
+                          "Event=0x%02x | State=%u\n",
                     er,
                     (UB)event,
                     (UB)b4_event_state(event));
             }
         }
+        peak_impact_delta = 0;
 
         /* Wait before taking the next sample. */
         tk_dly_tsk(B4_IMU_SAMPLE_MS);

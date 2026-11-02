@@ -139,12 +139,13 @@ EXPORT void subsystem4_test(void)
 			   "opposite sensor tilt does not indicate climbing or descending");
 
 	/*
-	 * B4-U10: Acceleration exceeding the provisional
-	 * threshold on one axis produces an impact event.
+	 * B4-U10: Impact delta reaching the provisional
+	 * threshold produces an impact event.
 	 */
 	input.motion_level_mg = 100;
+	input.impact_delta_mg = B4_IMPACT_DELTA_THRESHOLD_MG;
 	input.vertical_delta_mg = 0;
-	input.accel_x_mg = 1800;
+	input.accel_x_mg = 0;
 	input.accel_y_mg = 0;
 	input.accel_z_mg = 1000;
 	input.yaw_rate_mdps = 0;
@@ -155,7 +156,7 @@ EXPORT void subsystem4_test(void)
 	TEST_CHECK("B4-U10",
 			   b4_event_state(classified) == B4_STATE_IMPACT &&
 				   b4_event_has_collision(classified),
-			   "large acceleration on one axis sets impact and collision");
+			   "impact delta at threshold sets impact and collision");
 
 	/* B4-U11: An IMU fault should produce a fault event. */
 	input.motion_level_mg = 0;
@@ -171,7 +172,8 @@ EXPORT void subsystem4_test(void)
 			   "IMU fault produces a fault event");
 
 	/* B4-U12: Motion just below the threshold should be stationary. */
-	input.motion_level_mg = 149;
+	input.motion_level_mg = B4_MOTION_THRESHOLD_MG - 1;
+	input.impact_delta_mg = 0;
 	input.vertical_delta_mg = 0;
 	input.accel_x_mg = 0;
 	input.accel_y_mg = 0;
@@ -185,7 +187,8 @@ EXPORT void subsystem4_test(void)
 			   "activity just below threshold is stationary");
 
 	/* B4-U13: Motion at the threshold should be moving. */
-	input.motion_level_mg = 150;
+	input.motion_level_mg = B4_MOTION_THRESHOLD_MG;
+	input.impact_delta_mg = 0;
 	input.vertical_delta_mg = 0;
 	input.accel_x_mg = 0;
 	input.accel_y_mg = 0;
@@ -201,11 +204,12 @@ EXPORT void subsystem4_test(void)
 
 	/* B4-U14: Negative yaw rate should also detect turning. */
 	input.motion_level_mg = 100;
+	input.impact_delta_mg = 0;
 	input.vertical_delta_mg = 0;
 	input.accel_x_mg = 0;
 	input.accel_y_mg = 0;
 	input.accel_z_mg = 0;
-	input.yaw_rate_mdps = -30000;
+	input.yaw_rate_mdps = -B4_TURN_THRESHOLD_MDPS;
 	input.imu_fault = 0u;
 
 	classified = b4_classify_motion(input);
@@ -216,8 +220,9 @@ EXPORT void subsystem4_test(void)
 
 	/* B4-U15: An IMU fault takes priority over an impact condition. */
 	input.motion_level_mg = 100;
+	input.impact_delta_mg = B4_IMPACT_DELTA_THRESHOLD_MG;
 	input.vertical_delta_mg = 0;
-	input.accel_x_mg = 1800;
+	input.accel_x_mg = 0;
 	input.accel_y_mg = 0;
 	input.accel_z_mg = 1000;
 	input.yaw_rate_mdps = 0;
@@ -230,6 +235,16 @@ EXPORT void subsystem4_test(void)
 				   b4_event_has_imu_fault(classified) &&
 				   !b4_event_has_collision(classified),
 			   "IMU fault takes priority over impact classification");
+
+	/* B4-U16: Reserved bits must remain zero. */
+	classified = b4_pack_event(
+		B4_STATE_TURNING,
+		1u,
+		1u);
+
+	TEST_CHECK("B4-U16",
+			   (classified & B4_RESERVED_MASK) == 0u,
+			   "reserved bits remain zero");
 
 	/* Ramp-estimator tests use synthetic inputs; these do not test the IMU. */
 	/* B4-R01: a 100 mm ramp distance at 30 degrees gives about 50 mm rise. */
