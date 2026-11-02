@@ -25,6 +25,7 @@ Define a test here before running it. Test IDs never change.
 | S1-M04 | automatic reconnect | link-loss | manual | 1. Replug the Pico. | `mqtt: connected` and heartbeats resume |
 | S1-M05 | command from laptop accepted by the car | IF-07 | manual | 1. Run `laptop_station.py`. 2. Type `stop`, then `start`. 3. Read serial on COM5. | `s1: cmd accepted cmd=1` then `cmd=0` appear |
 | S1-M06 | command counters in the heartbeat | IF-07, wire format | manual | 1. Run `mosquitto_sub -t "picocar-01/#" -v` and note cmd_ok and cmd_bad in a heartbeat. 2. In `laptop_station.py` send STOP, START, one bad-version 3-byte frame and one 5-byte frame. 3. Read the next heartbeat. | cmd_ok up by 2, cmd_bad up by 2 |
+| S1-M07 | heartbeat interval at most 2 s | NFR4 | manual | 1. Flash normal image and wait for heartbeats. 2. In PowerShell run `mosquitto_sub -t "picocar-01/hb" -C 100 -F "%x"`, add a laptop timestamp to each line with `ForEach-Object` and `[DateTimeOffset]::Now.ToUnixTimeMilliseconds()`, and save it with `Tee-Object`. 3. Compute the gaps between heartbeats, ignoring Last-Will frames (seq 255). | every gap at most 2000 ms; mean period from the uptime field at most 2.0 s |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -72,3 +73,5 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-29 | S1-U07 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | |
 | 2026-10-29 | S1-U08 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | Test checks constants only |
 | 2026-10-29 | S1-U09 | `007ae27` | Kathryn | PASS | `logs/2026-10-29_unit.jpg` | 1-byte oversize marker rejected, sequence unchanged |
+| 2026-11-03 | S1-M07 | `d19e050` + local change | Kathryn | FAIL | `logs/2026-11-03_hb_interval_before.txt` | Heartbeat set to 1900 ms but the 100 ms tick drifted to about 104 ms. 99 gaps: min 464, max 3477, mean 1983.3 ms, 28 over 2000 ms; uptime mean 1.98 s. Fixed in `bb258ed` |
+| 2026-11-03 | S1-M07 | `bb258ed` | Kathryn | PASS | `logs/2026-11-03_hb_interval_after.txt` | 98 gaps, Last-Will frame excluded: min 1797, max 1995, mean 1899.7 ms, 0 over 2000 ms; uptime 186 s over 98 steps = 1.898 s. Gaps measured at the laptop, so they include Wi-Fi delay |
