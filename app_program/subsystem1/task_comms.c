@@ -41,10 +41,12 @@ typedef struct
     bool           b_down;
     uint8_t        cmd_ok;     // Wraps at 256 (heartbeat field width).
     uint8_t        cmd_bad;
+    s1_link_t      last_link;  // Last state printed (link change log).
 } comms_ctx_t;
 
 static uint32_t now_ms(void);
 static TMO tick_wait(uint32_t last_tick_ms);
+static char const * link_name(s1_link_t link);
 static uint32_t contact_ms(void);
 static uint32_t lib_tx_drops(void);
 static uint32_t lib_rx_drops(void);
@@ -133,7 +135,7 @@ void
 comms_task (INT stacd, void * exinf)
 {
     comms_ctx_t ctx = {{0u, false}, 0u, 0u, 0u, 0u, 0u, false,
-                       0u, false, 0u, 0u};
+                       0u, false, 0u, 0u, S1_LINK_OFFLINE};
     uint8_t     raw[S1_RAW_MAX_MSG] = {0};
     uint32_t    now = now_ms();
     ER          size = E_OK;
@@ -207,6 +209,16 @@ tick_wait (uint32_t last_tick_ms)
 
     // NOTE: wait is at most S1_TICK_MS (100), so the cast cannot truncate.
     return ((TMO) wait);
+}
+
+static char const *
+link_name (s1_link_t link)
+{
+    static char const * const names[] = {"INIT", "WIFI_CONNECTING",
+        "MQTT_CONNECTING", "CONNECTED", "LOST", "RECONNECTING", "FAULT",
+        "OFFLINE"};
+
+    return ((link < (sizeof(names) / sizeof(names[0]))) ? names[link] : "?");
 }
 
 static uint32_t
@@ -501,6 +513,15 @@ tick (comms_ctx_t * p_ctx)
 
     fault |= link_fault_bits(link);
     link   = escalate_link(p_ctx, link, now);
+
+
+    // Print link changes (rare) so tests and the demo can time them.
+    if (link != p_ctx->last_link)
+    {
+        tm_printf((UB*)"s1: %u ms link %s -> %s\n", (unsigned int) now,
+                  link_name(p_ctx->last_link), link_name(link));
+        p_ctx->last_link = link;
+    }
 
     // NOTE: Fault bits occupy the low 4 bits only; the cast cannot truncate.
     g_s1_fault_bits = (uint8_t) fault;
