@@ -1,0 +1,10 @@
+S1-M08 long outage, firmware 0850bc5, 2026-11-03
+Serial console (COM5), filtered to mqtt: and s1: lines (monitor: lines from subsystem 4 removed).
+Broker stopped with "net stop mosquitto", restarted after LOST -> FAULT.
+
+mqtt: connection status 256, retrying in 3s
+s1: 152200 ms link CONNECTED -> LOST
+s1: 162200 ms link LOST -> FAULT
+mqtt: connected to 192.168.137.1
+mqtt: subscribed to picocar-01/cmd
+s1: 169300 ms link FAULT -> CONNECTED

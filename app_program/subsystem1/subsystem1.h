@@ -15,7 +15,7 @@
 
 #define S1_PRI_COMMS        (22)      // Lowest app priority
 #define S1_TICK_MS          (100u)    // Comms housekeeping period.
-#define S1_HEARTBEAT_MS     (2000u)   // NFR4: at least every 2 s.
+#define S1_HEARTBEAT_MS     (2000u - S1_TICK_MS) // NFR4: <= 2 s apart.
 #define S1_LINK_STALE_MS    (5000u)   // NFR6: no broker contact = "lost".
 #define S1_LINK_FAULT_MS    (10000u)  // NFR6: not restored in 10 s = FAULT.
 
@@ -29,7 +29,10 @@
 #define S1_CMD_BUF_BYTES    (32u)
 #define S1_CMD_FRAME_BYTES  PROTO_CMD_FRAME_BYTES
 
-// Bits of g_flg_remote, waited on by the Vehicle Controller.
+// Bits of g_flg_remote, waited on by the Vehicle Controller (VC).
+// TA_WSGL: only one task (the VC) may wait on this flag.
+// One CMD_READY may stand for several commands: on each wake-up the VC
+// reads g_mbf_remote_cmd with TMO_POL until it returns E_TMOUT.
 #define S1_FLG_ESTOP        (0x01u)
 #define S1_FLG_STOP         (0x02u)
 #define S1_FLG_LINK_LOST    (0x04u)   // Set whenever not CONNECTED.
@@ -89,6 +92,23 @@ static inline uint32_t
 s1_arg_of (uint8_t packed)
 {
     return ((((uint32_t) packed) >> S1_CMD_BITS) & ((1u << S1_ARG_BITS) - 1u));
+}
+
+// Heartbeat uptime field: whole seconds since boot, wrapping at 65536 s
+// (about 18.2 h) on purpose so it always fits PROTO_HB_UPTIME_BITS.
+static inline uint32_t
+s1_uptime_field (uint32_t now_ms)
+{
+    return ((now_ms / 1000u) & ((1u << PROTO_HB_UPTIME_BITS) - 1u));
+}
+
+// Heartbeat command counters (cmd_ok, cmd_bad): 8 bits, 255 wraps to 0 on
+// purpose; the laptop uses the difference between heartbeats.
+static inline uint8_t
+s1_count_up (uint8_t count)
+{
+    // NOTE: The cast keeps the low 8 bits, which is the intended wrap.
+    return ((uint8_t) (((uint32_t) count) + 1u));
 }
 
 // Kernel objects (IDs published for the other subsystems).

@@ -1,0 +1,22 @@
+S1-M09 Wi-Fi drop (laptop hotspot "homeschool" switched off, then on), 2026-11-03
+Firmware 0850bc5 unless stated. Lines filtered to s1:, wifi: and mqtt: (subsystem 4 monitor: lines removed).
+Runs 4-6: PowerShell serial logger, laptop clock time in front of each line.
+
+== Run 6: 0850bc5 + temporary WATCHDOG_TICK fix in subsystem1_init (not committed):
+   out_w(0x4005802C, 0x200 | 12)  -> 1 us timer tick from the 12 MHz clk_ref
+03:36:06  s1: 6710 ms link MQTT_CONNECTING -> CONNECTED
+03:36:19  s1: 24310 ms link CONNECTED -> LOST
+03:36:23  wifi: link status -> FAILED: authentication rejected (-3)
+03:36:23  s1: 28710 ms link LOST -> RECONNECTING
+03:36:28  wifi: joining "homeschool" ...          (5 s after the failure)
+03:36:29  s1: 34310 ms link RECONNECTING -> FAULT
+03:36:29  wifi: link status -> FAILED: SSID not found (-2)
+03:36:34  wifi: joining "homeschool" ...          (6 s later)
+03:36:35  wifi: link status -> FAILED: SSID not found (-2)
+03:36:40  wifi: joining "homeschool" ...          (6 s later)
+03:36:41  wifi: link status -> FAILED: SSID not found (-2)
+03:36:46  wifi: joining "homeschool" ...          (6 s later; hotspot on)
+03:36:49  wifi: link up, ip=192.168.137.69
+03:36:49  mqtt: connected to 192.168.137.1
+03:36:49  s1: 54810 ms link FAULT -> CONNECTED
+03:36:49  mqtt: subscribed to picocar-01/cmd

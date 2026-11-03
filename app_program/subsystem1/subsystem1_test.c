@@ -32,6 +32,9 @@
 #define TEST_SEQ_BASE   (50u)   // Last accepted sequence for S1-U09.
 #define TEST_SEQ_FRESH  (60u)   // Delta 10: would be accepted if length passed.
 #define TEST_MARKER_LEN (1u)    // Size of the library's oversize marker.
+#define TEST_U8_MAX     (255u)
+#define TEST_U16_WRAP_S (65536u)  // Uptime field wraps after this many s.
+#define TEST_MS_PER_S   (1000u)
 
 static void
 make_cmd (uint8_t * p_buf, uint32_t seq, uint32_t ver, uint32_t cmd,
@@ -253,6 +256,47 @@ subsystem1_test (void)
                    && (TEST_SEQ_BASE == (uint32_t) seq_state.last_seq),
                    "1-byte oversize marker rejected, sequence unchanged");
     }
+
+        // S1-U10: command counters wrap 255 -> 0 and always fit their 8-bit
+    // heartbeat fields.
+    {
+        uint8_t      frame[PROTO_MAX_FRAME_BYTES];
+        proto_bits_t bits;
+
+        proto_init(&bits, frame, sizeof(frame));
+        proto_put(&bits, (uint32_t) s1_count_up((uint8_t) (TEST_U8_MAX - 1u)),
+                  PROTO_HB_CMD_OK_BITS);
+        proto_put(&bits, (uint32_t) s1_count_up((uint8_t) TEST_U8_MAX),
+                  PROTO_HB_CMD_BAD_BITS);
+
+        TEST_CHECK("S1-U10",
+                   (1u == s1_count_up(0u))
+                   && (TEST_U8_MAX == s1_count_up((uint8_t) (TEST_U8_MAX - 1u)))
+                   && (0u == s1_count_up((uint8_t) TEST_U8_MAX))
+                   && (false == bits.b_error),
+                   "cmd counters wrap 255 -> 0 and fit 8 bits");
+    }
+
+    // S1-U11: uptime field counts whole seconds and wraps at 65536 s.
+    {
+        uint8_t      frame[PROTO_MAX_FRAME_BYTES];
+        proto_bits_t bits;
+        uint32_t     last_ms = ((TEST_U16_WRAP_S - 1u) * TEST_MS_PER_S)
+                               + (TEST_MS_PER_S - 1u);   // 65535.999 s
+
+        proto_init(&bits, frame, sizeof(frame));
+        proto_put(&bits, s1_uptime_field(last_ms), PROTO_HB_UPTIME_BITS);
+        proto_put(&bits, s1_uptime_field(UINT32_MAX), PROTO_HB_UPTIME_BITS);
+
+        TEST_CHECK("S1-U11",
+                   (0u == s1_uptime_field(TEST_MS_PER_S - 1u))
+                   && (1u == s1_uptime_field(TEST_MS_PER_S))
+                   && ((TEST_U16_WRAP_S - 1u) == s1_uptime_field(last_ms))
+                   && (0u == s1_uptime_field(TEST_U16_WRAP_S * TEST_MS_PER_S))
+                   && (false == bits.b_error),
+                   "uptime wraps at 65536 s and fits 16 bits");
+    }
+
 
     TEST_SUMMARY("subsystem1");
 
