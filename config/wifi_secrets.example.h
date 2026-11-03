@@ -15,10 +15,16 @@
 #define WIFI_SSID     "your-network-name"
 #define WIFI_PASSWORD "your-network-password"
 
-/* Only used when built with MQTT=1 (also requires NET=lwip). */
-#define MQTT_BROKER_IP   "192.168.1.10"
+/* Only used when built with MQTT=1 (also requires NET=lwip).
+ * Broker: Mosquitto on the laptop. 192.168.137.1 is the laptop's own
+ * address when it runs the Windows mobile hotspot.
+ * Client ID: the broker allows one connection per ID, so two Picos with
+ * the same ID keep disconnecting each other. Use your own ID when testing
+ * on your own Pico at the same time as someone else.
+ * Topics: MQTT_TOPIC_BASE/tlm, /hb and /cmd (see mqtt_utk.c). */
+#define MQTT_BROKER_IP   "192.168.137.1"
 #define MQTT_BROKER_PORT 1883
-#define MQTT_CLIENT_ID   "mtk3smp-pico"
-#define MQTT_TOPIC       "mtk3smp-pico/heartbeat"
+#define MQTT_CLIENT_ID   "picocar-01"
+#define MQTT_TOPIC_BASE  "picocar-01"
 
 #endif /* WIFI_SECRETS_H */

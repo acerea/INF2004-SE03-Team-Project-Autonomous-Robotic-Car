@@ -1,0 +1,34 @@
+S1-M09 Wi-Fi drop (laptop hotspot "homeschool" switched off, then on), 2026-11-03
+Firmware 0850bc5 unless stated. Lines filtered to s1:, wifi: and mqtt: (subsystem 4 monitor: lines removed).
+Runs 4-6: PowerShell serial logger, laptop clock time in front of each line.
+
+== Timer check (0850bc5 + temporary print in subsystem1_test.c, not committed)
+time_us_64() read before and after tk_dly_tsk(1000):
+TEMP time_us_64: 0:73640 -> 0:97312
+=> 23672 us per 1 s, about 42x slow. The template's 5 s Wi-Fi rejoin delay becomes about 211 s.
+
+== Run 4: hotspot without internet, kept off for minutes.
+03:11:32  wifi: link status -> FAILED: authentication rejected (-3)
+03:15:06  wifi: joining "homeschool" ...          (214 s after the failure)
+03:18:40  wifi: joining "homeschool" ...          (214 s later)
+03:18:40  wifi: link status -> joined AP, waiting for IP (1)
+03:18:41  mqtt: mqtt_client_connect() failed, err=-4
+03:18:43  wifi: link status -> FAILED: authentication rejected (-3)
+Note: hotspot was back on for the second retry; rejoin failed authentication. Pico replugged.
+
+== Run 5: laptop hotspot sharing the phone's internet.
+03:22:50  s1: 10200 ms link WIFI_CONNECTING -> CONNECTED
+03:23:16  s1: 36300 ms link CONNECTED -> LOST
+03:23:21  wifi: link status -> FAILED: authentication rejected (-3)
+03:23:21  s1: 40700 ms link LOST -> RECONNECTING
+03:23:26  s1: 46300 ms link RECONNECTING -> FAULT
+03:26:54  wifi: link status -> joined AP, waiting for IP (1)   (first retry, 214 s after the failure)
+03:26:55  wifi: link status -> FAILED: SSID not found (-2)     (hotspot still off)
+03:30:28  wifi: joining "homeschool" ...                        (214 s later; hotspot on)
+03:30:29  wifi: link status -> joined AP, waiting for IP (1)
+03:30:31  wifi: link up, ip=192.168.137.69
+03:30:33  mqtt: connected to 192.168.137.1
+03:30:33  mqtt: subscribed to picocar-01/cmd
+03:30:33  s1: 473410 ms link FAULT -> CONNECTED
+Note: with internet on the hotspot the rejoin succeeded; the 214 s retry interval is unchanged.
+

@@ -21,6 +21,8 @@
 #include "drv_servo.h"
 #define COS_45_DEG   0.70710678f
 
+EXPORT ID flg_s5_obstacle;
+
 ID flg_s5_obstacle;
 
 LOCAL void s5_scan_task(INT stacd, void *param)
@@ -31,28 +33,35 @@ LOCAL void s5_scan_task(INT stacd, void *param)
     while (1) {
         /* 1. Normal forward observation */
         servo_set_angle(SERVO_ANGLE_CENTER);
-        tk_dly_tsk(60); /* wait for servo settling */
+        tk_dly_tsk(150); /* Servo settle time */
+
+        /* Read forward distance */
         float d_center = ultrasonic_read_distance_cm();
+        tk_dly_tsk(60);  /* Ultrasonic acoustic decay holdoff */
 
         if (d_center > 0.0f && d_center < S5_WARN_DIST_CM) {
-            /* Obstacle ahead: slow down or stop */
+            /* Obstacle ahead: signal warning */
             tk_set_flg(flg_s5_obstacle, S5_FLAG_SLOWDOWN);
 
             /* 2. Coarse sweep: Measure Left */
             servo_set_angle(SERVO_ANGLE_LEFT);
             tk_dly_tsk(150);
             float d_left = ultrasonic_read_distance_cm();
+            tk_dly_tsk(60); /* Transducer holdoff before next burst */
 
             /* 3. Coarse sweep: Measure Right */
             servo_set_angle(SERVO_ANGLE_RIGHT);
             tk_dly_tsk(200);
             float d_right = ultrasonic_read_distance_cm();
+            tk_dly_tsk(60);
 
-            /* Return to center */
+            /* Return to center and settle */
             servo_set_angle(SERVO_ANGLE_CENTER);
+            tk_dly_tsk(150);
 
-            /* 4. Choose direction based on clearance */
-            if (d_left > d_right) {
+            /* 4. Choose direction using clearance helper */
+            S5_BYPASS_DIR dir = s5_calculate_clearance(d_left, d_right);
+            if (dir == S5_DIR_LEFT) {
                 tk_set_flg(flg_s5_obstacle, S5_FLAG_AVOID_LEFT);
             } else {
                 tk_set_flg(flg_s5_obstacle, S5_FLAG_AVOID_RIGHT);
@@ -71,12 +80,21 @@ LOCAL void s5_scan_task(INT stacd, void *param)
 
 EXPORT ER subsystem5_init(void)
 {
-    T_CFLG cflg = {
-        .flgatr = TA_WMUL | TA_TFIFO,
-        .iflgptn = S5_FLAG_CLEAR
-    };
+    /* 1. Hardware driver initializations */
+    ultrasonic_init();
+    servo_init();
+
+    /* 2. Create the event flag */
+    T_CFLG cflg;
+    cflg.flgatr = TA_TFIFO | TA_WMUL;
+    cflg.iflgptn = S5_FLAG_CLEAR;
+
     flg_s5_obstacle = tk_cre_flg(&cflg);
-    return (flg_s5_obstacle < E_OK) ? flg_s5_obstacle : E_OK;
+    if (flg_s5_obstacle < E_OK) {
+        return (ER)flg_s5_obstacle;
+    }
+
+    return E_OK;
 }
 
 EXPORT ER subsystem5_start(void)

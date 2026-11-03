@@ -22,7 +22,6 @@ _Static_assert(S1_RAW_MAX_MSG == MQTT_UTK_RX_MAX_MSG, "rx size mismatch");
 #endif
 
 #define LINK_STATUS_UP      (3)         // NOTE: Must equal CYW43_LINK_UP.
-#define MS_PER_SEC          (1000u)
 #define SEQ_MASK            (0xFFu)
 #define SEQ_WINDOW_MAX      (127u)
 #define DROP_TICKS_MAX      (255u)
@@ -41,9 +40,12 @@ typedef struct
     bool           b_down;
     uint8_t        cmd_ok;     // Wraps at 256 (heartbeat field width).
     uint8_t        cmd_bad;
+    s1_link_t      last_link;  // Last state printed (link change log).
 } comms_ctx_t;
 
 static uint32_t now_ms(void);
+static TMO tick_wait(uint32_t last_tick_ms);
+static char const * link_name(s1_link_t link);
 static uint32_t contact_ms(void);
 static uint32_t lib_tx_drops(void);
 static uint32_t lib_rx_drops(void);
@@ -56,7 +58,7 @@ static void forward_command(comms_ctx_t * p_ctx, uint8_t packed);
 static void handle_command(comms_ctx_t * p_ctx, uint8_t const * p_raw,
                            uint32_t len);
 static s1_link_t escalate_link(comms_ctx_t * p_ctx, s1_link_t link,
-                           uint32_t now);
+                               uint32_t now);
 static void tick(comms_ctx_t * p_ctx);
 
 ER
@@ -132,7 +134,7 @@ void
 comms_task (INT stacd, void * exinf)
 {
     comms_ctx_t ctx = {{0u, false}, 0u, 0u, 0u, 0u, 0u, false,
-                       0u, false, 0u, 0u};
+                       0u, false, 0u, 0u, S1_LINK_OFFLINE};
     uint8_t     raw[S1_RAW_MAX_MSG] = {0};
     uint32_t    now = now_ms();
     ER          size = E_OK;
@@ -145,8 +147,8 @@ comms_task (INT stacd, void * exinf)
 
     for (;;)
     {
-        // Blocks until a raw command arrives, or one tick has passed.
-        size = tk_rcv_mbf(g_mbf_cmd_raw, raw, S1_TICK_MS);
+        // Blocks until a raw command arrives, or the next tick is due.
+        size = tk_rcv_mbf(g_mbf_cmd_raw, raw, tick_wait(ctx.last_tick_ms));
 
         if (size > 0)
         {
@@ -167,7 +169,17 @@ comms_task (INT stacd, void * exinf)
 
         if ((now - ctx.last_tick_ms) >= S1_TICK_MS)
         {
-            ctx.last_tick_ms = now;
+            // Fixed 100 ms grid, so ticks do not drift. After a long stall,
+            // restart the grid instead of running a burst of late ticks.
+            if ((now - ctx.last_tick_ms) >= (2u * S1_TICK_MS))
+            {
+                ctx.last_tick_ms = now;
+            }
+            else
+            {
+                ctx.last_tick_ms += S1_TICK_MS;
+            }
+
             tick(&ctx);
         }
     }
@@ -181,6 +193,31 @@ now_ms (void)
     (void) tk_get_otm(&otm);        // Same clock as lwIP's sys_now().
 
     return (otm.lo);
+}
+
+static TMO
+tick_wait (uint32_t last_tick_ms)
+{
+    uint32_t elapsed = now_ms() - last_tick_ms;
+    uint32_t wait    = 0u;              // 0 = TMO_POL: tick is already due.
+
+    if (elapsed < S1_TICK_MS)
+    {
+        wait = S1_TICK_MS - elapsed;
+    }
+
+    // NOTE: wait is at most S1_TICK_MS (100), so the cast cannot truncate.
+    return ((TMO) wait);
+}
+
+static char const *
+link_name (s1_link_t link)
+{
+    static char const * const names[] = {"INIT", "WIFI_CONNECTING",
+        "MQTT_CONNECTING", "CONNECTED", "LOST", "RECONNECTING", "FAULT",
+        "OFFLINE"};
+
+    return ((link < (sizeof(names) / sizeof(names[0]))) ? names[link] : "?");
 }
 
 static uint32_t
@@ -315,9 +352,7 @@ send_heartbeat (comms_ctx_t const * p_ctx, s1_link_t link, uint32_t now)
     proto_begin(&bits, PROTO_TYPE_HEARTBEAT);
     proto_put(&bits, (uint32_t) link, PROTO_HB_LINK_BITS);
 
-    // Uptime wraps at 65536 s, so mask it to the field width on purpose.
-    proto_put(&bits, (now / MS_PER_SEC) & ((1u << PROTO_HB_UPTIME_BITS) - 1u),
-              PROTO_HB_UPTIME_BITS);
+    proto_put(&bits, s1_uptime_field(now), PROTO_HB_UPTIME_BITS);
     proto_put(&bits, (uint32_t) p_ctx->drop_ticks, PROTO_HB_DROP_BITS);
     proto_put(&bits, (uint32_t) p_ctx->cmd_ok, PROTO_HB_CMD_OK_BITS);
     proto_put(&bits, (uint32_t) p_ctx->cmd_bad, PROTO_HB_CMD_BAD_BITS);
@@ -380,7 +415,7 @@ handle_command (comms_ctx_t * p_ctx, uint8_t const * p_raw, uint32_t len)
 
     if (s1_cmd_check(p_raw, len, &p_ctx->seq, &packed))
     {
-        p_ctx->cmd_ok = (uint8_t) (p_ctx->cmd_ok + 1u);     // Wraps
+        p_ctx->cmd_ok = s1_count_up(p_ctx->cmd_ok);
 #if S1_DEBUG_CMD
         tm_printf((UB*)"s1: cmd accepted cmd=%d arg=%d\n",
                   (int) s1_cmd_of(packed), (int) s1_arg_of(packed));
@@ -389,7 +424,7 @@ handle_command (comms_ctx_t * p_ctx, uint8_t const * p_raw, uint32_t len)
     }
     else
     {
-        p_ctx->cmd_bad = (uint8_t) (p_ctx->cmd_bad + 1u);   // Wraps
+        p_ctx->cmd_bad = s1_count_up(p_ctx->cmd_bad);
 #if S1_DEBUG_CMD
         tm_printf((UB*)"s1: cmd rejected\n");
 #endif
@@ -476,12 +511,31 @@ tick (comms_ctx_t * p_ctx)
     fault |= link_fault_bits(link);
     link   = escalate_link(p_ctx, link, now);
 
+
+    // Print link changes (rare) so tests and the demo can time them.
+    if (link != p_ctx->last_link)
+    {
+        tm_printf((UB*)"s1: %u ms link %s -> %s\n", (unsigned int) now,
+                  link_name(p_ctx->last_link), link_name(link));
+        p_ctx->last_link = link;
+    }
+
     // NOTE: Fault bits occupy the low 4 bits only; the cast cannot truncate.
     g_s1_fault_bits = (uint8_t) fault;
 
     if ((now - p_ctx->last_hb_ms) >= S1_HEARTBEAT_MS)
     {
-        p_ctx->last_hb_ms = now;
+        // Fixed grid, so the period does not drift. After a long stall,
+        // restart the grid instead of sending a burst of heartbeats.
+        if ((now - p_ctx->last_hb_ms) >= (2u * S1_HEARTBEAT_MS))
+        {
+            p_ctx->last_hb_ms = now;
+        }
+        else
+        {
+            p_ctx->last_hb_ms += S1_HEARTBEAT_MS;
+        }
+
         send_heartbeat(p_ctx, link, now);
     }
 

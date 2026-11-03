@@ -9,7 +9,9 @@
 #ifndef APP_H
 #define APP_H
 
-#define APP_TEST 1
+/*#ifndef APP_TEST
+#define APP_TEST 0
+#endif*/
 
 #include <tk/tkernel.h>		/* micro T-Kernel API (tk_xxx_yyy) */
 #include <tm/tmonitor.h>	/* T-Monitor API: tm_printf() console output */
