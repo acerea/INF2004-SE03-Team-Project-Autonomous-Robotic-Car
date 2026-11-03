@@ -30,6 +30,7 @@ Define a test here before running it. Test IDs never change.
 | S1-M07 | heartbeat interval at most 2 s | NFR4 | manual | 1. Flash normal image and wait for heartbeats. 2. In PowerShell run `mosquitto_sub -t "picocar-01/hb" -C 100 -F "%x"`, add a laptop timestamp to each line with `ForEach-Object` and `[DateTimeOffset]::Now.ToUnixTimeMilliseconds()`, and save it with `Tee-Object`. 3. Compute the gaps between heartbeats, ignoring Last-Will frames (seq 255). | every gap at most 2000 ms; mean period from the uptime field at most 2.0 s |
 | S1-M08 | broker loss: LOST, FAULT after 10 s, automatic recovery | FR3, NFR6 | manual | 1. Pico connected; serial monitor open. 2. In an Administrator PowerShell run `net stop mosquitto`. 3. Short run: `net start mosquitto` before FAULT. Long run: wait for `LOST -> FAULT`, then `net start mosquitto`. 4. Read the `s1:` and `mqtt:` lines. | `CONNECTED -> LOST` within 5 s of the last broker reply; `LOST -> FAULT` 10 s after LOST; `-> CONNECTED` after the broker restarts, with no reset |
 | S1-M09 | Wi-Fi drop: LOST, FAULT after 10 s, reconnect within 10 s of the network returning | FR3, NFR6 | manual | 1. Pico connected; PowerShell serial logger running (VS Code serial monitor closed). 2. Switch the laptop hotspot off. 3. After `-> FAULT`, switch it on. 4. Read the `s1:`, `wifi:` and `mqtt:` lines. | `CONNECTED -> LOST` within 5 s; FAULT 10 s after LOST; `-> CONNECTED` within 10 s of the hotspot being on, with no reset |
+| S1-M10 | message size: binary frames vs an equivalent text encoding of the same fields | CR, FR1, FR2 | manual | 1. Use a heartbeat capture (as in S1-M07). 2. Run `python3 logs/msg_size.py <capture>`. 3. Compare payload and MQTT packet sizes. | binary payload and packet smaller than key=value and JSON text for heartbeat and command |
 
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
@@ -107,3 +108,4 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-03 | S1-U09 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
 | 2026-11-03 | S1-U10 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
 | 2026-11-03 | S1-U11 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-M10 | `bb258ed` (capture) | Kathryn | PASS | `logs/2026-11-03_msg_size.txt` | Heartbeat (99 real frames): 8 B vs 51.4 B key=value / 69.4 B JSON; MQTT packet 27 vs 70.4 / 88.4 B. Command (all 20480 values): 3 B vs 24.9 / 34.9 B; packet 23 vs 44.9 / 54.9 B. Tool: `logs/msg_size.py` |
