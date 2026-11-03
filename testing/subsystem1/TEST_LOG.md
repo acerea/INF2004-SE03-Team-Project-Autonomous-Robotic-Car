@@ -96,3 +96,14 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-03 | S1-U09 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | |
 | 2026-11-03 | S1-U10 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | New. Boundaries: 0 to 1, 254 to 255, 255 to 0; results fit the 8-bit fields with no error flag |
 | 2026-11-03 | S1-U11 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | New. Boundaries: 0.999 s to 0, 1.000 s to 1, 65535.999 s to 65535, 65536 s to 0, UINT32_MAX ms fits 16 bits |
+| 2026-11-03 | S1-U01 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` | Test build. Re-run after merge of origin/main (`1f440e9`) |
+| 2026-11-03 | S1-U02 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U03 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U04 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U05 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U06 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U07 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U08 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U09 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U10 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
+| 2026-11-03 | S1-U11 | `09f2196` | Kathryn | PASS | `logs/2026-11-03_unit_after_merge.jpg` |  |
