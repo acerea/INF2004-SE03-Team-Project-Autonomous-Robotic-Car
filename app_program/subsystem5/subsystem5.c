@@ -21,6 +21,8 @@
 #include "drv_servo.h"
 #define COS_45_DEG   0.70710678f
 
+EXPORT ID flg_s5_obstacle;
+
 ID flg_s5_obstacle;
 
 LOCAL void s5_scan_task(INT stacd, void *param)
@@ -78,12 +80,21 @@ LOCAL void s5_scan_task(INT stacd, void *param)
 
 EXPORT ER subsystem5_init(void)
 {
-    T_CFLG cflg = {
-        .flgatr = TA_WMUL | TA_TFIFO,
-        .iflgptn = S5_FLAG_CLEAR
-    };
+    /* 1. Hardware driver initializations */
+    ultrasonic_init();
+    servo_init();
+
+    /* 2. Create the event flag */
+    T_CFLG cflg;
+    cflg.flgatr = TA_TFIFO | TA_WMUL;
+    cflg.iflgptn = S5_FLAG_CLEAR;
+
     flg_s5_obstacle = tk_cre_flg(&cflg);
-    return (flg_s5_obstacle < E_OK) ? flg_s5_obstacle : E_OK;
+    if (flg_s5_obstacle < E_OK) {
+        return (ER)flg_s5_obstacle;
+    }
+
+    return E_OK;
 }
 
 EXPORT ER subsystem5_start(void)
