@@ -10,23 +10,23 @@ Define a test here before running it. Test IDs never change.
 
 | ID | What is tested | Requirement / interface | Method | Steps / how | Expected result |
 |---|---|---|---|---|---|
-| S1-U01 | kernel objects exist (3 message buffers, 2 event flags) | IF-06, IF-07, IF-08 | auto | `subsystem1_test.c` | `[TEST] S1-U01 PASS` |
-| S1-U02 | frame pack/unpack round trip at min and max values | wire format | auto | `subsystem1_test.c` | `[TEST] S1-U02 PASS` |
-| S1-U03 | out-of-range value saturates and sets the error flag | wire format | auto | `subsystem1_test.c` | `[TEST] S1-U03 PASS` |
-| S1-U04 | valid command accepted, duplicate rejected, STOP always accepted | IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U04 PASS` |
-| S1-U05 | sequence window edges | IF-07 | auto | `subsystem1_test.c` (uses S1-U04 state, run in order) | `[TEST] S1-U05 PASS` |
-| S1-U06 | bad version, bad command, bad length rejected | IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U06 PASS` |
-| S1-U07 | full telemetry queue drops frames and never blocks (within 20 ms) | IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U07 PASS` |
-| S1-U08 | frame type bits match the MQTT library | IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U08 PASS` |
-| S1-U09 | 1-byte frame (oversize marker) rejected by the length check | IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U09 PASS` |
+| S1-U01 | kernel objects exist (3 message buffers, 2 event flags) | NFR11, IF-06, IF-07, IF-08 | auto | `subsystem1_test.c` | `[TEST] S1-U01 PASS` |
+| S1-U02 | frame pack/unpack round trip at min and max values | CR, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U02 PASS` |
+| S1-U03 | out-of-range value saturates and sets the error flag | CR, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U03 PASS` |
+| S1-U04 | valid command accepted, duplicate rejected, STOP always accepted | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U04 PASS` |
+| S1-U05 | sequence window edges | FR2, IF-07 | auto | `subsystem1_test.c` (uses S1-U04 state, run in order) | `[TEST] S1-U05 PASS` |
+| S1-U06 | bad version, bad command, bad length rejected | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U06 PASS` |
+| S1-U07 | full telemetry queue drops frames and never blocks (within 20 ms) | NFR4, NFR11, IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U07 PASS` |
+| S1-U08 | frame type bits match the MQTT library | FR1, IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U08 PASS` |
+| S1-U09 | 1-byte frame (oversize marker) rejected by the length check | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U09 PASS` |
 | S1-U10 | command counters wrap 255 to 0 and fit their 8-bit heartbeat fields | FR2, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U10 PASS` |
 | S1-U11 | uptime field counts whole seconds, wraps at 65536 s and fits 16 bits | FR1, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U11 PASS` |
-| S1-M01 | Wi-Fi join and MQTT connect | comms | manual | 1. Hotspot on. 2. Flash normal image. 3. Read serial on COM5. | `wifi: link up`, `mqtt: connected`, `mqtt: subscribed to picocar-01/cmd` |
-| S1-M02 | heartbeat published about every 2 s | comms | manual | 1. Run `mosquitto_sub -t "picocar-01/#" -v`. | `picocar-01/hb` line about every 2 s |
-| S1-M03 | Last-Will published after link loss | link-loss | manual | 1. Unplug the Pico. 2. Watch `mosquitto_sub`. | one frame with `seq=255` on `picocar-01/hb` after about 15 s |
-| S1-M04 | automatic reconnect | link-loss | manual | 1. Replug the Pico. | `mqtt: connected` and heartbeats resume |
-| S1-M05 | command from laptop accepted by the car | IF-07 | manual | 1. Run `laptop_station.py`. 2. Type `stop`, then `start`. 3. Read serial on COM5. | `s1: cmd accepted cmd=1` then `cmd=0` appear |
-| S1-M06 | command counters in the heartbeat | IF-07, wire format | manual | 1. Run `mosquitto_sub -t "picocar-01/#" -v` and note cmd_ok and cmd_bad in a heartbeat. 2. In `laptop_station.py` send STOP, START, one bad-version 3-byte frame and one 5-byte frame. 3. Read the next heartbeat. | cmd_ok up by 2, cmd_bad up by 2 |
+| S1-M01 | Wi-Fi join and MQTT connect | FR1, comms | manual | 1. Hotspot on. 2. Flash normal image. 3. Read serial on COM5. | `wifi: link up`, `mqtt: connected`, `mqtt: subscribed to picocar-01/cmd` |
+| S1-M02 | heartbeat published about every 2 s | FR1, NFR4, comms | manual | 1. Run `mosquitto_sub -t "picocar-01/#" -v`. | `picocar-01/hb` line about every 2 s |
+| S1-M03 | Last-Will published after link loss | FR21, link-loss | manual | 1. Unplug the Pico. 2. Watch `mosquitto_sub`. | one frame with `seq=255` on `picocar-01/hb` after about 15 s |
+| S1-M04 | automatic reconnect | FR3, link-loss | manual | 1. Replug the Pico. | `mqtt: connected` and heartbeats resume |
+| S1-M05 | command from laptop accepted by the car | FR2, IF-07 | manual | 1. Run `laptop_station.py`. 2. Type `stop`, then `start`. 3. Read serial on COM5. | `s1: cmd accepted cmd=1` then `cmd=0` appear |
+| S1-M06 | command counters in the heartbeat | FR2, IF-07, wire format | manual | 1. Run `mosquitto_sub -t "picocar-01/#" -v` and note cmd_ok and cmd_bad in a heartbeat. 2. In `laptop_station.py` send STOP, START, one bad-version 3-byte frame and one 5-byte frame. 3. Read the next heartbeat. | cmd_ok up by 2, cmd_bad up by 2 |
 | S1-M07 | heartbeat interval at most 2 s | NFR4 | manual | 1. Flash normal image and wait for heartbeats. 2. In PowerShell run `mosquitto_sub -t "picocar-01/hb" -C 100 -F "%x"`, add a laptop timestamp to each line with `ForEach-Object` and `[DateTimeOffset]::Now.ToUnixTimeMilliseconds()`, and save it with `Tee-Object`. 3. Compute the gaps between heartbeats, ignoring Last-Will frames (seq 255). | every gap at most 2000 ms; mean period from the uptime field at most 2.0 s |
 | S1-M08 | broker loss: LOST, FAULT after 10 s, automatic recovery | FR3, NFR6 | manual | 1. Pico connected; serial monitor open. 2. In an Administrator PowerShell run `net stop mosquitto`. 3. Short run: `net start mosquitto` before FAULT. Long run: wait for `LOST -> FAULT`, then `net start mosquitto`. 4. Read the `s1:` and `mqtt:` lines. | `CONNECTED -> LOST` within 5 s of the last broker reply; `LOST -> FAULT` 10 s after LOST; `-> CONNECTED` after the broker restarts, with no reset |
 | S1-M09 | Wi-Fi drop: LOST, FAULT after 10 s, reconnect within 10 s of the network returning | FR3, NFR6 | manual | 1. Pico connected; PowerShell serial logger running (VS Code serial monitor closed). 2. Switch the laptop hotspot off. 3. After `-> FAULT`, switch it on. 4. Read the `s1:`, `wifi:` and `mqtt:` lines. | `CONNECTED -> LOST` within 5 s; FAULT 10 s after LOST; `-> CONNECTED` within 10 s of the hotspot being on, with no reset |
