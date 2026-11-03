@@ -3,7 +3,7 @@
 
 #include <tk/tkernel.h>
 
-#define SERVO_PIN           6   /* GP6: PWM Slice 3, Channel A */
+#define SERVO_PIN           4   /* GP4: PWM Slice 2, Channel A */
 
 #define SERVO_ANGLE_LEFT   -45
 #define SERVO_ANGLE_CENTER   0
