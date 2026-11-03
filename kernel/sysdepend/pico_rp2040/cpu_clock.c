@@ -22,6 +22,11 @@
 #include <tk/tkernel.h>
 #include "sysdepend.h"
 
+/* Watchdog tick generator: it clocks the 1 us TIMER (RP2040 datasheet,
+   watchdog TICK register). */
+#define WATCHDOG_TICK		(0x4005802C)
+#define WATCHDOG_TICK_ENABLE	(0x00000200)
+
 /* 
  * PLL initialization
  */
@@ -103,6 +108,15 @@ EXPORT void startup_clock(ATR clkatr)
 	while(!(in_w(CLK_REF+CLK_x_SELECTED)&(1<<2)));
 
 	out_w(CLK_REF+CLK_x_DIV, div);
+	
+	/* Start the watchdog tick, which clocks the RP2040 TIMER read by
+	   time_us_64() (lib/libwifi/sysdepend/pico_rp2040/cyw43_utk_compat.c):
+	   one tick every XOSC_MHz cycles of clk_ref = 1us.  It was never
+	   started, so that timer ran about 42x slow and the Wi-Fi rejoin
+	   retry (WIFI_REJOIN_DELAY_US, 5s) took about 214s, also after a
+	   failed first join at power-on.  Added with the instructor's
+	   approval, 2026-11-03 (Buddy 1). */
+	out_w(WATCHDOG_TICK, WATCHDOG_TICK_ENABLE | XOSC_MHz);
 
 	/* CLK SYS settings */
 	div = (TMCLK_MHz << 8) / TMCLK_MHz;
