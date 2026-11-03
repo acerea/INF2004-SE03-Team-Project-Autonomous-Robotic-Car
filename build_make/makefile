@@ -18,7 +18,6 @@ RM := rm -rf
 # The subdir.mk files included below define the first explicit rules make
 # sees, so a bare 'make' would otherwise pick one of their object files as
 # the default goal and quietly leave the image stale.
-# wy added this
 INCPATH = -I"../include" -I"../config" -I"../kernel/knlinc"
 
 ifeq ($(TEST),1)
@@ -105,7 +104,6 @@ clean:
 
 .PHONY: all clean dependents
 
-# Added this -wy
 APP_BINARY = $(EXE_FILE)
 
 flash:
