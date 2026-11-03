@@ -14,6 +14,9 @@
 
 #define S5_PRI_MAIN         20
 
+/* Event Flag ID (defined and created in subsystem5.c) */
+IMPORT ID flg_s5_obstacle;
+
 /* Event flag bits (Interface IF-06) */
 #define S5_FLAG_CLEAR       0x01
 #define S5_FLAG_SLOWDOWN    0x02
