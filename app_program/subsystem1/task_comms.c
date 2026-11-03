@@ -22,7 +22,6 @@ _Static_assert(S1_RAW_MAX_MSG == MQTT_UTK_RX_MAX_MSG, "rx size mismatch");
 #endif
 
 #define LINK_STATUS_UP      (3)         // NOTE: Must equal CYW43_LINK_UP.
-#define MS_PER_SEC          (1000u)
 #define SEQ_MASK            (0xFFu)
 #define SEQ_WINDOW_MAX      (127u)
 #define DROP_TICKS_MAX      (255u)
@@ -353,9 +352,7 @@ send_heartbeat (comms_ctx_t const * p_ctx, s1_link_t link, uint32_t now)
     proto_begin(&bits, PROTO_TYPE_HEARTBEAT);
     proto_put(&bits, (uint32_t) link, PROTO_HB_LINK_BITS);
 
-    // Uptime wraps at 65536 s, so mask it to the field width on purpose.
-    proto_put(&bits, (now / MS_PER_SEC) & ((1u << PROTO_HB_UPTIME_BITS) - 1u),
-              PROTO_HB_UPTIME_BITS);
+    proto_put(&bits, s1_uptime_field(now), PROTO_HB_UPTIME_BITS);
     proto_put(&bits, (uint32_t) p_ctx->drop_ticks, PROTO_HB_DROP_BITS);
     proto_put(&bits, (uint32_t) p_ctx->cmd_ok, PROTO_HB_CMD_OK_BITS);
     proto_put(&bits, (uint32_t) p_ctx->cmd_bad, PROTO_HB_CMD_BAD_BITS);
@@ -418,7 +415,7 @@ handle_command (comms_ctx_t * p_ctx, uint8_t const * p_raw, uint32_t len)
 
     if (s1_cmd_check(p_raw, len, &p_ctx->seq, &packed))
     {
-        p_ctx->cmd_ok = (uint8_t) (p_ctx->cmd_ok + 1u);     // Wraps
+        p_ctx->cmd_ok = s1_count_up(p_ctx->cmd_ok);
 #if S1_DEBUG_CMD
         tm_printf((UB*)"s1: cmd accepted cmd=%d arg=%d\n",
                   (int) s1_cmd_of(packed), (int) s1_arg_of(packed));
@@ -427,7 +424,7 @@ handle_command (comms_ctx_t * p_ctx, uint8_t const * p_raw, uint32_t len)
     }
     else
     {
-        p_ctx->cmd_bad = (uint8_t) (p_ctx->cmd_bad + 1u);   // Wraps
+        p_ctx->cmd_bad = s1_count_up(p_ctx->cmd_bad);
 #if S1_DEBUG_CMD
         tm_printf((UB*)"s1: cmd rejected\n");
 #endif
