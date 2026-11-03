@@ -19,6 +19,8 @@ Define a test here before running it. Test IDs never change.
 | S1-U07 | full telemetry queue drops frames and never blocks (within 20 ms) | IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U07 PASS` |
 | S1-U08 | frame type bits match the MQTT library | IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U08 PASS` |
 | S1-U09 | 1-byte frame (oversize marker) rejected by the length check | IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U09 PASS` |
+| S1-U10 | command counters wrap 255 to 0 and fit their 8-bit heartbeat fields | FR2, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U10 PASS` |
+| S1-U11 | uptime field counts whole seconds, wraps at 65536 s and fits 16 bits | FR1, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U11 PASS` |
 | S1-M01 | Wi-Fi join and MQTT connect | comms | manual | 1. Hotspot on. 2. Flash normal image. 3. Read serial on COM5. | `wifi: link up`, `mqtt: connected`, `mqtt: subscribed to picocar-01/cmd` |
 | S1-M02 | heartbeat published about every 2 s | comms | manual | 1. Run `mosquitto_sub -t "picocar-01/#" -v`. | `picocar-01/hb` line about every 2 s |
 | S1-M03 | Last-Will published after link loss | link-loss | manual | 1. Unplug the Pico. 2. Watch `mosquitto_sub`. | one frame with `seq=255` on `picocar-01/hb` after about 15 s |
@@ -28,6 +30,7 @@ Define a test here before running it. Test IDs never change.
 | S1-M07 | heartbeat interval at most 2 s | NFR4 | manual | 1. Flash normal image and wait for heartbeats. 2. In PowerShell run `mosquitto_sub -t "picocar-01/hb" -C 100 -F "%x"`, add a laptop timestamp to each line with `ForEach-Object` and `[DateTimeOffset]::Now.ToUnixTimeMilliseconds()`, and save it with `Tee-Object`. 3. Compute the gaps between heartbeats, ignoring Last-Will frames (seq 255). | every gap at most 2000 ms; mean period from the uptime field at most 2.0 s |
 | S1-M08 | broker loss: LOST, FAULT after 10 s, automatic recovery | FR3, NFR6 | manual | 1. Pico connected; serial monitor open. 2. In an Administrator PowerShell run `net stop mosquitto`. 3. Short run: `net start mosquitto` before FAULT. Long run: wait for `LOST -> FAULT`, then `net start mosquitto`. 4. Read the `s1:` and `mqtt:` lines. | `CONNECTED -> LOST` within 5 s of the last broker reply; `LOST -> FAULT` 10 s after LOST; `-> CONNECTED` after the broker restarts, with no reset |
 | S1-M09 | Wi-Fi drop: LOST, FAULT after 10 s, reconnect within 10 s of the network returning | FR3, NFR6 | manual | 1. Pico connected; PowerShell serial logger running (VS Code serial monitor closed). 2. Switch the laptop hotspot off. 3. After `-> FAULT`, switch it on. 4. Read the `s1:`, `wifi:` and `mqtt:` lines. | `CONNECTED -> LOST` within 5 s; FAULT 10 s after LOST; `-> CONNECTED` within 10 s of the hotspot being on, with no reset |
+
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -82,3 +85,14 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-03 | S1-M09 | `0850bc5` | Kathryn | FAIL | `logs/2026-11-03_wifi_drop_runs1-3.txt` (runs 1-3) | Comms side passed every run: LOST within 5 s, FAULT 10.0 s after LOST. Recovery: 11.77 s (run 1), none within 60 s, reset needed (run 2), about 17 s (run 3). The template's Wi-Fi rejoin retry never appeared |
 | 2026-11-03 | S1-M09 | `0850bc5` | Kathryn | FAIL | `logs/2026-11-03_wifi_drop_timer.txt` (timer check, runs 4-5) | Cause in template: `time_us_64()` advances 23672 us per 1 s (about 42x slow; WATCHDOG_TICK never set), so the 5 s rejoin delay is 214 s (measured 4 times). Rejoin also failed authentication when the laptop hotspot had no internet; succeeded when it shared phone internet |
 | 2026-11-03 | S1-M09 | `0850bc5` + uncommitted WATCHDOG_TICK fix | Kathryn | PASS | `logs/2026-11-03_wifi_drop_tickfix.txt` (run 6) | With `WATCHDOG_TICK = 0x200 \| 12` at boot, the rejoin retried 5 s after the failure, then every 6 s; reconnected 3 s after the retry. Template change pending instructor approval |
+| 2026-11-03 | S1-U01 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | Test build. Re-run of all unit tests after the uptime and counter helpers were added; heartbeat uptime and cmd_ok checked live with laptop_station.py |
+| 2026-11-03 | S1-U02 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | |
+| 2026-11-03 | S1-U03 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | |
+| 2026-11-03 | S1-U04 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | |
+| 2026-11-03 | S1-U05 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | Depends on S1-U04 state; runs in order |
+| 2026-11-03 | S1-U06 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | |
+| 2026-11-03 | S1-U07 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | |
+| 2026-11-03 | S1-U08 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | Test checks constants only |
+| 2026-11-03 | S1-U09 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | |
+| 2026-11-03 | S1-U10 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | New. Boundaries: 0 to 1, 254 to 255, 255 to 0; results fit the 8-bit fields with no error flag |
+| 2026-11-03 | S1-U11 | `3338bca` | Kathryn | PASS | `logs/2026-11-03_unit.jpg` | New. Boundaries: 0.999 s to 0, 1.000 s to 1, 65535.999 s to 65535, 65536 s to 0, UINT32_MAX ms fits 16 bits |
