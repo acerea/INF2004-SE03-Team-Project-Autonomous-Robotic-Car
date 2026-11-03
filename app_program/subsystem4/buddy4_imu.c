@@ -481,7 +481,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
             (UB *)"[B4-IMU] cannot open iica: %d\n",
             b4_i2c_device);
 
-        return;
+        tk_ext_tsk();
     }
 
     /* Check accelerometer identity. */
@@ -494,7 +494,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
             er);
 
         tk_cls_dev(b4_i2c_device, 0);
-        return;
+        tk_ext_tsk();
     }
 
     /* Check magnetometer identity. */
@@ -507,7 +507,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
             er);
 
         tk_cls_dev(b4_i2c_device, 0);
-        return;
+        tk_ext_tsk();
     }
 
     /* Configure both sensor components. */
@@ -520,7 +520,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
             er);
 
         tk_cls_dev(b4_i2c_device, 0);
-        return;
+        tk_ext_tsk();
     }
 
     tm_printf(
