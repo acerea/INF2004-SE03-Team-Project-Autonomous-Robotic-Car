@@ -6,8 +6,7 @@
         "${workspaceFolder}/**",
         "${workspaceFolder}/include/**",
         "${workspaceFolder}/config/**",
-        "${workspaceFolder}/kernel/**",
-        "${workspaceFolder}/mtkernel_3/**"
+        "${workspaceFolder}/kernel/**"
       ],
       "defines": [
         "_PICO_RP2040_",
