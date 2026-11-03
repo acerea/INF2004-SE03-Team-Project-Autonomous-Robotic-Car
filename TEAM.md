@@ -168,7 +168,7 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-03 | S3 → S4 | message buffer + event flag (owned by S4) | `mbf_summary`, `flg_events` | text line ≤ `S4_SUMMARY_MAX` bytes, then `FLG_BATCH` | *example* |
 | IF-04 | S4 → S3 | shared data under a mutex (owned by S3) | `app_stats`, `mtx_stats` | `APP_STATS`, read only while locked | *example* |
 | IF-05 | S4 → S1 | task control | `tid_led` | `tk_sus_tsk` / `tk_rsm_tsk` / `tk_chg_pri` | *example* |
-| IF-06 | S5 → S2 | event flag (owned by S5) | `flg_s5_obstacle` | `S5_FLAG_CLEAR`, `S5_FLAG_SLOWDOWN`, `S5_FLAG_EMERGENCY` | S5 / S2 |
+| IF-06 | S5 -> S2 | event flag (owned by S5) | `flg_s5_obstacle` | `S5_FLAG_CLEAR`, `S5_FLAG_SLOWDOWN`, `S5_FLAG_EMERGENCY`, `S5_FLAG_AVOID_LEFT`, `S5_FLAG_AVOID_RIGHT` | S5 / S2 |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
