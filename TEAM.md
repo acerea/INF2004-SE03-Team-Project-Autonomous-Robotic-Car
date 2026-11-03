@@ -52,7 +52,7 @@ fixed.
 | GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
 | GP2 | S5 | Ultrasonic Trigger (TRIG_PIN) |
 | GP3 | S5 | Ultrasonic Echo (ECHO_PIN) |
-| GP4 | | |
+| GP4 | S5 | Ultrasonic Scan Servo PWM (SERVO_PIN) |
 | GP5 | | |
 | GP6 | S2 | Right Wheel Encoder A (RIGHT_ENCODER_A) |
 | GP7 | S2 | Right Wheel Encoder B (RIGHT_ENCODER_B) |
@@ -111,7 +111,7 @@ the drivers have no locking to stop it.
 | SPI0 | | | |
 | SPI1 | | | |
 | ADC | | | GP26–GP28 |
-| PWM slices (list) | S5 | s5_scan_task | GP6 (PWM Slice 3, Channel A) |
+| PWM slices (list) | S5 | s5_scan_task | GP4 (PWM Slice 2, Channel A) |
 | PWM slices (list) | S2 | motion control task | GP8–GP11 (slices 4 and 5) |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in) | GP23–25, GP29 |
 
