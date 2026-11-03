@@ -1,0 +1,23 @@
+S1-M13 power-on while Wi-Fi is unavailable (firmware 9206e6d), 2026-11-04
+PowerShell serial logger (s1:, wifi:, mqtt: lines), laptop clock time in front.
+Hotspot off at power-on, switched on at 01:51:43.
+
+01:51:09  s1: 110 ms link OFFLINE -> INIT
+01:51:10  wifi: joining "homeschool" ...
+01:51:10  s1: 1610 ms link INIT -> WIFI_CONNECTING
+01:51:11  wifi: link status -> FAILED: SSID not found (-2)
+01:51:16  wifi: joining "homeschool" ...
+01:51:17  wifi: link status -> FAILED: SSID not found (-2)
+01:51:22  wifi: joining "homeschool" ...
+01:51:23  wifi: link status -> FAILED: SSID not found (-2)
+01:51:28  wifi: joining "homeschool" ...
+01:51:29  wifi: link status -> FAILED: SSID not found (-2)
+01:51:34  wifi: joining "homeschool" ...
+01:51:35  wifi: link status -> FAILED: SSID not found (-2)
+01:51:40  wifi: joining "homeschool" ...
+01:51:41  wifi: link status -> FAILED: SSID not found (-2)
+01:51:46  wifi: joining "homeschool" ...          (hotspot on at 01:51:43)
+01:51:49  wifi: link up, ip=192.168.137.213
+01:51:49  mqtt: connected to 192.168.137.1
+01:51:49  s1: 40410 ms link MQTT_CONNECTING -> CONNECTED
+Shortened: long explanation text after (-2) and the "joined AP, waiting for IP (1)" line after each join left out.

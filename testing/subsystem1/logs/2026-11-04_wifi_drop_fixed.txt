@@ -1,0 +1,28 @@
+S1-M09 re-run with the watchdog tick fix (firmware 9206e6d), 2026-11-04
+PowerShell serial logger (s1:, wifi:, mqtt: lines), laptop clock time in front.
+Hotspot switched off after CONNECTED, switched on at 01:49:02.
+
+01:48:10  s1: 4720 ms link MQTT_CONNECTING -> CONNECTED
+01:48:26  s1: 41210 ms link CONNECTED -> LOST
+01:48:31  wifi: link status -> FAILED: authentication rejected (-3)
+01:48:31  s1: 45810 ms link LOST -> RECONNECTING
+01:48:36  wifi: joining "homeschool" ...
+01:48:36  wifi: link status -> joined AP, waiting for IP (1)
+01:48:36  s1: 51210 ms link RECONNECTING -> FAULT
+01:48:37  wifi: link status -> FAILED: SSID not found (-2)
+01:48:39  mqtt: connection status 257, retrying in 3s
+01:48:42  wifi: joining "homeschool" ...
+01:48:42  wifi: link status -> FAILED: SSID not found (-2)
+01:48:47  wifi: joining "homeschool" ...
+01:48:48  wifi: link status -> FAILED: SSID not found (-2)
+01:48:53  wifi: joining "homeschool" ...
+01:48:54  wifi: link status -> FAILED: SSID not found (-2)
+01:48:59  wifi: joining "homeschool" ...
+01:49:00  wifi: link status -> FAILED: SSID not found (-2)
+01:49:05  wifi: joining "homeschool" ...          (hotspot on at 01:49:02)
+01:49:05  wifi: link status -> joined AP, waiting for IP (1)
+01:49:08  wifi: link up, ip=192.168.137.154
+01:49:10  mqtt: connected to 192.168.137.1
+01:49:10  mqtt: subscribed to picocar-01/cmd
+01:49:10  s1: 84710 ms link FAULT -> CONNECTED
+Shortened: long explanation text after (-3)/(-2) and the repeated "mqtt_client_connect() failed, err=-4" lines left out.
