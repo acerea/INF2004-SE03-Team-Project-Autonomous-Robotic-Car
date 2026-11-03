@@ -18,7 +18,7 @@ subsystem, ask its owner or open a pull request for them to review.
 | # | Subsystem (what it does) | Student ID | GitHub username | Code | Tests |
 |---|---|---|---|---|---|
 | 1 | *example:* LED heartbeat on GP19 | | | `app_program/subsystem1/` | `testing/subsystem1/` |
-| 2 | *example:* Producer: makes a sample every 300 ms | | | `app_program/subsystem2/` | `testing/subsystem2/` |
+| 2 | *Motion Control:* motor PWM, wheel encoders, PID speed control, straight-line correction, distance movement and turning | 2503272 | yjmockkk | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | *example:* Consumer: collects samples into statistics | | | `app_program/subsystem3/` | `testing/subsystem3/` |
 | 4 | *example:* Monitor: prints reports, pauses the LED | | | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | | | | `app_program/subsystem5/` | `testing/subsystem5/` |
@@ -54,18 +54,18 @@ fixed.
 | GP3 | S5 | Ultrasonic Echo (ECHO_PIN) |
 | GP4 | | |
 | GP5 | | |
-| GP6 | S5 | Ultrasonic Scan Servo PWM (SERVO_PIN) |
-| GP7 | | |
-| GP8 | | |
-| GP9 | | |
-| GP10 | | |
-| GP11 | | |
+| GP6 | S2 | Right Wheel Encoder A (RIGHT_ENCODER_A) |
+| GP7 | S2 | Right Wheel Encoder B (RIGHT_ENCODER_B) |
+| GP8 | S2 | Left Motor PWM (M1A) |
+| GP9 | S2 | Left Motor PWM (M1B) |
+| GP10 | S2 | Right Motor PWM (M2A) |
+| GP11 | S2 | Right Motor PWM (M2B) |
 | GP12 | | |
 | GP13 | | |
 | GP14 | | |
 | GP15 | | |
-| GP16 | | |
-| GP17 | | |
+| GP16 | S2 | Left Wheel Encoder A (LEFT_ENCODER_A) |
+| GP17 | S2 | Left Wheel Encoder B (LEFT_ENCODER_B) |
 | GP18 | | |
 | GP19 | *example:* S1 | external LED (LED + 330 Ω to GND) |
 | GP20 | | |
@@ -112,6 +112,7 @@ the drivers have no locking to stop it.
 | SPI1 | | | |
 | ADC | | | GP26–GP28 |
 | PWM slices (list) | S5 | s5_scan_task | GP6 (PWM Slice 3, Channel A) |
+| PWM slices (list) | S2 | motion control task | GP8–GP11 (slices 4 and 5) |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in) | GP23–25, GP29 |
 
 ### WiFi and MQTT are special
