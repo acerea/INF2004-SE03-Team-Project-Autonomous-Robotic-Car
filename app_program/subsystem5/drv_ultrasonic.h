@@ -3,5 +3,6 @@
 
 void ultrasonic_init(void);
 float ultrasonic_read_distance_cm(void);
+float ultrasonic_read_distance_filtered(void);
 
 #endif /* DRV_ULTRASONIC_H */

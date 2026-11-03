@@ -18,7 +18,7 @@ subsystem, ask its owner or open a pull request for them to review.
 | # | Subsystem (what it does) | Student ID | GitHub username | Code | Tests |
 |---|---|---|---|---|---|
 | 1 | *example:* LED heartbeat on GP19 | | | `app_program/subsystem1/` | `testing/subsystem1/` |
-| 2 | *example:* Producer: makes a sample every 300 ms | | | `app_program/subsystem2/` | `testing/subsystem2/` |
+| 2 | *Motion Control:* motor PWM, wheel encoders, PID speed control, straight-line correction, distance movement and turning | 2503272 | yjmockkk | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | *example:* Consumer: collects samples into statistics | | | `app_program/subsystem3/` | `testing/subsystem3/` |
 | 4 | *example:* Monitor: prints reports, pauses the LED | | | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | | | | `app_program/subsystem5/` | `testing/subsystem5/` |
@@ -50,22 +50,22 @@ fixed.
 | GP23, GP24, GP25, GP29 | *reserved* | Pico W radio |
 | GP0 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
 | GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
-| GP2 | | |
-| GP3 | | |
-| GP4 | | |
+| GP2 | S5 | Ultrasonic Trigger (TRIG_PIN) |
+| GP3 | S5 | Ultrasonic Echo (ECHO_PIN) |
+| GP4 | S5 | Ultrasonic Scan Servo PWM (SERVO_PIN) |
 | GP5 | | |
-| GP6 | | |
-| GP7 | | |
-| GP8 | | |
-| GP9 | | |
-| GP10 | | |
-| GP11 | | |
+| GP6 | S2 | Right Wheel Encoder A (RIGHT_ENCODER_A) |
+| GP7 | S2 | Right Wheel Encoder B (RIGHT_ENCODER_B) |
+| GP8 | S2 | Left Motor PWM (M1A) |
+| GP9 | S2 | Left Motor PWM (M1B) |
+| GP10 | S2 | Right Motor PWM (M2A) |
+| GP11 | S2 | Right Motor PWM (M2B) |
 | GP12 | | |
 | GP13 | | |
 | GP14 | | |
 | GP15 | | |
-| GP16 | | |
-| GP17 | | |
+| GP16 | S2 | Left Wheel Encoder A (LEFT_ENCODER_A) |
+| GP17 | S2 | Left Wheel Encoder B (LEFT_ENCODER_B) |
 | GP18 | | |
 | GP19 | *example:* S1 | external LED (LED + 330 Ω to GND) |
 | GP20 | | |
@@ -111,7 +111,8 @@ the drivers have no locking to stop it.
 | SPI0 | | | |
 | SPI1 | | | |
 | ADC | | | GP26–GP28 |
-| PWM slices (list) | | | |
+| PWM slices (list) | S5 | s5_scan_task | GP4 (PWM Slice 2, Channel A) |
+| PWM slices (list) | S2 | motion control task | GP8–GP11 (slices 4 and 5) |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in) | GP23–25, GP29 |
 
 ### WiFi and MQTT are special
@@ -150,7 +151,7 @@ change it only by team agreement. Write down every task you create.
 | 2 | 14–15 | *example:* producer_task – 14 – core 1 |
 | 3 | 16–17 | *example:* consumer_task – 16 – core 0 |
 | 4 | 18–19 | *example:* monitor_task – 18 – any |
-| 5 | 20–21 | |
+| 5 | 20–21 | s5_scan_task – 20 – any |
 
 Core: `TP_PRC1` = core 0, `TP_PRC2` = core 1, or "any".
 
@@ -167,7 +168,7 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-03 | S3 → S4 | message buffer + event flag (owned by S4) | `mbf_summary`, `flg_events` | text line ≤ `S4_SUMMARY_MAX` bytes, then `FLG_BATCH` | *example* |
 | IF-04 | S4 → S3 | shared data under a mutex (owned by S3) | `app_stats`, `mtx_stats` | `APP_STATS`, read only while locked | *example* |
 | IF-05 | S4 → S1 | task control | `tid_led` | `tk_sus_tsk` / `tk_rsm_tsk` / `tk_chg_pri` | *example* |
-| IF-06 | | | | | |
+| IF-06 | S5 → S2 | event flag (owned by S5) | `flg_s5_obstacle` | `S5_FLAG_CLEAR`, `S5_FLAG_SLOWDOWN`, `S5_FLAG_EMERGENCY` | S5 / S2 |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
@@ -179,9 +180,9 @@ limit there. The numbers below are the example's usage.
 
 | Object | Limit | S1 | S2 | S3 | S4 | S5 |
 |---|---|---|---|---|---|---|
-| Task | 32 | 1 | 1 | 1 | 1 | |
+| Task | 32 | 1 | 1 | 1 | 1 | 1 |
 | Semaphore | 16 | | 1 | | | |
-| Event flag | 16 | | | | 1 | |
+| Event flag | 16 | | | | 1 | 1 |
 | Mailbox | 12 | | | 1 | | |
 | Mutex | 12 | | | 1 | | |
 | Message buffer | 12 | | | | 1 | |
