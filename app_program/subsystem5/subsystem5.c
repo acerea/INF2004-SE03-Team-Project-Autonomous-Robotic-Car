@@ -18,22 +18,64 @@
 
 #include "subsystem5.h"
 #include "drv_ultrasonic.h"
+#include "drv_servo.h"
+
+ID flg_s5_obstacle;
 
 LOCAL void s5_scan_task(INT stacd, void *param)
 {
     ultrasonic_init();
+    servo_init();
 
     while (1) {
-        float distance = ultrasonic_read_distance_cm();
-        (void)distance;
+        /* 1. Normal forward observation */
+        servo_set_angle(SERVO_ANGLE_CENTER);
+        tk_dly_tsk(60); /* wait for servo settling */
+        float d_center = ultrasonic_read_distance_cm();
 
-        tk_dly_tsk(200); /* 5 Hz polling rate */
+        if (d_center > 0.0f && d_center < S5_WARN_DIST_CM) {
+            /* Obstacle ahead: slow down or stop */
+            tk_set_flg(flg_s5_obstacle, S5_FLAG_SLOWDOWN);
+
+            /* 2. Coarse sweep: Measure Left */
+            servo_set_angle(SERVO_ANGLE_LEFT);
+            tk_dly_tsk(150);
+            float d_left = ultrasonic_read_distance_cm();
+
+            /* 3. Coarse sweep: Measure Right */
+            servo_set_angle(SERVO_ANGLE_RIGHT);
+            tk_dly_tsk(200);
+            float d_right = ultrasonic_read_distance_cm();
+
+            /* Return to center */
+            servo_set_angle(SERVO_ANGLE_CENTER);
+
+            /* 4. Choose direction based on clearance */
+            if (d_left > d_right) {
+                tk_set_flg(flg_s5_obstacle, S5_FLAG_AVOID_LEFT);
+            } else {
+                tk_set_flg(flg_s5_obstacle, S5_FLAG_AVOID_RIGHT);
+            }
+
+            if (d_center < S5_STOP_DIST_CM) {
+                tk_set_flg(flg_s5_obstacle, S5_FLAG_EMERGENCY);
+            }
+        } else {
+            tk_set_flg(flg_s5_obstacle, S5_FLAG_CLEAR);
+        }
+
+        tk_dly_tsk(100);
     }
 }
 
 EXPORT ER subsystem5_init(void)
 {
-    return E_OK;
+    T_CFLG cflg = {
+        .flgatr = TA_WMUL | TA_TFIFO,
+        .iflgptn = S5_FLAG_CLEAR
+    };
+    flg_s5_obstacle = tk_cre_flg(&cflg);
+    return (flg_s5_obstacle < E_OK) ? flg_s5_obstacle : E_OK;
 }
 
 EXPORT ER subsystem5_start(void)
