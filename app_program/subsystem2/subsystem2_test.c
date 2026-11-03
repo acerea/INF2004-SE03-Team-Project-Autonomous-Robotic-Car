@@ -37,17 +37,116 @@ EXPORT void subsystem2_test(void)
 		   rmpf.frbcnt <= S2_POOL_COUNT,
 		   "free slots and free blocks within pool size");
 
-		/* ====================================================================================
-		* S2-M01: Basic Motor Movement Test
-		*
-		* Tests:
-		* - Move forward
-		* - Move backward
-		* - Turn left
-		* - Turn right
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+	/* S2-U03: Left wheel speed calculation (FR4) */
+	{
+		float speed = encoder_calculateLeftSpeed(100, 1.0f);
+
+		BOOL speed_ok = (speed > 0.74f && speed < 0.76f);
+
+		TEST_CHECK("S2-U03", speed_ok,
+				"Left encoder calculates expected wheel speed");
+	}
+
+	/* S2-U04: Right wheel speed calculation (FR4)*/
+	{
+		float speed = encoder_calculateRightSpeed(100, 1.0f);
+
+		BOOL speed_ok = (speed > 0.74f && speed < 0.76f);
+
+		TEST_CHECK("S2-U04", speed_ok,
+				"Right encoder calculates expected wheel speed");
+	}
+
+	/* S2-U05 — P controller pwm calculation test (FR5) */
+	{
+		float pwm;
+		pwm = speed_p_update(15.0f, 12.0f, 40.0f, 2.0f);
+
+		BOOL p_ok = (pwm > 45.9f && pwm < 46.1f);
+
+		TEST_CHECK("S2-U05", p_ok,
+			"P controller calculates expected PWM output");
+	}
+
+	/* S2-U06 — Pi controller calculation test (FR5) */
+	{
+		SpeedPI pi;
+		float pwm1, pwm2;
+
+		speed_pi_init(&pi, 2.0f, 1.0f, 40.0f);
+
+		pwm1 = speed_pi_update(&pi, 15.0f, 12.0f, 0.2f);
+		pwm2 = speed_pi_update(&pi, 15.0f, 12.0f, 0.2f);
+
+		BOOL pi_ok =
+			(pwm1 > 46.5f && pwm1 < 46.7f) &&
+			(pwm2 > 47.1f && pwm2 < 47.3f);
+
+		TEST_CHECK("S2-U06", pi_ok,
+				"PI controller accumulates speed error correctly");
+	}
+
+	/* S2-U07: PID controller calculation test (FR5) */
+	{
+		SpeedPID pid;
+		float pwm1, pwm2, pwm3;
+
+		speed_pid_init(&pid, 2.0f, 1.0f, 0.1f, 40.0f);
+
+		pwm1 = speed_pid_update(&pid, 15.0f, 12.0f, 0.2f);
+		pwm2 = speed_pid_update(&pid, 15.0f, 13.0f, 0.2f);
+		pwm3 = speed_pid_update(&pid, 15.0f, 14.0f, 0.2f);
+
+		BOOL pid_ok =
+			(pwm1 > 46.5f && pwm1 < 46.7f) &&
+			(pwm2 > 44.4f && pwm2 < 44.6f) &&
+			(pwm3 > 42.6f && pwm3 < 42.8f);
+
+		TEST_CHECK("S2-U07", pid_ok,
+				"PID controller produces expected PWM outputs");
+	}
+
+	/* S2-U08: PID zero-error response */
+	{
+		SpeedPID pid;
+		speed_pid_init(&pid, 2.0f, 1.0f, 0.1f, 40.0f);
+
+		float pwm = speed_pid_update(&pid, 15.0f, 15.0f, 0.2f);
+
+		BOOL pid_ok = (pwm > 39.9f && pwm < 40.1f);
+
+		TEST_CHECK("S2-U08", pid_ok,
+				"PID maintains base PWM when speed error is zero");
+	}
+
+	/* S2-U09: PID PWM output limits */
+	{
+		SpeedPID pid_high;
+		SpeedPID pid_low;
+
+		speed_pid_init(&pid_high, 2.0f, 1.0f, 0.1f, 40.0f);
+		speed_pid_init(&pid_low, 2.0f, 1.0f, 0.1f, 40.0f);
+
+		float pwm_high = speed_pid_update(&pid_high, 100.0f, 0.0f, 0.2f);
+		float pwm_low = speed_pid_update(&pid_low, 0.0f, 100.0f, 0.2f);
+
+		BOOL limits_ok =
+			(pwm_high >= 0.0f && pwm_high <= 100.0f) &&
+			(pwm_low >= 0.0f && pwm_low <= 100.0f);
+
+		TEST_CHECK("S2-U09", limits_ok,
+				"PID output remains within valid PWM limits");
+	}
+	
+
+	/* ------------------------------------------------- 
+	* MANUAL Test Cases
+	*
+	* Change '#if 0' to '#if 1' to enable the test
+	* ------------------------------------------------- */
+		
+		/* S2-M01: Basic Motor Movement Test
+		* Tests: Move forward, backward, left, and right */	
 		#if 0
 		{
 			tm_printf((UB*)"[S2-M01] Starting motor movement test\n");
@@ -78,16 +177,11 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-E01: Manual Encoder Counting Test
-		*
-		* Tests:
-		* - Rotate wheels manually and observe encoder counts
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-E01: Manual Encoder Counting Test
+		* Tests: Rotate wheels manually and observe encoder counts */
 		#if 0
-    	{
+		{
 			int i;
 
 			tm_printf((UB*)"[S2-E01] Manual encoder count test\n");
@@ -107,14 +201,9 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-E02: Preliminary CPR Calibration Test
-		*
-		* Tests:
-		* - Rotate five full revolutions of each wheel and observe encoder counts
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-E02: Preliminary CPR Calibration Test
+		* Tests: Rotate five full revolutions of each wheel and observe encoder counts */
 		#if 0
 		{
 			int32_t l0, r0, dl, dr;
@@ -157,14 +246,9 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-E03: Motor-driven Encoder Test
-		*
-		* Tests:
-		* - Encoder counting during motor operation
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+		
+		/* S2-E03: Motor-driven Encoder Test
+		* Tests: Encoder counting during motor operation */
 		#if 0
 		{
 			tm_printf((UB*)"[S2-E03] Starting motor-driven encoder test\n");
@@ -193,89 +277,80 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif 
 
-		/* ====================================================================================
-		* S2-S01: Speed Estimation using Measured Time Test
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+		
+		/* S2-S01: Speed Estimation using Measured Time Test */
 		#if 0
 		{
-		tm_printf((UB*)"[S2-S01] Starting motor-driven speed test\n");
+			tm_printf((UB*)"[S2-S01] Starting motor-driven speed test\n");
 
-		/* Allow time to connect the serial monitor */
-		tk_dly_tsk(5000);
+			/* Allow time to connect the serial monitor */
+			tk_dly_tsk(5000);
 
-		SYSTIM start_time;
-		SYSTIM end_time;
+			SYSTIM start_time;
+			SYSTIM end_time;
 
-		/* Start motors */
-		motion_moveForward(40);
+			/* Start motors */
+			motion_moveForward(40);
 
-		/* Record start time and encoder counts */
-		tk_get_tim(&start_time);
-		int32_t left_before = encoder_getLeftCount();
-		int32_t right_before = encoder_getRightCount();
+			/* Record start time and encoder counts */
+			tk_get_tim(&start_time);
+			int32_t left_before = encoder_getLeftCount();
+			int32_t right_before = encoder_getRightCount();
 
-		/* Allow wheels to rotate */
-		tk_dly_tsk(200);
+			/* Allow wheels to rotate */
+			tk_dly_tsk(200);
 
-		/* Record final counts and time */
-		int32_t left_after = encoder_getLeftCount();
-		int32_t right_after = encoder_getRightCount();
-		tk_get_tim(&end_time);
+			/* Record final counts and time */
+			int32_t left_after = encoder_getLeftCount();
+			int32_t right_after = encoder_getRightCount();
+			tk_get_tim(&end_time);
 
-		tk_get_tim(&end_time);
+			tk_get_tim(&end_time);
 
-		/* Stop both motors */
-		motion_stop();
+			/* Stop both motors */
+			motion_stop();
 
-		/* Calculate encoder count changes */
-		int32_t left_change = left_after - left_before;
-		int32_t right_change = right_after - right_before;
+			/* Calculate encoder count changes */
+			int32_t left_change = left_after - left_before;
+			int32_t right_change = right_after - right_before;
 
-		/* Combine high and low parts of system time */
-		uint64_t start_ms =
-			((uint64_t)(uint32_t)start_time.hi << 32) | start_time.lo;
+			/* Combine high and low parts of system time */
+			uint64_t start_ms =
+				((uint64_t)(uint32_t)start_time.hi << 32) | start_time.lo;
 
-		uint64_t end_ms =
-			((uint64_t)(uint32_t)end_time.hi << 32) | end_time.lo;
+			uint64_t end_ms =
+				((uint64_t)(uint32_t)end_time.hi << 32) | end_time.lo;
 
-		/* Calculate actual elapsed seconds */
-		float dt_seconds = (float)(end_ms - start_ms) / 1000.0f;
+			/* Calculate actual elapsed seconds */
+			float dt_seconds = (float)(end_ms - start_ms) / 1000.0f;
 
-		/* Calculate wheel speeds */
-		float left_speed =
-			encoder_calculateLeftSpeed(left_change, dt_seconds);
+			/* Calculate wheel speeds */
+			float left_speed =
+				encoder_calculateLeftSpeed(left_change, dt_seconds);
 
-		float right_speed =
-			encoder_calculateRightSpeed(right_change, dt_seconds);
+			float right_speed =
+				encoder_calculateRightSpeed(right_change, dt_seconds);
 
-		/* Convert for serial printing */
-		int left_speed10 = (int)(left_speed * 10.0f);
-		int right_speed10 = (int)(right_speed * 10.0f);
+			/* Convert for serial printing */
+			int left_speed10 = (int)(left_speed * 10.0f);
+			int right_speed10 = (int)(right_speed * 10.0f);
 
-		tm_printf((UB*)"[S2-S01] Elapsed time: %lu ms\n",
-				(unsigned long)(end_ms - start_ms));
+			tm_printf((UB*)"[S2-S01] Elapsed time: %lu ms\n",
+					(unsigned long)(end_ms - start_ms));
 
-		tm_printf((UB*)"[S2-S01] Left speed: %d.%01d cm/s\n",
-				left_speed10 / 10, left_speed10 % 10);
+			tm_printf((UB*)"[S2-S01] Left speed: %d.%01d cm/s\n",
+					left_speed10 / 10, left_speed10 % 10);
 
-		tm_printf((UB*)"[S2-S01] Right speed: %d.%01d cm/s\n",
-				right_speed10 / 10, right_speed10 % 10);
+			tm_printf((UB*)"[S2-S01] Right speed: %d.%01d cm/s\n",
+					right_speed10 / 10, right_speed10 % 10);
 
-		tm_printf((UB*)"[S2-S01] Test completed\n");
+			tm_printf((UB*)"[S2-S01] Test completed\n");
 		}
 		#endif 
 
-		/* ====================================================================================
-		* S2-S02: Motor-driven Speed Response Test
-		*
-		* Tests:
-		* - Wheel speed at 40% PWM
-		* - Then wheel speed at 60% PWM
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-S02: Motor-driven Speed Response Test
+		* Tests: Wheel speed at 40% PWM, then wheel speed at 60% PWM */
 		#if 0
 		{
 			const int pwms[2] = {40, 60};
@@ -334,26 +409,21 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-S03: Manual Speed Estimation Test
-		*
-		* Tests:
-		* - Estimate wheel speed by manually rotating the wheels and observing encoder counts
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-S03: Manual Speed Estimation Test
+		 * Tests: Estimate wheel speed by manually rotating the wheels and observing encoder counts */
 		#if 0
 		{
 			int32_t l0, r0, l1, r1;
 			float ls, rs;
 
-			tm_printf((UB*)"[S2-S01] Manual speed estimation test\n");
+			tm_printf((UB*)"[S2-S03] Manual speed estimation test\n");
 			tk_dly_tsk(5000);
 
 			l0 = encoder_getLeftCount();
 			r0 = encoder_getRightCount();
 
-			tm_printf((UB*)"[S2-S01] Rotate wheels for 5 seconds\n");
+			tm_printf((UB*)"[S2-S03] Rotate wheels for 5 seconds\n");
 			tk_dly_tsk(5000);
 
 			l1 = encoder_getLeftCount();
@@ -362,14 +432,14 @@ EXPORT void subsystem2_test(void)
 			ls = encoder_calculateLeftSpeed(l1 - l0, 5.0f);
 			rs = encoder_calculateRightSpeed(r1 - r0, 5.0f);
 
-			tm_printf((UB*)"[S2-S01] Left speed: %d cm/s\n", (int)ls);
-			tm_printf((UB*)"[S2-S01] Right speed: %d cm/s\n", (int)rs);
+			tm_printf((UB*)"[S2-S03] Left speed: %d cm/s\n", (int)ls);
+			tm_printf((UB*)"[S2-S03] Right speed: %d cm/s\n", (int)rs);
 
 			/* Stationary check */
 			l0 = encoder_getLeftCount();
 			r0 = encoder_getRightCount();
 
-			tm_printf((UB*)"[S2-S01] Stop rotating both wheels\n");
+			tm_printf((UB*)"[S2-S03] Stop rotating both wheels\n");
 
 			/* Give time to stop the wheels */
 			tk_dly_tsk(5000);
@@ -386,84 +456,73 @@ EXPORT void subsystem2_test(void)
 			ls = encoder_calculateLeftSpeed(l1 - l0, 5.0f);
 			rs = encoder_calculateRightSpeed(r1 - r0, 5.0f);
 
-			tm_printf((UB*)"[S2-S01] Stationary left speed: %d cm/s\n", (int)ls);
-			tm_printf((UB*)"[S2-S01] Stationary right speed: %d cm/s\n", (int)rs);
+			tm_printf((UB*)"[S2-S03] Stationary left speed: %d cm/s\n", (int)ls);
+			tm_printf((UB*)"[S2-S03] Stationary right speed: %d cm/s\n", (int)rs);
 
-			tm_printf((UB*)"[S2-S01] Test completed\n");
+			tm_printf((UB*)"[S2-S03] Test completed\n");
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-ED01: Motor-driven Encoder Distance Test
-		*
-		* Tests:
-		* - Encoder counting during motor operation
- 		* - Encoder-based wheel distance estimation
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-ED01: Motor-driven Encoder Distance Test
+		* Tests: Encoder counting during motor operation and Encoder-based wheel distance estimation */
 		#if 0
 		{
-		tm_printf((UB*)"[S2-ED01] Starting motor-driven distance test\n");
+			tm_printf((UB*)"[S2-ED01] Starting motor-driven distance test\n");
 
-		tk_dly_tsk(5000);
+			tk_dly_tsk(5000);
 
-		/* Read counts before movement */
-		int32_t left_before = encoder_getLeftCount();
-		int32_t right_before = encoder_getRightCount();
+			/* Read counts before movement */
+			int32_t left_before = encoder_getLeftCount();
+			int32_t right_before = encoder_getRightCount();
 
-		float left_distance_before = encoder_getLeftDistance();
-		float right_distance_before = encoder_getRightDistance();
+			float left_distance_before = encoder_getLeftDistance();
+			float right_distance_before = encoder_getRightDistance();
 
-		/* Move forward at 40% PWM for 500 ms */
-		motion_moveForward(40);
-		tk_dly_tsk(500);
-		motion_stop();
+			/* Move forward at 40% PWM for 500 ms */
+			motion_moveForward(40);
+			tk_dly_tsk(500);
+			motion_stop();
 
-		tk_dly_tsk(500);
+			tk_dly_tsk(500);
 
-		/* Read counts after movement */
-		int32_t left_after = encoder_getLeftCount();
-		int32_t right_after = encoder_getRightCount();
+			/* Read counts after movement */
+			int32_t left_after = encoder_getLeftCount();
+			int32_t right_after = encoder_getRightCount();
 
-		/* Calculate encoder count changes */
-		int32_t left_change = left_after - left_before;
-		int32_t right_change = right_after - right_before;
+			/* Calculate encoder count changes */
+			int32_t left_change = left_after - left_before;
+			int32_t right_change = right_after - right_before;
 
-		tm_printf((UB*)"[S2-ED01] Left count change: %ld\n",
-				(long)left_change);
+			tm_printf((UB*)"[S2-ED01] Left count change: %ld\n",
+					(long)left_change);
 
-		tm_printf((UB*)"[S2-ED01] Right count change: %ld\n",
-				(long)right_change);
+			tm_printf((UB*)"[S2-ED01] Right count change: %ld\n",
+					(long)right_change);
 
-		/* Calculate distance travelled during the test (cm) */
-		float left_distance = encoder_getLeftDistance() - left_distance_before;
-		float right_distance = encoder_getRightDistance() - right_distance_before;
+			/* Calculate distance travelled during the test (cm) */
+			float left_distance = encoder_getLeftDistance() - left_distance_before;
+			float right_distance = encoder_getRightDistance() - right_distance_before;
 
-		/* Convert to cm */
-		int left_distance10 = (int)(left_distance * 10.0f);
-		int right_distance10 = (int)(right_distance * 10.0f);
+			/* Convert to cm */
+			int left_distance10 = (int)(left_distance * 10.0f);
+			int right_distance10 = (int)(right_distance * 10.0f);
 
-		tm_printf((UB*)"[S2-ED01] Left distance: %d.%01d cm\n",
-				left_distance10 / 10,
-				left_distance10 % 10);
+			tm_printf((UB*)"[S2-ED01] Left distance: %d.%01d cm\n",
+					left_distance10 / 10,
+					left_distance10 % 10);
 
-		tm_printf((UB*)"[S2-ED01] Right distance: %d.%01d cm\n",
-				right_distance10 / 10,
-				right_distance10 % 10);
+			tm_printf((UB*)"[S2-ED01] Right distance: %d.%01d cm\n",
+					right_distance10 / 10,
+					right_distance10 % 10);
 
-		tm_printf((UB*)"[S2-ED01] Test completed\n");
+			tm_printf((UB*)"[S2-ED01] Test completed\n");
 		}
 		#endif 
 
-		/* ====================================================================================
-		* S2-M02: Independent Wheel PWM Control Test
-		*
-		* Tests:
-		* - Set left wheel to 40% PWM and right wheel to 60% PWM
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-M02: Independent Wheel PWM Control Test
+		* Tests: Set left wheel to 40% PWM and right wheel to 60% PWM */
 		#if 0
 		{
 			tm_printf((UB*)"[S2-M02] Independent wheel PWM test\n");
@@ -480,15 +539,9 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-P01: P Controller PWM Calculation Test
-		*
-		* Tests:
-		* - Verify that the speed_p_update function calculates the correct PWM output based on 
-		* target speed, measured speed, base PWM, and proportional gain (kp).
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-P01: P Controller PWM Calculation Test
+		 * Tests: Verify that the speed_p_update function calculates the correct PWM output based on target speed, measured speed, base PWM, and proportional gain (kp). */
 		#if 0
 		{
 			float pwm;
@@ -508,15 +561,9 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-P02: P Control with Encoder Feedback Test
-		*
-		* Tests:
-		* - Verify that the proportional control algorithm adjusts the PWM output based on 
-		*   encoder feedback to maintain the target speed.
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-P02: P Control with Encoder Feedback Test
+		 * Tests: Verify that the proportional control algorithm adjusts the PWM output based on encoder feedback to maintain the target speed. */
 		#if 0
 		{
 			const float target_speed = 15.0f;
@@ -581,16 +628,10 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-P03: PI Controller Calculation Test
-		*
-		* Tests:
-		* - Verify that the speed_pi_update function calculates the correct PWM output based on 
-		*   target speed, measured speed, base PWM, proportional gain (kp), integral gain (ki), 
-		*   and accumulated integral error.
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-P03: PI Controller Calculation Test
+		 * Tests: Verify that the speed_pi_update function calculates the correct PWM output based on target speed, measured speed, base PWM, proportional gain (kp), 
+		 * integral gain (ki), and accumulated integral error. */
 		#if 0
 		{
 			SpeedPI left_pi;
@@ -618,15 +659,9 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-P04: PI Control with Encoder Feedback Test
-		*
-		* Tests:
-		* - Verify that the PI control algorithm adjusts the PWM output based on encoder 
-		*   feedback to maintain the target speed.
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-P04: PI Control with Encoder Feedback Test
+		* Tests: Verify that the PI control algorithm adjusts the PWM output based on encoder feedback to maintain the target speed. */
 		#if 0
 		{
 			const float target_speed = 15.0f;
@@ -702,11 +737,8 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-P05: Full PID Calculation Test
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-P05: Full PID Calculation Test */
 		#if 0
 		{
 			SpeedPID pid;
@@ -739,11 +771,8 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ====================================================================================
-		* S2-P06: Full PID with Encoder Feedback Test
-		*
-		* Change '#if 0' to '#if 1' to enable the test
-		* ===================================================================================== */
+
+		/* S2-P06: Full PID with Encoder Feedback Test */
 		#if 0
 		{
 			const float target_speed = 15.0f;
@@ -816,16 +845,9 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ============================================================
-		* S2-P07: Integrated PID Wheel Speed Control Test (FR5)
-		*
-		* Tests:
-		* - PID integration using motion_pid.c
-		* - Encoder feedback and wheel speed response
-		* - Target speed: 15 cm/s
-		*
-		* Change '#if 0' to '#if 1' to enable
-		* ============================================================ */
+
+		/* S2-P07: Integrated PID Wheel Speed Control Test (FR5)
+		* Tests: PID integration using motion_pid.c , Encoder feedback and wheel speed response and Target speed: 15 cm/s */
 		#if 0
 		{
 			SYSTIM previous_time, current_time;
@@ -903,11 +925,8 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ============================================================
-		* S2-P08: S2-P08: PID Control Loop Timing Test (NFR2) 
-		*
-		* Change '#if 0' to '#if 1' to enable
-		* ============================================================ */
+
+		/* S2-P08: S2-P08: PID Control Loop Timing Test (NFR2) */
 		#if 0
 		{
 			SYSTIM previous, current;
@@ -974,11 +993,8 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ============================================================
-		* S2-P09: Straight-Line Motion Correction Test (FR5)
-		*
-		* Change '#if 0' to '#if 1' to enable
-		* ============================================================ */
+
+		/* S2-P09: Straight-Line Motion Correction Test (FR5) */
 		#if 0
 		{
 			SYSTIM start, end;
@@ -1043,11 +1059,8 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ============================================================
-		* S2-DM01: Encoder-Based Distance Movement Test (FR6)
-		*
-		* Change '#if 0' to '#if 1' to enable
-		* ============================================================ */
+
+		/* S2-DM01: Encoder-Based Distance Movement Test (FR6) */
 		#if 0
 		{
 			SYSTIM start, end;
@@ -1118,11 +1131,8 @@ EXPORT void subsystem2_test(void)
 		}
 		#endif
 
-		/* ============================================================
-		* S2-T01: Encoder-Based 90 Degree Turning Test (FR6)
-		*
-		* Change '#if 0' to '#if 1' to enable
-		* ============================================================ */
+
+		/* S2-T01: Encoder-Based 90 Degree Turning Test (FR6) */
 		#if 0
 		{
 			// tm_printf((UB*)"[S2-T01] Starting 90-degree left turn\n");
