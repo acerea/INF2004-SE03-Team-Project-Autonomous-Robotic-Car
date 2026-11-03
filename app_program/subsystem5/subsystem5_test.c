@@ -60,10 +60,11 @@ EXPORT void subsystem5_test(void)
 
     /* S5-U07: Servo angular sweep and range clamping */
     servo_set_angle(-45);
-    tk_dly_tsk(40);
+    tk_dly_tsk(150);
     servo_set_angle(45);
-    tk_dly_tsk(40);
+    tk_dly_tsk(150);
     servo_set_angle(0);
+    tk_dly_tsk(100);
     /* Safe execution check: verify clamping boundary inputs do not fault */
     servo_set_angle(-90);
     servo_set_angle(90);
