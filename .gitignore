@@ -1,0 +1,14 @@
+# Local Wi-Fi and broker settings: copy config/wifi_secrets.example.h
+config/wifi_secrets.h
+
+# macOS folder files
+.DS_Store
+
+# Build logs and profile (build output itself is in build_make/.gitignore)
+build_make/.build_profile
+build_make/*.log
+build_log.txt
+
+# Python
+__pycache__/
+*.pyc

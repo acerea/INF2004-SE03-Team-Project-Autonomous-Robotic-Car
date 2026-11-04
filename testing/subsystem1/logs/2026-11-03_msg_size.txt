@@ -1,0 +1,11 @@
+Heartbeat (99 real frames from testing/subsystem1/logs/2026-11-03_hb_interval_after.txt)  [min / avg / max]
+  binary     payload   8 /   8.0 /   8 B   MQTT packet  27 /  27.0 /  27 B
+  key=value  payload  50 /  51.4 /  52 B   MQTT packet  69 /  70.4 /  71 B
+  JSON       payload  68 /  69.4 /  70 B   MQTT packet  87 /  88.4 /  89 B
+  example key=value: seq=98 ver=1 type=0 link=3 up=198 drops=0 ok=0 bad=0
+  example JSON:      {"seq":98,"ver":1,"type":0,"link":3,"up":198,"drops":0,"ok":0,"bad":0}
+
+Command (all 20480 valid seq/cmd/arg values)  [min / avg / max]
+  binary     payload   3 /   3.0 /   3 B   MQTT packet  23 /  23.0 /  23 B
+  key=value  payload  23 /  24.9 /  26 B   MQTT packet  43 /  44.9 /  46 B
+  JSON       payload  33 /  34.9 /  36 B   MQTT packet  53 /  54.9 /  56 B

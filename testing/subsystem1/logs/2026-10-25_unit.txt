@@ -1,0 +1,32 @@
+[TEST] === test run start ===
+[TEST] S1-U01 PASS  kernel objects exist
+[TEST] S1-U02 PASS  pack/unpack round trip at min and max
+[TEST] S1-U03 PASS  out-of-range values saturate and flag an error
+[TEST] S1-U04 PASS  valid accepted, duplicate rejected, STOP always ok
+[TEST] S1-U05 PASS  sequence window edges
+[TEST] S1-U06 PASS  bad version, cmd or length rejected
+[TEST] S1-U07 PASS  full queue drops frames and never blocks
+[TEST] S1-U08 PASS  frame type bits match the MQTT library
+[TEST] subsystem1 SUMMARY 8 passed, 0 failed
+[TEST] S2-U01 PASS  sample values stay within 0..100
+[TEST] S2-U02 PASS  free slots and free blocks within pool size
+[TEST] subsystem2 SUMMARY 2 passed, 0 failed
+wifi: link status -> joined AP, no IP yet (2)
+monitor: batch  n=20 last=10 from core 0
+monitor: t=3355780996 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+[TEST] INT-01 PASS  samples flow from subsystem 2 to subsystem 3
+[TEST] S3-U01 PASS  min <= max, both within 0..100
+[TEST] subsystem3 SUMMARY 2 passed, 0 failed
+[TEST] S4-U01 PASS  message buffer max line = S4_SUMMARY_MAX
+wifi: link up, ip=192.168.137.33
+mqtt: connected to 192.168.137.1
+mqtt: subscribed to picocar-01/cmd
+monitor: batch  n=25 last=40 from core 0
+monitor: t=3355782546 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+monitor: batch  n=30 last=90 from core 0
+monitor: t=3355784096 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+[TEST] INT-02 PASS  summary lines flow from subsystem 3 to subsystem 4
+[TEST] subsystem4 SUMMARY 2 passed, 0 failed
+[TEST] S5-U01 PASS  example: running in a task context
+[TEST] subsystem5 SUMMARY 1 passed, 0 failed
+[TEST] === test run end ===

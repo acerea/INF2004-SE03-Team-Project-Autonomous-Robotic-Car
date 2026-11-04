@@ -12,7 +12,15 @@ Define a test here before running it. Test IDs never change.
 |---|---|---|---|---|---|
 | S2-U01 | Sample value range | Existing subsystem test | auto | Run `subsystem2_test.c` | `[TEST] S2-U01 PASS` |
 | S2-U02 | Semaphore and memory pool bounds | IF-02 | auto | Run `subsystem2_test.c` | `[TEST] S2-U02 PASS` |
+| S2-U03 | Left wheel speed calculation | FR4 | auto | Call `encoder_calculateLeftSpeed(100, 1.0f)` and check expected speed | Speed between 0.74 and 0.76 cm/s |
+| S2-U04 | Right wheel speed calculation | FR4 | auto | Call `encoder_calculateRightSpeed(100, 1.0f)` and check expected speed | Speed between 0.74 and 0.76 cm/s |
+| S2-U05 | P controller PWM calculation | FR5 | auto | Call `speed_p_update(15, 12, 40, 2)` | PWM between 45.9% and 46.1% |
+| S2-U06 | PI controller calculation | FR5 | auto | Run two PI updates with target=15 cm/s, measured=12 cm/s, dt=0.2 s | PWM approximately 46.6% then 47.2% |
+| S2-U07 | PID controller calculation | FR5 | auto | Run three PID updates with measured speeds of 12, 13 and 14 cm/s | PWM approximately 46.6%, 44.5% and 42.7% |
+| S2-U08 | PID zero-error response | FR5 | auto | Initialize PID with base PWM=40%; target=15 cm/s and measured=15 cm/s | PWM remains approximately 40% |
+| S2-U09 | PID PWM output limits | FR5 | auto | Apply large positive and negative speed errors | PWM remains within 0–100% |
 | S2-M01 | Basic motor movement | Motor Control API | manual | Test forward, backward, left, right and stop | Motors respond to commands correctly |
+| S2-M02 | Independent wheel PWM control | FR5 | manual | Set left PWM to 40% and right PWM to 60%, then stop both motors after 2 seconds | Both motors operate independently at their assigned PWM levels and stop |
 | S2-E01 | Manual encoder counting | FR4 | manual | Rotate both wheels and observe encoder counts | Counts change according to wheel rotation |
 | S2-E02 | Preliminary CPR calibration | FR4 | manual | Rotate each wheel for five complete revolutions | Obtain preliminary counts per revolution (CPR) for both wheels |
 | S2-E03 | Motor-driven encoder | FR4 | manual | Run both motors at 40% PWM for 500 ms | Both encoder counts increase during motor-driven rotation |
@@ -20,8 +28,7 @@ Define a test here before running it. Test IDs never change.
 | S2-S02 | Motor-driven speed response | FR4 | manual | Compare encoder-derived speeds at 40% and 60% PWM | Estimated wheel speeds increase with PWM |
 | S2-S03 | Manual speed estimation | FR4 | manual | Rotate and stop wheels while monitoring speed | Speed responds to rotation and returns to zero when stationary |
 | S2-ED01 | Motor-driven encoder distance | FR4 | manual | Compare encoder distance estimates with measuring-tape measurements | Record actual and encoder-estimated distances, calculate percentage error for both wheels, and identify whether further calibration is required. |
-| S2-M02 | Independent wheel PWM control | FR5 | manual | Set left PWM to 40% and right PWM to 60%, then stop both motors after 2 seconds | Both motors operate independently at their assigned PWM levels and stop |
-| S2-P01 | P controller PWM calculation | FR5 | auto | Call `speed_p_update(15.0f, 12.0f, 40.0f, 2.0f)` and check the calculated PWM | Output is 46% PWM and test prints PASS |
+| S2-P01 | P controller PWM calculation | FR5 | manual | Call `speed_p_update(15.0f, 12.0f, 40.0f, 2.0f)` and check the calculated PWM | Output is 46% PWM and test prints PASS |
 | S2-P02 | P control with encoder feedback | FR5 | manual | Run both motors with a target speed of 15 cm/s, measure encoder speeds and adjust each wheel's PWM | PWM adjustments respond in the correct direction to speed errors |
 | S2-P03 | PI controller calculation | FR5 | manual | Call PI update twice with target=15 cm/s, measured=12 cm/s, dt=0.2 s | PWM increases from 46.6% to 47.2%, demonstrating accumulated error |
 | S2-P04 | PI control with encoder feedback | FR5 | manual | Run both motors with a target speed of 15 cm/s and adjust each wheel's PWM using independent PI controllers | PWM responds to speed error and accumulated error; assess speed stability |
@@ -79,3 +86,10 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-28 | S2-T01 | `63b7be3` | Ying Jing | PASS | `logs/2026-10-28_T01_3.png` | 90° right: L=81 mm, R=-79 mm; expected ±77.8 mm |
 | 2026-10-28 | S2-T01 | `63b7be3` | Ying Jing | PASS | `logs/2026-10-28_T01_4.png` | 180° right: L=155 mm, R=-158 mm; expected ±155.5 mm |
 | 2026-10-28 | S2-T01 | `63b7be3` | Ying Jing | PASS | `logs/2026-10-28_T01_5.png` | 180° left turn completed; L=-157 mm, R=159 mm against expected ±155.5 mm |
+| 2026-11-03 | S2-U03 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | Left encoder speed calculation matches expected range using 100 counts over 1 second |
+| 2026-11-03 | S2-U04 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | Right encoder speed calculation matches expected range using 100 counts over 1 second |
+| 2026-11-03 | S2-U05 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | P controller calculated expected PWM of 46% |
+| 2026-11-03 | S2-U06 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | PI controller calculated expected PWM values of 46.6% and 47.2%; integral accumulation verified |
+| 2026-11-03 | S2-U07 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | PID controller calculated expected PWM values of 46.6%, 44.5% and 42.7% |
+| 2026-11-03 | S2-U08 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | PID maintains base PWM=40% when target speed equals measured speed |
+| 2026-11-03 | S2-U09 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | PID output remains within 0–100% for large positive and negative speed errors |
