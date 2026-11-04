@@ -71,9 +71,9 @@ fixed.
 | GP20 | | |
 | GP21 | | |
 | GP22 | | |
-| GP26 | | (ADC0 capable) |
-| GP27 | | (ADC1 capable) |
-| GP28 | | (ADC2 capable) |
+| GP26 | (ADC0 capable) | S3 | Left IR Sensor |
+| GP27 | (ADC1 capable) | S3 | Centre IR Sensor |
+| GP28 | (ADC2 capable) | S3 | Right IR Sensor |
 
 ## 3. Peripherals
 
