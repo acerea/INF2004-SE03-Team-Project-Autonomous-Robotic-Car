@@ -1,238 +1,144 @@
-/**
- * @file ir_sense.c
- * @brief Implementation of Buddy 3 Line Following & Barcode Navigation
- */
-
 #include "ir_sense.h"
+#include "hardware/adc.h"
+#include <tk/tkernel.h>
+#include "hardware/gpio.h"
 
 #define PIN_IR_LEFT 26
 #define PIN_IR_CENTRE 27
 #define PIN_IR_RIGHT 28
 /*#define WHATTHEFUCK REMEMBER TO DELETE*/
 
-/* Forward declare state handlers to populate the translation table matrix */
-static void handle_state_calibrating(buddy3_context_t *ctx);
-static void handle_state_tracking(buddy3_context_t *ctx);
-static void handle_state_barcode_decoding(buddy3_context_t *ctx);
-static void handle_state_command_pending(buddy3_context_t *ctx);
-static void handle_state_junction_detected(buddy3_context_t *ctx);
-static void handle_state_line_lost(buddy3_context_t *ctx);
-static void handle_state_fault(buddy3_context_t *ctx);
+#define bthreshold 2000 //threshold of which the ir sensor reads blacklines
+#define wthreshold 500 //threshold of which the ir sensor reads blacklines
 
-/**
- * @brief State-to-Function Pointer Matrix. Completely replaces traditional
- * nested if-else / switch structures to enforce deterministic O(1) transitions.
- */
-typedef void (*state_handler_t)(buddy3_context_t *);
-static const state_handler_t state_matrix[NUM_STATES] = {
-    [STATE_CALIBRATING]       = handle_state_calibrating,
-    [STATE_TRACKING]          = handle_state_tracking,
-    [STATE_BARCODE_DECODING]  = handle_state_barcode_decoding,
-    [STATE_COMMAND_PENDING]   = handle_state_command_pending,
-    [STATE_JUNCTION_DETECTED] = handle_state_junction_detected,
-    [STATE_LINE_LOST]         = handle_state_line_lost,
-    [STATE_FAULT]             = handle_state_fault
+/*my head hurts too much to exist*/
+
+#define ADC_LEFT   0   /* GPIO26 = Channel 0 */
+#define ADC_CENTRE 1   /* GPIO27 = Channel 1 */
+#define ADC_RIGHT  2   /* GPIO28 = Channel 2 */
+
+static buddy3_context_t context;
+static ID ir_mutex_id;
+static volatile bool steering_locked = false;
+
+static inline uint16_t read_adc_raw(uint8_t channel) {
+    adc_select_input(channel);
+    return adc_read();
+}
+
+typedef void (*state_handler_t)(void);
+
+static void execute_cali(void) {
+    tk_loc_mtx(ir_mutex_id, TMO_FEVR);
+    context.threshold_black = bthreshold;
+    context.threshold_white =wthreshold;
+    context.current_state.current_state = IR_TRACK;
+    tk_unl_mtx(ir_mutex_id);
+}
+
+static void execute_track(void) {
+
+    context.current_state.current_state = IR_TRACK & IR_MASK;
+
+    if (steering_locked) {
+        return;
+    }
+
+    uint16_t left_val = read_adc_raw(ADC_LEFT);
+    uint16_t centre_val = read_adc_raw(ADC_CENTRE);
+
+    tk_loc_mtx(ir_mutex_id, TMO_FEVR);
+    if (left_val < WTHRESHOLD && centre_val < WTHRESHOLD) {
+        context.current_state.current_state = IR_LINE_LOST;
+        context.line_lost_start_ms = tk_ref_slt();
+    }
+    tk_unl_mtx(ir_mutex_id);
+
+}
+
+static void execute_barcode(void) {
+    context.current_state.current_state = IR_BARCODE & IR_MASK;
+}
+
+static void execute_line_lost(void) {
+
+    context.current_state.current_state = IR_LINE_LOST & IR_MASK;
+
+    if (context.line_lost_start_ms == 0) {
+        context.line_lost_start_ms = tk_ref_slt();
+    }
+
+    if ((tk_ref_slt() - context.line_lost_start_ms) > 1000) {
+        context.emergency_stop_active = true;
+    }
+
+}
+
+static const state_handler_t state_execution_table[] = {
+    [IR_CALI]      = execute_cali,
+    [IR_TRACK]     = execute_track,
+    [IR_BARCODE]   = execute_barcode,
+    [IR_LINE_LOST] = execute_line_lost
 };
 
-void ir_subsystem_init(buddy3_context_t *ctx) {
-    if (!ctx) return;
-    
-    ctx->current_state = STATE_CALIBRATING;
-    ctx->emergency_stop_active = false;
-    
-    /* Initialize PD Loop Configs */
-    ctx->pd_steering.kp = 1.25f;
-    ctx->pd_steering.kd = 0.45f;
-    ctx->pd_steering.prev_error = 0.0f;
-    ctx->pd_steering.target_center = 0; // Balanced differential center
-    
-    /* Standard hardware threshold defaults */
-    ctx->threshold_black = 3000; 
-    ctx->threshold_white = 500;
-    ctx->ir_midpoint = 1750;
-    
-    ctx->edge_count = 0;
-    ctx->barcode_retry_count = 0;
-    ctx->pending_raw_payload = 0x00;
-    ctx->line_lost_start_ms = 0;
+void ir_get_telemetry(ir_subsystem_t *out_snapshot) {
+
+    tk_loc_mtx(ir_mutex_id, TMO_FEVR);
+
+    out_snapshot->timestamp          = context.current_state.timestamp;
+    out_snapshot->estimated_line_pos = context.current_state.estimated_line_pos;
+    out_snapshot->junction_detected  = context.current_state.junction_detected;
+    out_snapshot->current_state      = context.current_state.current_state & IR_MASK;
+
+    tk_unl_mtx(ir_mutex_id);
 }
 
-void ir_line_sensor_task_run(buddy3_context_t *ctx) {
-    if (!ctx) return;
+void ir_lock_steering(bool lock) {
 
-    /* Global Safety Constraint Override (FR16 Compliance) */
-    if (ctx->emergency_stop_active) {
-        ctx->current_state = STATE_FAULT;
-    }
+    steering_locked = lock;
+}
 
-    /* Execute the mapped function handler via deterministic pointer matrix lookups */
-    if (ctx->current_state < NUM_STATES && state_matrix[ctx->current_state]) {
-        state_matrix[ctx->current_state](ctx);
+static void ir_sensor_task(INT stacd, void *exinf) {
+
+    while (1) {
+
+        uint8_t target_state = context.current_state.current_state & IR_MASK;
+        state_execution_table[target_state]();
+        context.current_state.timestamp = tk_ref_slt();
+        tk_dly_tsk(10);
     }
 }
 
-void ir_barcode_task_run(buddy3_context_t *ctx) {
-    if (!ctx) return;
-    
-    /* Core 1 logic evaluates barcode paths strictly when state machine permits */
-    if (ctx->current_state == STATE_BARCODE_DECODING) {
-        uint16_t adc_val = stub_read_hardware_adc(PIN_IR_RIGHT);
-        
-        /* Simulated time-based edge tracking loop */
-        if (adc_val > ctx->ir_midpoint) {
-            if (ctx->edge_count < 16) {
-                ctx->edge_intervals[ctx->edge_count++] = 5; // Track 5ms intervals
-            }
-        }
-        
-        /* Evaluate terminal parsing criteria */
-        if (ctx->edge_count >= 12) {
-            /* Successful decode path: Extract 2-bit navigation command payloads */
-            ctx->pending_raw_payload = (NAV_CMD_RIGHT & NAV_CMD_MASK); 
-            ctx->current_state = STATE_COMMAND_PENDING;
-        } else if (ctx->edge_count >= 15) { // Force tracking limits overflow
-            if (ctx->barcode_retry_count < 1) {
-                ctx->barcode_retry_count++;
-                ctx->edge_count = 0; // Clear out and retry sampling sequence
-            } else {
-                /* Failed retry cycle: Dispatch event directly to Vehicle Controller */
-                vehicle_controller_notify_event(STATE_BARCODE_DECODING, 0xFF); 
-                ctx->current_state = STATE_TRACKING;
-            }
-        }
-    }
-}
+void ir_sense_init(void) {
 
-void ir_subsystem_set_emergency_stop(buddy3_context_t *ctx, bool stop_active) {
-    if (ctx) {
-        ctx->emergency_stop_active = stop_active;
-    }
-}
+    adc_init();
+    adc_gpio_init(PIN_IR_LEFT);
+    adc_gpio_init(PIN_IR_CENTRE);
+    adc_gpio_init(PIN_IR_RIGHT);
 
-/* ========================================================================== */
-/*                        STATE HANDLING IMPLEMENTATIONS                     */
-/* ========================================================================== */
+    T_CMTX cmtx = {
+        .mtxatr = TA_TFIFO | TA_INHERIT
+    };
 
-static void handle_state_calibrating(buddy3_context_t *ctx) {
-    uint16_t left_adc = stub_read_hardware_adc(PIN_IR_LEFT);
-    uint16_t centre_adc = stub_read_hardware_adc(PIN_IR_CENTRE);
-    
-    if (left_adc > 0 && centre_adc > 0) {
-        ctx->ir_midpoint = (ctx->threshold_black + ctx->threshold_white) >> 1;
-        ctx->current_state = STATE_TRACKING;
-    } else {
-        ctx->current_state = STATE_FAULT;
-        vehicle_controller_notify_event(STATE_CALIBRATING, 0x01); // Calibration Failed
-    }
-}
+    ir_mutex_id = tk_cre_mtx(&cmtx);
+    context.current_state.current_state = IR_CALI;
+    context.current_state.estimated_line_pos = 0;
+    context.current_state.junction_detected = 0;
+    context.line_lost_start_ms = 0;
+    context.emergency_stop_active = false;
+    context.edge_count = 0;
+    context.barcode_retry_count = 0;
+}   
 
-static void handle_state_tracking(buddy3_context_t *ctx) {
-    uint16_t left_sensor = stub_read_hardware_adc(PIN_IR_LEFT);
-    uint16_t centre_sensor = stub_read_hardware_adc(PIN_IR_CENTRE);
-    uint16_t right_sensor = stub_read_hardware_adc(PIN_IR_RIGHT);
+void ir_sense_start(void) {
 
-    bool left_on_line = (left_sensor > ctx->ir_midpoint);
-    bool centre_on_line = (centre_sensor > ctx->ir_midpoint);
-    bool right_edge_detected = (right_sensor > ctx->ir_midpoint);
+    T_CTSK ctsk = {
+        .tskatr  = TA_HLNG | TA_RNG0,
+        .task    = ir_sensor_task,
+        .itskpri = 3,  
+        .stksz   = 1048
+    };
 
-    /* Line Lost Branch Path Evaluation */
-    if (!left_on_line && !centre_on_line) {
-        ctx->line_lost_start_ms = stub_get_system_time_ms();
-        ctx->current_state = STATE_LINE_LOST;
-        return;
-    }
-
-    /* Transition block to handle barcode sequences running on Core 1 */
-    if (right_edge_detected) {
-        ctx->edge_count = 0;
-        ctx->barcode_retry_count = 0;
-        ctx->current_state = STATE_BARCODE_DECODING;
-        return;
-    }
-
-    /* ========================================================================== */
-    /*               PROPORTIONAL-DERIVATIVE (PD) LINE CALCULATION                */
-    /* ========================================================================== */
-    /* Computes line positioning errors using differential metrics */
-    int16_t current_error = (int16_t)left_sensor - (int16_t)centre_sensor;
-    
-    float p_term = ctx->pd_steering.kp * (float)current_error;
-    float d_term = ctx->pd_steering.kd * ((float)current_error - ctx->pd_steering.prev_error);
-    
-    float steering_signal = p_term + d_term;
-    ctx->pd_steering.prev_error = (float)current_error;
-
-    /* Apply safety dampening or temporary steering locks during transitions */
-    vehicle_controller_dispatch_steering(steering_signal);
-}
-
-static void handle_state_barcode_decoding(buddy3_context_t *ctx) {
-    /* Steering updates are temporarily bypassed to preserve edge timing consistency */
-    vehicle_controller_dispatch_steering(0.0f);
-}
-
-static void handle_state_command_pending(buddy3_context_t *ctx) {
-    uint16_t left = stub_read_hardware_adc(PIN_IR_LEFT);
-    uint16_t centre = stub_read_hardware_adc(PIN_IR_CENTRE);
-
-    /* Check if physical junction patterns are reached */
-    if (left > ctx->ir_midpoint && centre > ctx->ir_midpoint) {
-        ctx->current_state = STATE_JUNCTION_DETECTED;
-    }
-}
-
-static void handle_state_junction_detected(buddy3_context_t *ctx) {
-    /* Send the minified 2-bit navigation code parameter directly to Vehicle Controller */
-    uint8_t payload = ctx->pending_raw_payload & NAV_CMD_MASK;
-    
-    vehicle_controller_notify_event(STATE_JUNCTION_DETECTED, payload);
-    
-    /* Hand over flow control to the external turning tasks */
-    ctx->current_state = STATE_TRACKING; 
-}
-
-static void handle_state_line_lost(buddy3_context_t *ctx) {
-    uint16_t left = stub_read_hardware_adc(PIN_IR_LEFT);
-    uint16_t centre = stub_read_hardware_adc(PIN_IR_CENTRE);
-
-    /* Re-verify tracking recovery vectors */
-    if (left > ctx->ir_midpoint || centre > ctx->ir_midpoint) {
-        ctx->current_state = STATE_TRACKING;
-        return;
-    }
-
-    /* Enforce rigid deterministic hardware timeouts (Failsafe checking paths) */
-    if ((stub_get_system_time_ms() - ctx->line_lost_start_ms) > 3000) { // 3-second limit
-        ctx->current_state = STATE_FAULT;
-        vehicle_controller_notify_event(STATE_LINE_LOST, 0x02); // Timeout trigger
-    } else {
-        /* Request slower search speed profile mapping */
-        vehicle_controller_dispatch_steering(0.0f); 
-    }
-}
-
-static void handle_state_fault(buddy3_context_t *ctx) {
-    /* Hard lockout state forcing active hardware configurations to halt completely */
-    vehicle_controller_dispatch_steering(0.0f);
-    vehicle_controller_notify_event(STATE_FAULT, 0x00);
-}
-
-/* ========================================================================== */
-/*               STUBBED HARDWARE AND CONTROL INTEGRATION LAYER               */
-/* ========================================================================== */
-
-void __attribute__((weak)) vehicle_controller_dispatch_steering(float steering_signal) {
-    // Linked by external system framework targets
-}
-
-void __attribute__((weak)) vehicle_controller_notify_event(ir_subsystem_state_t state, uint8_t event_flags) {
-    // Linked by external system framework targets
-}
-
-uint32_t __attribute__((weak)) stub_get_system_time_ms(void) {
-    return 1000; 
-}
-
-uint16_t __attribute__((weak)) stub_read_hardware_adc(uint8_t pin) {
-    return 1200; 
+    ID task_id = tk_cre_tsk(&ctsk);
+    tk_sta_tsk(task_id, 0);
 }
