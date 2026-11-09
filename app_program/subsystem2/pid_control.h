@@ -19,7 +19,7 @@ void speed_pi_init(SpeedPI *controller, float kp, float ki,
 float speed_pi_update(SpeedPI *controller, float target_speed,
                       float measured_speed, float dt_seconds);
 
-/* Full PID Controller */
+/* PID Controller */
 typedef struct {
     float kp;
     float ki;
