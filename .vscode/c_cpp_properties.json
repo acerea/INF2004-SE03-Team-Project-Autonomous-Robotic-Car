@@ -14,9 +14,11 @@
         "APP_TEST=1",
         "TM_CONSOLE_UART=1"
       ],
-      "compilerPath": "/opt/homebrew/bin/arm-none-eabi-gcc",
+      //"compilerPath": "/opt/homebrew/bin/arm-none-eabi-gcc", //for mac
+      "compilerPath": "/usr/bin/arm-none-eabi-gcc", //for windows11 (althea)
       "cStandard": "gnu11",
-      "intelliSenseMode": "macos-clang-arm64"
+      //"intelliSenseMode": "macos-clang-arm64" //for mac
+      "intelliSenseMode": "windows-msvc-x64" //for windows 11 (althea)
     }
   ],
   "version": 4

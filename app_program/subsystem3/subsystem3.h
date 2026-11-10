@@ -15,7 +15,9 @@
 #define S3_BATCH_SIZE		5	/* report to subsystem 4 every N samples */
 
 /* IF-01: send SAMPLE_MSG (subsystem2.h) here with tk_snd_mbx */
-IMPORT ID	mbx_samples;
+IMPORT ID mbx_samples;
+IMPORT ID sem_slots;
+IMPORT ID mpf_samples;
 
 /* IF-04: statistics.  Read them ONLY while holding mtx_stats:
  *	tk_loc_mtx(mtx_stats, TMO_FEVR);  copy = app_stats;  tk_unl_mtx(mtx_stats);
@@ -27,6 +29,8 @@ typedef struct {
 	W	sum;
 } APP_STATS;
 
+IMPORT ID mbf_summary;    /* Owned by Subsystem 4 */
+IMPORT ID flg_events;     
 IMPORT ID		mtx_stats;
 IMPORT APP_STATS	app_stats;
 
