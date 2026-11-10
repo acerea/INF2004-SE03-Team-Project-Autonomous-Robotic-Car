@@ -72,4 +72,12 @@ IMPORT void subsystem5_test(void);
 		}							\
 	} while (0)
 
+//typedef struct { //IF-01,02,03,04 //i know subsystem 2 have their own of this that can be accessed but mayybe its better to put here?
+//	T_MSG header;
+//	UW    seq;
+//	UW    time_ms;
+//	INT   value;
+//	INT   prc;
+//} SAMPLE_MSG;
+
 #endif /* APP_H */
