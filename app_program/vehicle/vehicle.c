@@ -25,7 +25,7 @@
 #define VC_OBS_SLOW         (1u)
 #define VC_OBS_EMERGENCY    (2u)
 
-#define VC_STATE_PERIOD     (1000u / VC_TICK_MS)   // STATE frame every 1 s.
+#define VC_STATE_MS         (1000u)               // STATE frame every 1 s.
 #define VC_SPEED_MAX        (63u)                 // Largest speed field value.
 
 static volatile vc_state_t g_vc_state = VC_STATE_IDLE;  // One writer: VC.
@@ -70,7 +70,8 @@ vc_task (INT stacd, void * exinf)
     (void) stacd;
     (void) exinf;
 
-    uint32_t ticks = 0u;
+    SYSTIM   otm;
+    uint32_t last_pub = 0u;
 
     vc_motion(VC_MOTION_STOP, 0u);              // Motors off at start.
     tm_printf((UB*)"vc: started, state %s\n", vc_state_name(g_vc_state));
@@ -81,10 +82,11 @@ vc_task (INT stacd, void * exinf)
         vc_handle_obstacle();
 
         // Telemetry: the dashboard sees the state at least once a second.
-        ticks++;
-        if (ticks >= VC_STATE_PERIOD)
+        // Timed by the clock: a 10 ms delay can take up to 20 ms here.
+        (void) tk_get_otm(&otm);
+        if ((otm.lo - last_pub) >= VC_STATE_MS)
         {
-            ticks = 0u;
+            last_pub = otm.lo;
             vc_publish_state();
         }
 
