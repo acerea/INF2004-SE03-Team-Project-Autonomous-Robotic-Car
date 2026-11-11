@@ -12,7 +12,7 @@
 #include "subsystem2.h"
 #include "../subsystem3/subsystem3.h"	/* IF-01: mbx_samples */
 #include "../subsystem5/drv_ultrasonic.h"
-#include "app.h"
+#include "../app.h"
 
 IMPORT ID sem_slots;
 IMPORT ID mpf_samples;
