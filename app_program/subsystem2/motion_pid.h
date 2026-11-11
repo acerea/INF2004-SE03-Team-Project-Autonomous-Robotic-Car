@@ -23,4 +23,7 @@ int motion_pidIsComplete(void);
 void motion_pidTurnLeft(float angle_degrees);
 void motion_pidTurnRight(float angle_degrees);
 
+/* Change forward speed while preserving an active distance target. */
+void motion_pidChangeSpeed(float speed_cm_s);
+
 #endif /* MOTION_PID_H */
