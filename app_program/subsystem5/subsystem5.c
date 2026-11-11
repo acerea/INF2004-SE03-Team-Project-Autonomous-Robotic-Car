@@ -21,8 +21,7 @@
 #include "subsystem5.h"
 #include "drv_ultrasonic.h"
 #include "drv_servo.h"
-#include "subsystem1/wire_format.h"
-#include "subsystem1/subsystem1.h"
+#include "../subsystem1/subsystem1.h"
 
 #define COS_45_DEG   0.70710678f
 #define S5_STATE_MASK (S5_FLAG_CLEAR | S5_FLAG_SLOWDOWN | S5_FLAG_EMERGENCY)
