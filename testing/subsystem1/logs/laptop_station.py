@@ -22,6 +22,8 @@ B4_STATES = ["UNKNOWN", "STATIONARY", "MOVING", "TURNING", "CLIMBING",
              "DESCENDING", "IMPACT", "FAULT"]
 OBS_STATES = ["CLEAR", "SLOWDOWN", "EMERGENCY", "?"]
 SIDES = ["NONE", "LEFT", "RIGHT", "?"]
+VC_STATES = ["IDLE", "FOLLOWING", "TURNING", "BYPASSING", "BLOCKED",
+             "STOPPED", "FAULT", "?"]
 CMDS = {"start": 0, "stop": 1, "estop": 2, "reset": 3, "mode": 4}
 
 
@@ -64,6 +66,12 @@ def decode(topic, f):
         note = "  <-- LAST WILL" if seq == 255 else ""
         return (f"HB seq={seq} ver={ver} link={LINK[link]} "
                 f"uptime={up}s drops={drops}{counters}{note}")
+    if typ == 1 and len(f) >= 4:
+        st, obs = get_bits(f, 14, 3), get_bits(f, 17, 2)
+        lost, speed = get_bits(f, 19, 1), get_bits(f, 20, 6)
+        return (f"STATE seq={seq} state={VC_STATES[st]} "
+                f"obstacle={OBS_STATES[obs]} link_lost={lost} "
+                f"speed={speed}cm/s")
     if typ == 5 and len(f) >= 4:
         st, col, flt = get_bits(f, 14, 3), get_bits(f, 17, 1), get_bits(f, 18, 1)
         valid, mm, count = get_bits(f, 19, 1), get_bits(f, 20, 8), get_bits(f, 28, 4)
