@@ -96,8 +96,26 @@ s5_publish_profile (S5_BYPASS_DIR dir, float width_cm, float d_left,
     (void) s1_publish(frame, proto_end(&bits), FALSE);
 }
 
+#define S5_STATE_FLAGS  (S5_FLAG_CLEAR | S5_FLAG_SLOWDOWN | S5_FLAG_EMERGENCY)
+#define S5_SIDE_FLAGS   (S5_FLAG_AVOID_LEFT | S5_FLAG_AVOID_RIGHT)
+
+/* Telemetry state field: 0 = clear, 1 = slow down, 2 = emergency. */
+#define S5_TLM_CLEAR        0u
+#define S5_TLM_SLOWDOWN     1u
+#define S5_TLM_EMERGENCY    2u
+
+/* Replace the old state bit with a new one (only one state bit is set). */
+static void s5_set_state_flag(UINT flag)
+{
+    tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_STATE_FLAGS);
+    tk_set_flg(flg_s5_obstacle, flag);
+}
+
 LOCAL void s5_scan_task(INT stacd, void *param)
 {
+    (void)stacd;
+    (void)param;
+
     ultrasonic_init();
     servo_init();
 
@@ -110,17 +128,29 @@ LOCAL void s5_scan_task(INT stacd, void *param)
         float d_center = ultrasonic_read_distance_cm();
         tk_dly_tsk(60);  /* Ultrasonic acoustic decay holdoff */
 
-        if (d_center > 0.0f && d_center < S5_WARN_DIST_CM) {
-            /* Obstacle ahead: signal warning */
-            tk_set_flg(flg_s5_obstacle, S5_FLAG_SLOWDOWN);
+        /* 2. Decide the state first, so EMERGENCY is not delayed by the
+              sweep below, and publish it every loop (also on no echo). */
+        UW state = S5_TLM_CLEAR;
+        if (d_center > 0.0f && d_center < S5_STOP_DIST_CM) {
+            state = S5_TLM_EMERGENCY;
+            s5_set_state_flag(S5_FLAG_EMERGENCY);
+        } else if (d_center > 0.0f && d_center < S5_WARN_DIST_CM) {
+            state = S5_TLM_SLOWDOWN;
+            s5_set_state_flag(S5_FLAG_SLOWDOWN);
+        } else {
+            s5_set_state_flag(S5_FLAG_CLEAR);
+            tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_SIDE_FLAGS); /* No side */
+        }
+        s5_publish_obstacle(state, d_center);
 
-            /* 2. Coarse sweep: Measure Left */
+        if (state != S5_TLM_CLEAR) {
+            /* 3. Coarse sweep: Measure Left */
             servo_set_angle(SERVO_ANGLE_LEFT);
             tk_dly_tsk(150);
             float d_left = ultrasonic_read_distance_cm();
             tk_dly_tsk(60); /* Transducer holdoff before next burst */
 
-            /* 3. Coarse sweep: Measure Right */
+            /* 4. Coarse sweep: Measure Right */
             servo_set_angle(SERVO_ANGLE_RIGHT);
             tk_dly_tsk(200);
             float d_right = ultrasonic_read_distance_cm();
@@ -130,19 +160,19 @@ LOCAL void s5_scan_task(INT stacd, void *param)
             servo_set_angle(SERVO_ANGLE_CENTER);
             tk_dly_tsk(150);
 
-            /* 4. Choose direction using clearance helper */
+            /* 5. Choose direction, replace the old side bit, publish */
             S5_BYPASS_DIR dir = s5_calculate_clearance(d_left, d_right);
-            if (dir == S5_DIR_LEFT) {
-                tk_set_flg(flg_s5_obstacle, S5_FLAG_AVOID_LEFT);
-            } else {
-                tk_set_flg(flg_s5_obstacle, S5_FLAG_AVOID_RIGHT);
-            }
+            tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_SIDE_FLAGS);
+            tk_set_flg(flg_s5_obstacle, (dir == S5_DIR_LEFT)
+                       ? S5_FLAG_AVOID_LEFT : S5_FLAG_AVOID_RIGHT);
 
-            if (d_center < S5_STOP_DIST_CM) {
-                tk_set_flg(flg_s5_obstacle, S5_FLAG_EMERGENCY);
+            /* Width from the centre reading and the nearer side reading */
+            float d_side = d_right;
+            if (d_left > 0.0f && (d_right <= 0.0f || d_left < d_right)) {
+                d_side = d_left;
             }
-        } else {
-            tk_set_flg(flg_s5_obstacle, S5_FLAG_CLEAR);
+            float width = s5_estimate_width_cm(d_center, d_side, 45.0f);
+            s5_publish_profile(dir, width, d_left, d_right);
         }
 
         tk_dly_tsk(100);
