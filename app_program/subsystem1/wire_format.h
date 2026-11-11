@@ -4,8 +4,8 @@
  *
  * @par
  * Bits are packed LSB first. Signed fields use offset-binary.
- * Header, heartbeat and command widths are defined here. Telemetry frame
- * layouts (types 1-6) are added by each owner during integration.
+ * Header, heartbeat, command and telemetry frame widths are defined here.
+ * Types 1-4 (state, motion, line, barcode) are added during integration.
  */
 #ifndef WIRE_FORMAT_H
 #define WIRE_FORMAT_H
@@ -42,6 +42,27 @@ typedef uint8_t proto_type_t;
 #define PROTO_TYPE_BARCODE      (4u)
 #define PROTO_TYPE_TERRAIN      (5u)
 #define PROTO_TYPE_OBSTACLE     (6u)
+#define PROTO_TYPE_OBST_PROFILE (7u)
+
+// Terrain (type 5, subsystem 4): 18 bits. Send on change and every 1 s.
+#define PROTO_TER_STATE_BITS    (3u)    // 0-7, B4_STATE_xxx.
+#define PROTO_TER_COLLIDE_BITS  (1u)    // 1 = collision detected.
+#define PROTO_TER_FAULT_BITS    (1u)    // 1 = IMU fault.
+#define PROTO_TER_HUMP_OK_BITS  (1u)    // 0 = hump not measured yet.
+#define PROTO_TER_HUMP_MM_BITS  (8u)    // Peak hump height, 0-255 mm.
+#define PROTO_TER_HUMPS_BITS    (4u)    // Hump count, 0-15.
+
+// Obstacle (type 6, subsystem 5): 11 bits. Send at 5 Hz.
+#define PROTO_OBS_STATE_BITS    (2u)    // 0 clear, 1 slow down, 2 emergency.
+#define PROTO_OBS_CM_BITS       (9u)    // Distance 1-400 cm; 0 = no echo.
+#define PROTO_OBS_CM_MAX        (400u)
+
+// Obstacle profile (type 7, subsystem 5): 27 bits. Send once per sweep.
+#define PROTO_PRO_SIDE_BITS     (2u)    // 0 none, 1 left, 2 right.
+#define PROTO_PRO_WIDTH_BITS    (7u)    // Obstacle width, 0-100 cm.
+#define PROTO_PRO_WIDTH_MAX     (100u)
+#define PROTO_PRO_LEFT_BITS     (9u)    // Left clearance, 0-400 cm.
+#define PROTO_PRO_RIGHT_BITS    (9u)    // Right clearance, 0-400 cm.
 
 typedef struct
 {

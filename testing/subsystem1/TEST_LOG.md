@@ -127,3 +127,14 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-03 | S1-U11 | `274c64e` | Kathryn | PASS | `logs/2026-11-03_unit_final.jpg` |  |
 | 2026-11-04 | S1-M09 | `9206e6d` | Kathryn | PASS | `logs/2026-11-04_wifi_drop_fixed.txt` | With the watchdog tick fix (`time_us_64` now 1009775 us per 1 s, was 23672; `logs/2026-11-04_timer_fixed.png`): LOST at 41210 ms, FAULT 10.0 s later, join retried every 5-6 s, hotspot on at 01:49:02, CONNECTED at 01:49:10 (8 s) |
 | 2026-11-04 | S1-M13 | `9206e6d` | Kathryn | PASS | `logs/2026-11-04_poweron_no_wifi.txt` | First join failed at power-on and retried every 6 s; hotspot on at 01:51:43, CONNECTED at 01:51:49 (6 s). Before the fix the same case took 228 s (S1-M12) |
+| 2026-11-11 | S1-U01 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` | Test build after adding telemetry types 5-7 and the Vehicle Controller. Subsystem 3 restored to the template locally (uncommitted) because main's subsystem3 does not compile |
+| 2026-11-11 | S1-U02 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U03 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U04 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U05 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U06 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U07 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U08 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U09 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U10 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U11 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
