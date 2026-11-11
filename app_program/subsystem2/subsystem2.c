@@ -69,7 +69,7 @@ EXPORT ER subsystem2_init(void)
     */
     cmbf.mbfatr = TA_TFIFO;
     cmbf.bufsz = 64;
-    cmbf.maxmsz = MOTION_REQUEST_BYTES;
+    cmbf.maxmsz = S2_MOTION_REQUEST_BYTES;
 
     mbf_motion_req = tk_cre_mbf(&cmbf);
     if (mbf_motion_req < E_OK) {
@@ -77,7 +77,7 @@ EXPORT ER subsystem2_init(void)
     }
 
     /* Create the completion flag, initially clear.
-    * Motion sets MOTION_DONE; the VC clears it after reading.
+    * Motion sets S2_MOTION_DONE; the VC clears it after reading.
     */
     cflg.flgatr = TA_TFIFO | TA_WSGL;
     cflg.iflgptn = 0;
@@ -101,16 +101,16 @@ static void motion_tick(void *exinf)
 static void motion_handleRequest(uint8_t command, uint16_t argument)
 {
     switch (command) {
-    case MOTION_CMD_STOP:
+    case S2_MOTION_STOP:
         motion_pidStop();
         requested_speed_cm_s = 0.0f;
         awaiting_motion_done = 0;
         break;
 
-    case MOTION_CMD_SET_SPEED:
+    case S2_MOTION_SET_SPEED:
         /* Clamp requests to the agreed command limit. */
-        if (argument > MOTION_MAX_SPEED_CM_S) {
-            argument = MOTION_MAX_SPEED_CM_S;
+        if (argument > S2_MOTION_MAX_SPEED) {
+            argument = S2_MOTION_MAX_SPEED;
         }
 
         requested_speed_cm_s = (float)argument;
@@ -121,12 +121,12 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
         }
         break;
 
-    case MOTION_CMD_MOVE_DISTANCE:
+    case S2_MOTION_MOVE_DISTANCE:
         if (argument > 0u) {
             float speed = requested_speed_cm_s;
 
             if (speed <= 0.0f) {
-                speed = (float)MOTION_DEFAULT_SPEED_CM_S;
+                speed = (float)S2_MOTION_DEFAULT_SPEED;
             }
 
             motion_pidStop();
@@ -135,7 +135,7 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
         }
         break;
 
-    case MOTION_CMD_TURN_LEFT:
+    case S2_MOTION_TURN_LEFT:
         if (argument > 0u) {
             motion_pidStop();
             motion_pidTurnLeft((float)argument);
@@ -143,7 +143,7 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
         }
         break;
 
-    case MOTION_CMD_TURN_RIGHT:
+    case S2_MOTION_TURN_RIGHT:
         if (argument > 0u) {
             motion_pidStop();
             motion_pidTurnRight((float)argument);
@@ -165,7 +165,7 @@ static void motion_receiveRequests(void)
 
     /* Read without blocking. A finite limit prevents starving PID. */
     for (UINT i = 0; i < MOTION_REQUESTS_PER_CYCLE; i++) {
-        uint8_t bytes[MOTION_REQUEST_BYTES];
+        uint8_t bytes[S2_MOTION_REQUEST_BYTES];
 
         INT size = tk_rcv_mbf(mbf_motion_req, bytes, TMO_POL);
 
@@ -173,7 +173,7 @@ static void motion_receiveRequests(void)
             break;
         }
 
-        if (size != (INT)MOTION_REQUEST_BYTES) {
+        if (size != (INT)S2_MOTION_REQUEST_BYTES) {
             continue;
         }
 
@@ -181,11 +181,11 @@ static void motion_receiveRequests(void)
 
         requests[count++] = request;
 
-        if (motion_unpackCommand(request) == MOTION_CMD_STOP) {
+        if (motion_unpackCommand(request) == S2_MOTION_STOP) {
             stop_received = 1;
 
             /* Apply STOP immediately when encountered. */
-            motion_handleRequest(MOTION_CMD_STOP, 0u);
+            motion_handleRequest(S2_MOTION_STOP, 0u);
         }
     }
 
@@ -235,10 +235,10 @@ static void motion_control_task(INT stacd, void *exinf)
         }
 
         /* Signal each successful distance/turn completion once.
-        * Only the VC clears MOTION_DONE.
+        * Only the VC clears S2_MOTION_DONE.
         */
         if (awaiting_motion_done && motion_pidIsComplete()) {
-            if (tk_set_flg(flg_motion, MOTION_DONE) == E_OK) {
+            if (tk_set_flg(flg_motion, S2_MOTION_DONE) == E_OK) {
                 awaiting_motion_done = 0;
             }
         }

@@ -19,41 +19,41 @@
 #define S2_MOTION_MS     	20  /* Motion update period */
 
 /* VC command numbers */
-#define MOTION_CMD_STOP          0u
-#define MOTION_CMD_SET_SPEED     1u
-#define MOTION_CMD_MOVE_DISTANCE 2u
-#define MOTION_CMD_TURN_LEFT     3u
-#define MOTION_CMD_TURN_RIGHT    4u
+#define S2_MOTION_STOP          0u
+#define S2_MOTION_SET_SPEED     1u
+#define S2_MOTION_MOVE_DISTANCE 2u
+#define S2_MOTION_TURN_LEFT     3u
+#define S2_MOTION_TURN_RIGHT    4u
 
 /* Agreed speed settings (in cm/s). The 40 cm/s max speed is just a sample, not measured. */
-#define MOTION_MAX_SPEED_CM_S     40u
-#define MOTION_DEFAULT_SPEED_CM_S 10u
+#define S2_MOTION_MAX_SPEED     40u
+#define S2_MOTION_DEFAULT_SPEED 10u
 
 /* Request format: command in bits 0–2, argument in bits 3–15. */
-#define MOTION_REQUEST_BYTES 2u
-#define MOTION_COMMAND_MASK  0x0007u
-#define MOTION_ARGUMENT_MAX  0x1FFFu
+#define S2_MOTION_REQUEST_BYTES 2u
+#define S2_MOTION_COMMAND_MASK  0x0007u
+#define S2_MOTION_ARGUMENT_MAX  0x1FFFu
 
 /* Objects created by Motion Control during initialisation. */
 IMPORT ID mbf_motion_req;
 IMPORT ID flg_motion;
 
 /* Motion sets this bit when a distance/turn completes. The VC clears it after reading. */
-#define MOTION_DONE (1u << 0)
+#define S2_MOTION_DONE (1u << 0)
 
 /* Caller must validate command and argument before packing. Reserved command numbers: 5–7. */
 static inline uint16_t motion_packRequest(uint8_t command,
                                           uint16_t argument)
 {
     return (uint16_t)(
-        ((uint16_t)command & MOTION_COMMAND_MASK)
-        | ((uint32_t)(argument & MOTION_ARGUMENT_MAX) << 3)
+        ((uint16_t)command & S2_MOTION_COMMAND_MASK)
+        | ((uint32_t)(argument & S2_MOTION_ARGUMENT_MAX) << 3)
     );
 }
 
 static inline uint8_t motion_unpackCommand(uint16_t request)
 {
-    return (uint8_t)(request & MOTION_COMMAND_MASK);
+    return (uint8_t)(request & S2_MOTION_COMMAND_MASK);
 }
 
 static inline uint16_t motion_unpackArgument(uint16_t request)
