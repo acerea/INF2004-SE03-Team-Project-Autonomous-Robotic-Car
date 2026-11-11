@@ -44,6 +44,23 @@ typedef uint8_t proto_type_t;
 #define PROTO_TYPE_OBSTACLE     (6u)
 #define PROTO_TYPE_OBST_PROFILE (7u)
 
+
+// Vehicle state (type 1, Vehicle Controller): 12 bits. On change and 1 s.
+#define PROTO_ST_STATE_BITS     (3u)    // 0-7, VC_STATE_xxx.
+#define PROTO_ST_OBSTACLE_BITS  (2u)    // 0 clear, 1 slow down, 2 emergency.
+#define PROTO_ST_LINK_LOST_BITS (1u)    // 1 = remote link lost.
+#define PROTO_ST_SPEED_BITS     (6u)    // Target speed, 0-63 cm/s.
+
+// Barcode (type 4, subsystem 3): 8 bits. Send once per barcode read.
+#define PROTO_BC_LETTER_BITS    (5u)    // 0-25 = 'A'-'Z'; 31 = unreadable.
+#define PROTO_BC_LETTER_BAD     (31u)
+#define PROTO_BC_CMD_BITS       (3u)    // Navigation command, below.
+#define PROTO_BC_CMD_NONE       (0u)
+#define PROTO_BC_CMD_LEFT       (1u)
+#define PROTO_BC_CMD_RIGHT      (2u)
+#define PROTO_BC_CMD_STRAIGHT   (3u)
+#define PROTO_BC_CMD_UTURN      (4u)
+
 // Terrain (type 5, subsystem 4): 18 bits. Send on change and every 1 s.
 #define PROTO_TER_STATE_BITS    (3u)    // 0-7, B4_STATE_xxx.
 #define PROTO_TER_COLLIDE_BITS  (1u)    // 1 = collision detected.

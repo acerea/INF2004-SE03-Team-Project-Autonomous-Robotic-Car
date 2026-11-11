@@ -34,6 +34,7 @@ Define a test here before running it. Test IDs never change.
 | S1-M11 | RAM and size of subsystem 1 data vs the natural representation | CR | manual | 1. Build the test image. 2. Run `arm-none-eabi-size` on the subsystem 1 and `mqtt_utk` object files. 3. Compare each field with its natural C size. | every field uses fewer or equal bytes than its natural representation |
 | S1-M12 | runs with no USB computer attached: Wi-Fi, MQTT, heartbeat and commands | FR1, FR2 | manual | 1. Flash normal image. 2. Power the Pico from a phone charger (no computer). 3. Run `laptop_station.py` and send `stop`. | heartbeats with `link=CONNECTED` after power-on; `cmd_ok` up by 1 after `stop` |
 | S1-M13 | power-on while Wi-Fi is unavailable: connects within 10 s once the hotspot is on | FR1, NFR6 | manual | 1. Hotspot off. 2. Power the Pico. 3. After about 20 s switch the hotspot on. 4. Read the `s1:`, `wifi:` and `mqtt:` lines with the PowerShell serial logger. | join retried every 5-6 s; `-> CONNECTED` within 10 s of the hotspot being on |
+| S1-M14 | barcode frame (type 4) decoded and shown on the MQTT dashboard | FR21, CR | manual | 1. Run `laptop_station.py` and MQTT Explorer. 2. Run `logs/fake_car_barcode.py` (simulated car). 3. Open `picocar-01/view/barcode` and its History. | 5 frames decoded: A LEFT, B RIGHT, C STRAIGHT, D U-TURN, unreadable NONE |
 
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
@@ -138,3 +139,4 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-11 | S1-U09 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
 | 2026-11-11 | S1-U10 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
 | 2026-11-11 | S1-U11 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-M14 | `9c151da` | Kathryn | PASS | `logs/2026-11-11_barcode_simulated.png` | Simulated input (fake_car_barcode.py), not the real car: all 5 frames decoded correctly. Real end-to-end test needs subsystem 3 and the printed samples |

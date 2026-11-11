@@ -25,7 +25,12 @@
 #define VC_OBS_SLOW         (1u)
 #define VC_OBS_EMERGENCY    (2u)
 
+#define VC_STATE_MS         (1000u)               // STATE frame every 1 s.
+#define VC_SPEED_MAX        (63u)                 // Largest speed field value.
+
 static volatile vc_state_t g_vc_state = VC_STATE_IDLE;  // One writer: VC.
+static uint32_t g_vc_speed    = 0u;             // Last speed sent, cm/s.
+static uint32_t g_vc_obstacle = VC_OBS_CLEAR;   // Last obstacle level read.
 
 static void       vc_task(INT stacd, void * exinf);
 static void       vc_motion(uint32_t cmd, uint32_t arg);
@@ -35,6 +40,7 @@ static void       vc_handle_command(uint8_t packed);
 static void       vc_handle_remote(void);
 static void       vc_handle_obstacle(void);
 static char const * vc_state_name(vc_state_t state);
+static void       vc_publish_state(void);
 
 ER
 vehicle_init (void)
@@ -64,6 +70,9 @@ vc_task (INT stacd, void * exinf)
     (void) stacd;
     (void) exinf;
 
+    SYSTIM   otm;
+    uint32_t last_pub = 0u;
+
     vc_motion(VC_MOTION_STOP, 0u);              // Motors off at start.
     tm_printf((UB*)"vc: started, state %s\n", vc_state_name(g_vc_state));
 
@@ -71,6 +80,16 @@ vc_task (INT stacd, void * exinf)
     {
         vc_handle_remote();     // Safety commands first.
         vc_handle_obstacle();
+
+        // Telemetry: the dashboard sees the state at least once a second.
+        // Timed by the clock: a 10 ms delay can take up to 20 ms here.
+        (void) tk_get_otm(&otm);
+        if ((otm.lo - last_pub) >= VC_STATE_MS)
+        {
+            last_pub = otm.lo;
+            vc_publish_state();
+        }
+
         (void) tk_dly_tsk(VC_TICK_MS);
     }
 }
@@ -160,6 +179,8 @@ vc_handle_obstacle (void)
 {
     uint32_t level = vc_obstacle_level();
 
+    g_vc_obstacle = level;
+
     if (VC_STATE_FOLLOWING == g_vc_state)
     {
         if (VC_OBS_EMERGENCY == level)
@@ -226,6 +247,20 @@ vc_motion (uint32_t cmd, uint32_t arg)
     {
         s_last_cmd = cmd;
         s_last_arg = arg;
+
+        if (VC_MOTION_SPEED == cmd)
+        {
+            g_vc_speed = arg;
+        }
+        else if (VC_MOTION_STOP == cmd)
+        {
+            g_vc_speed = 0u;
+        }
+        else
+        {
+            // Distance and turns keep the last speed.
+        }
+
 #if VC_MOTION_STUB
         tm_printf((UB*)"vc: motion cmd=%u arg=%u (stub)\n",
                   (unsigned int) cmd, (unsigned int) arg);
@@ -246,7 +281,38 @@ vc_set_state (vc_state_t next)
         tm_printf((UB*)"vc: state %s -> %s\n", vc_state_name(g_vc_state),
                   vc_state_name(next));
         g_vc_state = next;
+        vc_publish_state();                     // Show changes at once.
     }
+
+    return;
+}
+
+static void
+vc_publish_state (void)
+{
+    uint8_t      frame[PROTO_MAX_FRAME_BYTES];
+    proto_bits_t bits;
+    T_RFLG       rflg;
+    uint32_t     link_lost = 0u;
+
+    // LINK_LOST is a level kept by comms_task: read it, never clear it.
+    if ((E_OK == tk_ref_flg(g_flg_remote, &rflg))
+        && (0u != (rflg.flgptn & S1_FLG_LINK_LOST)))
+    {
+        link_lost = 1u;
+    }
+
+    proto_init(&bits, frame, sizeof(frame));
+    proto_begin(&bits, PROTO_TYPE_STATE);
+    proto_put(&bits, (uint32_t) g_vc_state, PROTO_ST_STATE_BITS);
+    proto_put(&bits, g_vc_obstacle, PROTO_ST_OBSTACLE_BITS);
+    proto_put(&bits, link_lost, PROTO_ST_LINK_LOST_BITS);
+    proto_put_sat(&bits, (g_vc_speed > VC_SPEED_MAX) ? VC_SPEED_MAX
+                                                     : g_vc_speed,
+                  PROTO_ST_SPEED_BITS);
+
+    // Never blocks; a full queue drops the frame and Comms counts it.
+    (void) s1_publish(frame, proto_end(&bits), false);
 
     return;
 }
