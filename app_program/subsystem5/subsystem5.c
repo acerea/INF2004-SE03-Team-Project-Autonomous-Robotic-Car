@@ -16,14 +16,86 @@
  *	Record every pin, task, object and interface in TEAM.md.
  */
 
+#include <stdint.h>
+#include <stdbool.h>
 #include "subsystem5.h"
 #include "drv_ultrasonic.h"
 #include "drv_servo.h"
+#include "subsystem1/wire_format.h"
+#include "subsystem1/subsystem1.h"
+
 #define COS_45_DEG   0.70710678f
+#define S5_STATE_MASK (S5_FLAG_CLEAR | S5_FLAG_SLOWDOWN | S5_FLAG_EMERGENCY)
 
 EXPORT ID flg_s5_obstacle;
 
 ID flg_s5_obstacle;
+
+/* Forward prototypes */
+static float fast_sqrtf(float val);
+
+/* Helper to clear old state flags and set the new state atomically */
+static void s5_set_state(UINT new_flag)
+{
+    tk_clr_flg(flg_s5_obstacle, ~S5_STATE_MASK);
+    tk_set_flg(flg_s5_obstacle, new_flag);
+}
+/* ====================================================================
+ * Telemetry Publishing Helpers (Buddy 5 -> Subsystem 1 MQTT)
+ * ==================================================================== */
+
+static UW
+s5_cm_field (float cm, UW max_cm)
+{
+    UW value = 0u;
+
+    if (cm >= (float) max_cm)
+    {
+        value = max_cm;
+    }
+    else if (cm > 0.0f)
+    {
+        value = (UW) (cm + 0.5f);
+    }
+
+    return (value);
+}
+
+static void
+s5_publish_obstacle (UW state, float d_center)
+{
+    UB           frame[PROTO_MAX_FRAME_BYTES];
+    proto_bits_t bits;
+
+    proto_init(&bits, frame, sizeof(frame));
+    proto_begin(&bits, PROTO_TYPE_OBSTACLE);
+    proto_put(&bits, state, (UB)PROTO_OBS_STATE_BITS);
+    proto_put(&bits, s5_cm_field(d_center, PROTO_OBS_CM_MAX), (UB)PROTO_OBS_CM_BITS);
+    (void) s1_publish(frame, proto_end(&bits), FALSE);
+}
+
+static void
+s5_publish_profile (S5_BYPASS_DIR dir, float width_cm, float d_left,
+                    float d_right)
+{
+    UB           frame[PROTO_MAX_FRAME_BYTES];
+    proto_bits_t bits;
+
+    UW side_val = 0u;
+    if (dir == S5_DIR_LEFT) {
+        side_val = 1u;
+    } else if (dir == S5_DIR_RIGHT) {
+        side_val = 2u;
+    }
+
+    proto_init(&bits, frame, sizeof(frame));
+    proto_begin(&bits, PROTO_TYPE_OBST_PROFILE);
+    proto_put(&bits, side_val, (UB)PROTO_PRO_SIDE_BITS);
+    proto_put(&bits, s5_cm_field(width_cm, PROTO_PRO_WIDTH_MAX), (UB)PROTO_PRO_WIDTH_BITS);
+    proto_put(&bits, s5_cm_field(d_left, PROTO_OBS_CM_MAX), (UB)PROTO_PRO_LEFT_BITS);
+    proto_put(&bits, s5_cm_field(d_right, PROTO_OBS_CM_MAX), (UB)PROTO_PRO_RIGHT_BITS);
+    (void) s1_publish(frame, proto_end(&bits), FALSE);
+}
 
 LOCAL void s5_scan_task(INT stacd, void *param)
 {

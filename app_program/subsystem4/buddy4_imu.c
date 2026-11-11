@@ -20,6 +20,7 @@
 
 #include <tk/device.h>
 #include "../../device/include/dev_i2c.h"
+#include "../subsystem1/subsystem1.h"
 
 /* LSM303DLHC accelerometer registers. */
 #define ACC_CTRL_REG1_A 0x20u
@@ -442,6 +443,39 @@ LOCAL int16_t b4_calculate_vertical_delta(
 }
 
 /* --------------------------------------------------------- */
+/* MQTT terrain telemetry                                    */
+/* --------------------------------------------------------- */
+
+LOCAL void b4_publish_terrain(B4_EVENT event)
+{
+    uint8_t frame[PROTO_MAX_FRAME_BYTES];
+    proto_bits_t bits;
+
+    proto_init(&bits, frame, sizeof(frame));
+    proto_begin(&bits, PROTO_TYPE_TERRAIN);
+
+    /* Existing Buddy 4 event information. */
+    proto_put(&bits,
+              b4_event_state(event),
+              PROTO_TER_STATE_BITS);
+
+    proto_put(&bits,
+              b4_event_has_collision(event),
+              PROTO_TER_COLLIDE_BITS);
+
+    proto_put(&bits,
+              b4_event_has_imu_fault(event),
+              PROTO_TER_FAULT_BITS);
+
+    /* Hump measurement is not implemented yet. */
+    proto_put(&bits, 0u, PROTO_TER_HUMP_OK_BITS);
+    proto_put(&bits, 0u, PROTO_TER_HUMP_MM_BITS);
+    proto_put(&bits, 0u, PROTO_TER_HUMPS_BITS);
+
+    (void)s1_publish(frame, proto_end(&bits), false);
+}
+
+/* --------------------------------------------------------- */
 /* Physical motion classification                            */
 /* --------------------------------------------------------- */
 
@@ -454,6 +488,9 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     B4_IMU_RAW sample;
     B4_MOTION_INPUT motion_input;
     B4_EVENT event;
+    B4_EVENT previous_event = 0u;
+    uint16_t terrain_publish_counter = 0u;
+    uint8_t terrain_first_publish = 1u;
     int16_t impact_delta_mg = 0;
 
     ER er;
@@ -639,6 +676,24 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              */
             previous_valid = 0u;
             filtered_activity = 0;
+        }
+
+        /* ----------------------------------------------------- */
+        /* Step 6: Publish terrain telemetry to MQTT.            */
+        /* Publish on event change or approximately every 1 sec. */
+        /* ----------------------------------------------------- */
+
+        terrain_publish_counter++;
+
+        if ((terrain_first_publish != 0u) ||
+            (event != previous_event) ||
+            (terrain_publish_counter >= 100u))
+        {
+            b4_publish_terrain(event);
+
+            previous_event = event;
+            terrain_publish_counter = 0u;
+            terrain_first_publish = 0u;
         }
 
         /*
