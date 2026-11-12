@@ -27,7 +27,7 @@ LINK = ["INIT", "WIFI_CONNECTING", "MQTT_CONNECTING", "CONNECTED",
 TYPES = ["HEARTBEAT", "STATE", "MOTION", "LINE", "BARCODE", "TERRAIN",
          "OBSTACLE", "OBST_PROFILE"]
 B4_STATES = ["UNKNOWN", "STATIONARY", "MOVING", "TURNING", "CLIMBING",
-             "DESCENDING", "IMPACT", "FAULT"]
+             "DESCENDING", "LIFTED", "FAULT"]
 OBS_STATES = ["CLEAR", "SLOWDOWN", "EMERGENCY", "?"]
 SIDES = ["NONE", "LEFT", "RIGHT", "?"]
 VC_STATES = ["IDLE", "FOLLOWING", "TURNING", "BYPASSING", "BLOCKED",
@@ -90,7 +90,7 @@ def decode_fields(f):
     if typ == 5 and len(f) >= 4:
         valid = get_bits(f, 19, 1)
         d.update(motion=B4_STATES[get_bits(f, 14, 3)],
-                 collision=get_bits(f, 17, 1), imu_fault=get_bits(f, 18, 1))
+                 overturned=get_bits(f, 17, 1), imu_fault=get_bits(f, 18, 1))
         if valid:
             d.update(hump_mm=get_bits(f, 20, 8), hump_count=get_bits(f, 28, 4))
         else:
