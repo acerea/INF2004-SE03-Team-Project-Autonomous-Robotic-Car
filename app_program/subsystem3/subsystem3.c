@@ -12,9 +12,6 @@ EXPORT ID		mbx_samples;	/* IF-01 */
 EXPORT ID		mtx_stats;	/* IF-04 */
 EXPORT APP_STATS	app_stats;
 
-EXPORT buddy3_context_t ir_buddy_ctx; 
-EXPORT ID ir_state_mutex; 
-
 /*system integration updates for IF-01,02*/
 
 /*end system integration updates for IF-01,02*/
@@ -28,15 +25,9 @@ EXPORT ER subsystem3_init(void)
 
 	T_CMBX	cmbx = {0};
 	T_CMTX	cmtx = {0};
+	ER ir_er;
 
-	ir_buddy_ctx.threshold_black = 0;  
-	ir_buddy_ctx.threshold_white = 0;
-	ir_buddy_ctx.edge_count = 0;
-	ir_buddy_ctx.string_index = 0;
-	ir_buddy_ctx.emergency_stop_active = false;
-	ir_buddy_ctx.current_state.current_state = IR_CALI;
-
-	ir_sense_init(); 
+	ir_er = ir_sense_init();
 
 	/* Mailbox: passes a POINTER to a message (zero copy).  The message
 	   memory must stay valid until the receiver is done with it, which
@@ -53,7 +44,11 @@ EXPORT ER subsystem3_init(void)
 	cmtx.mtxatr = TA_INHERIT;
 	mtx_stats = tk_cre_mtx(&cmtx);
 
-	return (mtx_stats < E_OK) ? mtx_stats : E_OK;
+	if (mtx_stats < E_OK) {
+		return mtx_stats;
+	}
+
+	return (ir_er < E_OK) ? ir_er : E_OK;
 }
 
 EXPORT ER subsystem3_start(void)

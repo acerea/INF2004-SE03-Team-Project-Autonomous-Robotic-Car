@@ -1,11 +1,8 @@
 #include <stdint.h>
 #include "ir_sense.h"
 #include <tk/tkernel.h>
+#include <tk/syscall.h>
 #include <string.h>
-
-#define PIN_IR_LEFT 26
-#define PIN_IR_CENTRE 27
-#define PIN_IR_RIGHT 28
 
 //adc channel mapping
 #define ADC_LEFT   0   /* GPIO26 = Channel 0 */
@@ -21,12 +18,27 @@
 
 static buddy3_context_t context;
 static ID ir_mutex_id;
+static ID adc_device_id;
+static bool ir_ready;
 static volatile bool steering_locked = false;
+
+static uint32_t ir_now_ms(void) {
+    SYSTIM now;
+
+    tk_get_tim(&now);
+    return now.lo;
+}
 
 //read raw analag data from gpio/adc channel
 static inline uint16_t read_adc_raw(uint8_t channel) {
-    adc_select_input(channel);
-    return adc_read();
+    UW value = 0;
+
+    if (adc_device_id < E_OK ||
+        tk_rea_dev(adc_device_id, channel, &value, 1, TMO_FEVR) < E_OK) {
+        return 0;
+    }
+
+    return (uint16_t)value;
 }
 
 typedef void (*state_handler_t)(void);
@@ -63,7 +75,7 @@ static void execute_track(void) {
         context.pulse_count = 0;
         context.string_index = 0;
         context.decoded_string[0] = '\0';
-        context.last_transition_time = tk_ref_slt();
+        context.last_transition_time = ir_now_ms();
         context.last_was_black = true; // Initialized to true because center is black
         tk_unl_mtx(ir_mutex_id);
         return;
@@ -72,7 +84,7 @@ static void execute_track(void) {
     //traditional line-loss fallback logic
     if (left_val < wthreshold && centre_val < wthreshold) { //might be bthresh need to test further but if sensor data is under white threshold the line is lost
         context.current_state.current_state = IR_LINE_LOST;
-        context.line_lost_start_ms = tk_ref_slt();
+        context.line_lost_start_ms = ir_now_ms();
     }
     
     tk_unl_mtx(ir_mutex_id);
@@ -117,7 +129,7 @@ static void execute_barcode(void) {
     context.current_state.current_state = IR_BARCODE & IR_MASK;
 
     uint16_t centre_val = read_adc_raw(ADC_CENTRE);
-    uint32_t current_time = tk_ref_slt();
+    uint32_t current_time = ir_now_ms();
     uint32_t duration = current_time - context.last_transition_time;
     bool is_black = (centre_val >= bthreshold);
 
@@ -181,11 +193,11 @@ static void execute_line_lost(void) {
 
     //initiate timer for first line loss instance
     if (context.line_lost_start_ms == 0) {
-        context.line_lost_start_ms = tk_ref_slt();
+        context.line_lost_start_ms = ir_now_ms();
     }
     
     //timeout boundary if exceeded emergency stop
-    if ((tk_ref_slt() - context.line_lost_start_ms) > TIMEOUTLOSS) {
+    if ((ir_now_ms() - context.line_lost_start_ms) > TIMEOUTLOSS) {
         context.emergency_stop_active = true;
     }
 
@@ -226,26 +238,29 @@ static void ir_sensor_task(INT stacd, void *exinf) {
 
         uint8_t target_state = context.current_state.current_state & IR_MASK;
         state_execution_table[target_state]();
-        context.current_state.timestamp = tk_ref_slt();
+        context.current_state.timestamp = ir_now_ms();
         tk_dly_tsk(10);
     }
 }
 
 
 //configurations
-void ir_sense_init(void) {
-
-    adc_init();
-    adc_gpio_init(PIN_IR_LEFT);
-    adc_gpio_init(PIN_IR_CENTRE);
-    adc_gpio_init(PIN_IR_RIGHT);
-
+ER ir_sense_init(void) {
     //fifo RTOS Mutex for clean thread boundary sync
     T_CMTX cmtx = {
         .mtxatr = TA_TFIFO | TA_INHERIT
     };
 
     ir_mutex_id = tk_cre_mtx(&cmtx);
+    if (ir_mutex_id < E_OK) {
+        return ir_mutex_id;
+    }
+
+    adc_device_id = tk_opn_dev((const UB *)"adc", TD_UPDATE);
+    if (adc_device_id < E_OK) {
+        return adc_device_id;
+    }
+
     //default startup
     context.current_state.current_state = IR_CALI;
     context.current_state.estimated_line_pos = 0;
@@ -259,10 +274,16 @@ void ir_sense_init(void) {
     context.pulse_count = 0;
     context.string_index = 0;
     context.decoded_string[0] = '\0';
-}   
+    ir_ready = true;
+
+    return E_OK;
+}
 
 //starts execution
 void ir_sense_start(void) {
+    if (!ir_ready) {
+        return;
+    }
 
     T_CTSK ctsk = {
         .tskatr  = TA_HLNG | TA_RNG0,

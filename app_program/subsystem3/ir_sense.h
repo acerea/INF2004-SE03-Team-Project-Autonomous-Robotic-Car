@@ -2,6 +2,7 @@
 #define IR_SENSE_H
 #include <stdbool.h>
 #include <stdint.h>
+#include <tk/tkernel.h>
 
 #define IR_MASK 0x03 //< Bitmask to isolate 2-bit command data
 #define IR_CALI 0x00
@@ -67,9 +68,9 @@ typedef struct {
 } buddy3_context_t;
 
 // system integration
-void ir_sense_init(void);
+ER ir_sense_init(void);
 void ir_sense_start(void);
-void ir_locksteer(bool lock);
+void ir_lock_steering(bool lock);
 void ir_get_telemetry(ir_subsystem_state_t *out_snapshot);
 
 #endif // IR_SENSE_H
