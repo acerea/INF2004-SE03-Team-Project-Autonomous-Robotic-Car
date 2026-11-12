@@ -10,14 +10,14 @@ Define a test here before running it. Test IDs never change.
 
 | ID | What is tested | Requirement / interface | Method | Steps / how | Expected result |
 |---|---|---|---|---|---|
-| S1-U01 | kernel objects exist (3 message buffers, 2 event flags) | NFR11, IF-06, IF-07, IF-08 | auto | `subsystem1_test.c` | `[TEST] S1-U01 PASS` |
+| S1-U01 | kernel objects exist (3 message buffers, 2 event flags) | NFR11, IF-10, IF-07, IF-08 | auto | `subsystem1_test.c` | `[TEST] S1-U01 PASS` |
 | S1-U02 | frame pack/unpack round trip at min and max values | CR, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U02 PASS` |
 | S1-U03 | out-of-range value saturates and sets the error flag | CR, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U03 PASS` |
 | S1-U04 | valid command accepted, duplicate rejected, STOP always accepted | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U04 PASS` |
 | S1-U05 | sequence window edges | FR2, IF-07 | auto | `subsystem1_test.c` (uses S1-U04 state, run in order) | `[TEST] S1-U05 PASS` |
 | S1-U06 | bad version, bad command, bad length rejected | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U06 PASS` |
-| S1-U07 | full telemetry queue drops frames and never blocks (within 20 ms) | NFR4, NFR11, IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U07 PASS` |
-| S1-U08 | frame type bits match the MQTT library | FR1, IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U08 PASS` |
+| S1-U07 | full telemetry queue drops frames and never blocks (within 20 ms) | NFR4, NFR11, IF-10 | auto | `subsystem1_test.c` | `[TEST] S1-U07 PASS` |
+| S1-U08 | frame type bits match the MQTT library | FR1, IF-10 | auto | `subsystem1_test.c` | `[TEST] S1-U08 PASS` |
 | S1-U09 | 1-byte frame (oversize marker) rejected by the length check | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U09 PASS` |
 | S1-U10 | command counters wrap 255 to 0 and fit their 8-bit heartbeat fields | FR2, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U10 PASS` |
 | S1-U11 | uptime field counts whole seconds, wraps at 65536 s and fits 16 bits | FR1, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U11 PASS` |

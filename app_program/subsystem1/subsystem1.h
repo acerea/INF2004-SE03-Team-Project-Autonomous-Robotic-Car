@@ -112,7 +112,7 @@ s1_count_up (uint8_t count)
 }
 
 // Kernel objects (IDs published for the other subsystems).
-IMPORT ID g_mbf_telemetry;      // IF-06: all -> S1 (use s1_publish).
+IMPORT ID g_mbf_telemetry;      // IF-10: all -> S1 (use s1_publish).
 IMPORT ID g_mbf_remote_cmd;     // IF-07: S1 -> Vehicle Controller.
 IMPORT ID g_flg_remote;         // IF-07: bits S1_FLG_xxx.
 IMPORT volatile uint8_t g_s1_fault_bits;    // IF-08: S1 -> Vehicle Controller.

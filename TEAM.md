@@ -17,11 +17,12 @@ subsystem, ask its owner or open a pull request for them to review.
 
 | # | Subsystem (what it does) | Student ID | GitHub username | Code | Tests |
 |---|---|---|---|---|---|
-| 1 | *example:* LED heartbeat on GP19 | | | `app_program/subsystem1/` | `testing/subsystem1/` |
+| 1 | *Comms:* Wi-Fi/MQTT link supervision, remote commands from the laptop, telemetry publishing | 2502049 | thryn | `app_program/subsystem1/` | `testing/subsystem1/` |
 | 2 | *Motion Control:* motor PWM, wheel encoders, PID speed control, straight-line correction, distance movement and turning | 2503272 | yjmockkk | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | *example:* Consumer: collects samples into statistics | | | `app_program/subsystem3/` | `testing/subsystem3/` |
 | 4 | *example:* Monitor: prints reports, pauses the LED | | | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | | | | `app_program/subsystem5/` | `testing/subsystem5/` |
+| VC | *Vehicle Controller:* mission state machine | 2502049 | thryn | `app_program/vehicle/` | `testing/integration/` |
 
 Shared files (`app_program/app_main.c`, `app_program/app.h`, this file)
 are changed only by agreement of the team. The exception is claiming an empty
@@ -67,7 +68,7 @@ fixed.
 | GP16 | S2 | Left Wheel Encoder A (LEFT_ENCODER_A) |
 | GP17 | S2 | Left Wheel Encoder B (LEFT_ENCODER_B) |
 | GP18 | | |
-| GP19 | *example:* S1 | external LED (LED + 330 Ω to GND) |
+| GP19 | | |
 | GP20 | | |
 | GP21 | | |
 | GP22 | | |
@@ -147,11 +148,12 @@ change it only by team agreement. Write down every task you create.
 
 | Subsystem | Priority band | Tasks (name – priority – core) |
 |---|---|---|
-| 1 | 12–13 | *example:* led_task – 12 – any |
+| 1 | 22 | comms_task – 22 – core 0 |
 | 2 | 14–15 | *example:* producer_task – 14 – core 1 |
 | 3 | 16–17 | *example:* consumer_task – 16 – core 0 |
 | 4 | 18–19 | *example:* monitor_task – 18 – any |
 | 5 | 20–21 | s5_scan_task – 20 – any |
+| VC | 10 | vc_task – 10 – core 1 |
 
 Core: `TP_PRC1` = core 0, `TP_PRC2` = core 1, or "any".
 
@@ -169,6 +171,12 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-04 | S4 → S3 | shared data under a mutex (owned by S3) | `app_stats`, `mtx_stats` | `APP_STATS`, read only while locked | *example* |
 | IF-05 | S4 → S1 | task control | `tid_led` | `tk_sus_tsk` / `tk_rsm_tsk` / `tk_chg_pri` | *example* |
 | IF-06 | S5 -> VC | event flag (owned by S5) | `flg_s5_obstacle` | `S5_FLAG_CLEAR`, `S5_FLAG_SLOWDOWN`, `S5_FLAG_EMERGENCY`, `S5_FLAG_AVOID_LEFT`, `S5_FLAG_AVOID_RIGHT` | S5 / VC |
+| IF-07 | S1 → VC | event flag + message buffer (owned by S1) | `g_flg_remote`, `g_mbf_remote_cmd` | `S1_FLG_*` bits; 1-byte command, `s1_cmd_of()` | S1 / VC |
+| IF-08 | S1 → VC | shared data, one writer (owned by S1) | `g_s1_fault_bits` | comms fault bits, read only | S1 / VC |
+| IF-09 | S1 → WiFi service | message buffers read inside `mqtt_utk.c` (owned by S1) | `g_mbf_telemetry`, `g_mbf_cmd_raw` | frames read and written with `TMO_POL` | S1 / team |
+| IF-10 | all → S1 | message buffer (owned by S1) | `g_mbf_telemetry` | frame from `s1_publish()`, `wire_format.h` | S1 / all |
+| IF-11 | VC → S2 | message buffer (owned by S2) | `mbf_motion_req` | 2 bytes, `motion_packRequest()` | S2 / VC |
+| IF-12 | S2 → VC | event flag (owned by S2) | `flg_motion` | `S2_MOTION_DONE`, VC clears | S2 / VC |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
@@ -182,13 +190,13 @@ limit there. The numbers below are the example's usage.
 |---|---|---|---|---|---|---|
 | Task | 32 | 1 | 1 | 1 | 1 | 1 |
 | Semaphore | 16 | | 1 | | | |
-| Event flag | 16 | | | | 1 | 1 |
+| Event flag | 16 | 2 | | | 1 | 1 |
 | Mailbox | 12 | | | 1 | | |
 | Mutex | 12 | | | 1 | | |
-| Message buffer | 12 | | | | 1 | |
+| Message buffer | 12 | 3 | | | 1 | |
 | Fixed memory pool | 12 | | 1 | | | |
 | Variable memory pool | 12 | | | | | |
-| Cyclic handler | 12 | 1 | | | | |
+| Cyclic handler | 12 | | | | | |
 | Alarm handler | 12 | | | | 1 | |
 
 (The kernel's USB and WiFi service tasks also use a few of these.)
