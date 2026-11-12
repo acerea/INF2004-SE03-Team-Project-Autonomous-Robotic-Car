@@ -51,6 +51,16 @@ typedef uint8_t proto_type_t;
 #define PROTO_ST_LINK_LOST_BITS (1u)    // 1 = remote link lost.
 #define PROTO_ST_SPEED_BITS     (6u)    // Target speed, 0-63 cm/s.
 
+// Motion (type 2, subsystem 2): 46 bits. Every 200 ms while moving, 1 s idle.
+#define PROTO_MO_MODE_BITS      (2u)    // 0 stopped, 1 speed, 2 distance, 3 turn.
+#define PROTO_MO_TARGET_BITS    (6u)    // Target speed, 0-63 cm/s.
+#define PROTO_MO_SPEED_BITS     (11u)   // Measured wheel speed, signed, 0.1 cm/s.
+#define PROTO_MO_PWM_BITS       (8u)    // Wheel PWM, signed, -100..100 %.
+#define PROTO_MO_MODE_STOP      (0u)
+#define PROTO_MO_MODE_SPEED     (1u)
+#define PROTO_MO_MODE_DISTANCE  (2u)
+#define PROTO_MO_MODE_TURN      (3u)
+
 // Barcode (type 4, subsystem 3): 8 bits. Send once per barcode read.
 #define PROTO_BC_LETTER_BITS    (5u)    // 0-25 = 'A'-'Z'; 31 = unreadable.
 #define PROTO_BC_LETTER_BAD     (31u)
@@ -63,7 +73,8 @@ typedef uint8_t proto_type_t;
 
 // Terrain (type 5, subsystem 4): 18 bits. Send on change and every 1 s.
 #define PROTO_TER_STATE_BITS    (3u)    // 0-7, B4_STATE_xxx.
-#define PROTO_TER_COLLIDE_BITS  (1u)    // 1 = collision detected.
+#define PROTO_TER_LIFTED_BITS   (1u)    // 1 = car lifted or overturned.
+#define PROTO_TER_COLLIDE_BITS  PROTO_TER_LIFTED_BITS   // Old name, until S4 switches.
 #define PROTO_TER_FAULT_BITS    (1u)    // 1 = IMU fault.
 #define PROTO_TER_HUMP_OK_BITS  (1u)    // 0 = hump not measured yet.
 #define PROTO_TER_HUMP_MM_BITS  (8u)    // Peak hump height, 0-255 mm.

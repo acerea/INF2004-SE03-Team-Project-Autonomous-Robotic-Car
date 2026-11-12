@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Picocar Dashboard</title>
+<!-- Live view of picocar-01. Needs Mosquitto's WebSocket listener (port 9001)
+     and laptop_station.py running (it publishes picocar-01/view/<kind>). -->
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --text: #1d2330; --muted: #6b7280;
+    --line: #e3e6eb; --ok: #1f9d55; --warn: #d97706; --bad: #dc2626;
+    --idle: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px; background: var(--bg); color: var(--text);
+    font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header { display: flex; align-items: center; justify-content: space-between;
+           flex-wrap: wrap; gap: 8px; max-width: 1000px; margin: 0 auto 16px; }
+  h1 { font-size: 20px; margin: 0; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+          border-radius: 999px; background: var(--card); border: 1px solid var(--line);
+          font-size: 13px; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--idle); }
+  .grid { display: grid; gap: 12px; max-width: 1000px; margin: 0 auto;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+          padding: 14px 16px; border-top: 5px solid var(--idle); }
+  .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+             color: var(--muted); margin: 0 0 6px; font-weight: 600; }
+  .big { font-size: 28px; font-weight: 700; margin: 0; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; min-height: 18px; }
+  .wide { grid-column: 1 / -1; }
+  .ok   { border-top-color: var(--ok); }   .ok .big   { color: var(--ok); }
+  .warn { border-top-color: var(--warn); } .warn .big { color: var(--warn); }
+  .bad  { border-top-color: var(--bad); }  .bad .big  { color: var(--bad); }
+  ul { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+  li { padding: 4px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; }
+  li:last-child { border-bottom: 0; }
+  li time { color: var(--muted); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<header>
+  <h1>picocar-01</h1>
+  <span class="pill"><span class="dot" id="brokerDot"></span><span id="broker">connecting to broker…</span></span>
+</header>
+
+<main class="grid">
+  <section class="card" id="cLink"><h2>Link</h2><p class="big" id="link">—</p><div class="sub" id="linkSub">no heartbeat yet</div></section>
+  <section class="card" id="cState"><h2>Vehicle state</h2><p class="big" id="state">—</p><div class="sub" id="stateSub"></div></section>
+  <section class="card" id="cSpeed"><h2>Speed</h2><p class="big" id="speed">—</p><div class="sub">cm/s requested</div></section>
+  <section class="card" id="cMo"><h2>Wheels (measured)</h2><p class="big" id="mo">—</p><div class="sub" id="moSub">left / right cm/s</div></section>
+  <section class="card" id="cObs"><h2>Obstacle</h2><p class="big" id="obs">—</p><div class="sub" id="obsSub"></div></section>
+  <section class="card" id="cBc"><h2>Last barcode</h2><p class="big" id="bc">—</p><div class="sub" id="bcSub"></div></section>
+  <section class="card" id="cTer"><h2>Lifted / terrain</h2><p class="big" id="ter">—</p><div class="sub" id="terSub"></div></section>
+  <section class="card wide"><h2>Recent events</h2><ul id="log"><li><time>—</time>waiting for data</li></ul></section>
+</main>
+
+<script>
+  var BROKER = "ws://localhost:9001";
+  var CAR = "picocar-01";
+  var HB_TIMEOUT_MS = 5000;     // no heartbeat for 5 s -> link shown as lost
+
+  var lastHb = 0, lastLink = "", lastState = "", lastLetterSeq = -1;
+  var obsState = "", obsProfile = "";
+  var lastUptime = -1;   // car uptime (s) from the latest heartbeat
+
+  function $(id) { return document.getElementById(id); }
+  function setCard(id, level) {
+    var c = $(id); c.classList.remove("ok", "warn", "bad");
+    if (level) { c.classList.add(level); }
+  }
+  function upText() { return lastUptime >= 0 ? " (uptime " + lastUptime + " s)" : ""; }
+  function log(text, level) {
+    var ul = $("log");
+    if (ul.dataset.started !== "1") { ul.innerHTML = ""; ul.dataset.started = "1"; }
+    var li = document.createElement("li");
+    var t = document.createElement("time");
+    t.textContent = new Date().toLocaleTimeString();
+    li.appendChild(t); li.appendChild(document.createTextNode(text));
+    if (level === "bad") { li.style.color = "var(--bad)"; li.style.fontWeight = "600"; }
+    ul.insertBefore(li, ul.firstChild);
+    while (ul.children.length > 30) { ul.removeChild(ul.lastChild); }
+  }
+
+  var STATE_LEVEL = { FOLLOWING: "ok", TURNING: "ok", BYPASSING: "ok",
+                      IDLE: "", BLOCKED: "warn", STOPPED: "warn", FAULT: "bad" };
+  var OBS_LEVEL = { CLEAR: "ok", SLOWDOWN: "warn", EMERGENCY: "bad" };
+
+  function handle(kind, d) {
+    if (kind === "hb") {
+      lastHb = Date.now();
+      // Uptime going backwards means the Pico rebooted (e.g. a brownout).
+      if (!d.last_will && lastUptime >= 0 && d.uptime_s < lastUptime) {
+        log("CAR RESTARTED: uptime " + lastUptime + " s → " + d.uptime_s + " s", "bad");
+      }
+      if (!d.last_will) { lastUptime = d.uptime_s; }
+      $("link").textContent = d.last_will ? "LOST" : d.link;
+      $("linkSub").textContent = d.last_will ? "car went offline (last will)"
+        : "uptime " + d.uptime_s + " s · drops " + d.drops +
+          (d.cmd_ok !== undefined ? " · cmds ok " + d.cmd_ok + " / bad " + d.cmd_bad : "");
+      setCard("cLink", d.last_will ? "bad" : (d.link === "CONNECTED" ? "ok" : "warn"));
+      var l = d.last_will ? "LOST" : d.link;
+      if (l !== lastLink) { log("link " + l + upText()); lastLink = l; }
+    } else if (kind === "state") {
+      $("state").textContent = d.state;
+      $("stateSub").textContent = d.link_lost ? "car reports link lost" : "";
+      setCard("cState", STATE_LEVEL[d.state] || "");
+      $("speed").textContent = d.speed_cm_s;
+      setCard("cSpeed", d.speed_cm_s > 0 ? "ok" : "");
+      if (d.state !== lastState) { log((lastState ? "state " + lastState + " → " + d.state : "state " + d.state) + upText()); lastState = d.state; }
+    } else if (kind === "motion") {
+      $("mo").textContent = d.left_cm_s.toFixed(1) + " / " + d.right_cm_s.toFixed(1);
+      $("moSub").textContent = d.mode + " · target " + d.target_cm_s +
+        " cm/s · PWM " + d.left_pwm + "% / " + d.right_pwm + "%";
+      // Green when both wheels are within 10% (or 2 cm/s) of the target.
+      var tol = Math.max(2, d.target_cm_s * 0.1);
+      var good = d.mode === "SPEED" && Math.abs(d.left_cm_s - d.target_cm_s) <= tol &&
+                 Math.abs(d.right_cm_s - d.target_cm_s) <= tol;
+      setCard("cMo", d.mode === "STOP" ? "" : (good ? "ok" : "warn"));
+    } else if (kind === "obstacle") {
+      $("obs").textContent = d.distance;
+      obsState = d.state;
+      $("obsSub").textContent = obsState + obsProfile;
+      setCard("cObs", OBS_LEVEL[d.state] || "");
+    } else if (kind === "obst_profile") {
+      obsProfile = " · width " + d.width + ", go " + d.side;
+      $("obsSub").textContent = obsState + obsProfile;
+    } else if (kind === "barcode") {
+      $("bc").textContent = d.letter;
+      $("bcSub").textContent = "turn " + d.command + " · " + d.time;
+      setCard("cBc", d.letter === "unreadable" ? "warn" : "ok");
+      if (d.seq !== lastLetterSeq) { log("barcode " + d.letter + " → " + d.command + upText()); lastLetterSeq = d.seq; }
+    } else if (kind === "terrain") {
+      $("ter").textContent = d.lifted ? "LIFTED" : "on ground";
+      $("terSub").textContent = d.motion + (d.imu_fault ? " · IMU FAULT" : "") +
+        (d.hump_mm !== undefined ? " · hump " + d.hump_mm + " mm ×" + d.hump_count : "");
+      setCard("cTer", d.lifted || d.imu_fault ? "bad" : "ok");
+    }
+  }
+
+  // Heartbeat watchdog: the car sends one about every 2 s.
+  setInterval(function () {
+    if (lastHb && Date.now() - lastHb > HB_TIMEOUT_MS && lastLink !== "NO HEARTBEAT") {
+      $("link").textContent = "NO HEARTBEAT";
+      $("linkSub").textContent = "none for " + Math.round((Date.now() - lastHb) / 1000) + " s";
+      setCard("cLink", "bad"); log("link NO HEARTBEAT"); lastLink = "NO HEARTBEAT";
+    }
+  }, 1000);
+
+  function setBroker(text, color) { $("broker").textContent = text; $("brokerDot").style.background = color; }
+
+  if (window.mqtt) {
+    var client = mqtt.connect(BROKER, { reconnectPeriod: 2000 });
+    client.on("connect", function () {
+      setBroker("broker connected", "var(--ok)");
+      client.subscribe(CAR + "/view/#");
+    });
+    client.on("reconnect", function () { setBroker("reconnecting to broker…", "var(--warn)"); });
+    client.on("offline", function () { setBroker("broker offline (is port 9001 on?)", "var(--bad)"); });
+    client.on("message", function (topic, payload) {
+      try { handle(topic.split("/").pop(), JSON.parse(payload.toString())); }
+      catch (e) { console.warn("bad message on", topic, e); }
+    });
+  } else {
+    setBroker("mqtt.js did not load (no internet?)", "var(--bad)");
+  }
+</script>
+</body>
+</html>

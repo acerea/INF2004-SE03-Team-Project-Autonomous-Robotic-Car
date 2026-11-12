@@ -177,6 +177,7 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-10 | all → S1 | message buffer (owned by S1) | `g_mbf_telemetry` | frame from `s1_publish()`, `wire_format.h` | S1 / all |
 | IF-11 | VC → S2 | message buffer (owned by S2) | `mbf_motion_req` | 2 bytes, `motion_packRequest()` | S2 / VC |
 | IF-12 | S2 → VC | event flag (owned by S2) | `flg_motion` | `S2_MOTION_DONE`, VC clears | S2 / VC |
+| IF-13 | S4 → VC | event flag (owned by S4) | `flg_s4_imu` | `S4_FLAG_LIFTED`, level, VC reads only | S4 / VC |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
