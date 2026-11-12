@@ -74,18 +74,6 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
         return;
     }
 
-    /* Turns retain their existing turn speed. */
-    if (turn_mode) {
-        return;
-    }
-
-    if (distance_mode) {
-        /* Preserve the distance target and starting positions. */
-        target_speed = speed_cm_s;
-    } else {
-        motion_pidSetTargetSpeed(speed_cm_s);
-    }
-
     /* Reset PID state for a new movement */
     speed_pid_init(&left_pid, 2.0f, 1.0f, 0.01f, 30.0f);
     speed_pid_init(&right_pid, 2.0f, 1.0f, 0.01f, 30.0f);
@@ -99,6 +87,24 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
     motion_complete = 0;
 }
 
+/* Change speed without cancelling an active distance target. */
+void motion_pidChangeSpeed(float speed_cm_s)
+{
+    if (speed_cm_s <= 0.0f) {
+        motion_pidStop();
+        return;
+    }
+
+    if (turn_mode) {
+        return;
+    }
+
+    if (distance_mode) {
+        target_speed = speed_cm_s;
+    } else {
+        motion_pidSetTargetSpeed(speed_cm_s);
+    }
+}
 
 /* Periodic control update */
 
