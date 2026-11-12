@@ -16,6 +16,25 @@ IMPORT ID sem_slots;
 IMPORT ID mpf_samples;
 IMPORT ID mpx_samples;
 
+static void
+s3_publish_barcode(char letter, uint32_t command)
+{
+	uint8_t      frame[PROTO_MAX_FRAME_BYTES];
+	proto_bits_t bits;
+	uint32_t     code = PROTO_BC_LETTER_BAD;    // Not A-Z: unreadable.
+
+	if ((letter >= 'A') && (letter <= 'Z'))
+	{
+		code = (uint32_t)(letter - 'A');       // 'A' = 0 ... 'Z' = 25.
+	}
+
+	proto_init(&bits, frame, sizeof(frame));
+	proto_begin(&bits, PROTO_TYPE_BARCODE);
+	proto_put(&bits, code, PROTO_BC_LETTER_BITS);
+	proto_put(&bits, command, PROTO_BC_CMD_BITS);
+	(void)s1_publish(frame, proto_end(&bits), false);
+}
+
 EXPORT void consumer_task(INT stacd, void *exinf)
 {
 	SAMPLE_MSG	*msg;
@@ -70,3 +89,5 @@ EXPORT void consumer_task(INT stacd, void *exinf)
 		tk_sig_sem(sem_slots, 1);
 	}
 }
+
+

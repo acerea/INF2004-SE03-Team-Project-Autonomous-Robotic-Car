@@ -9,6 +9,8 @@
 #ifndef SUBSYSTEM3_H
 #define SUBSYSTEM3_H
 
+#include <stdint.h>
+
 #include "../app.h"
 
 #define S3_PRI_CONSUMER		16	/* priority band 16-17 (TEAM.md) */
@@ -36,5 +38,6 @@ IMPORT APP_STATS	app_stats;
 
 /* Private to subsystem 3 */
 IMPORT void	consumer_task(INT stacd, void *exinf);
+ER s3_publish_barcode(char letter, uint32_t command);
 
 #endif /* SUBSYSTEM3_H */
