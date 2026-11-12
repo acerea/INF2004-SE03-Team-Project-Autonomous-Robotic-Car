@@ -39,16 +39,6 @@ typedef struct {
 typedef struct {
     ir_subsystem_state_t current_state;
     
-    /* Sensor Thresholding Context */
-    uint16_t threshold_black;
-    uint16_t threshold_white;
-    
-    /* Barcode Decoder Status */
-    uint32_t edge_intervals[16];
-    uint8_t edge_count;
-    uint8_t barcode_retry_count;
-    uint8_t pending_raw_payload; /**< Bit-packed 2-bit navigation payload    */
-    
     /* Line Lost Safety Monitoring */
     uint32_t line_lost_start_ms;
     bool emergency_stop_active;
@@ -57,8 +47,6 @@ typedef struct {
     uint16_t pulse_widths[9];
     uint8_t pulse_count; 
     bool barcode_started; 
-    uint32_t last_transition_time;
-    bool last_was_black; 
 
     //navigation generatino buffer
     char decoded_string[16]; 

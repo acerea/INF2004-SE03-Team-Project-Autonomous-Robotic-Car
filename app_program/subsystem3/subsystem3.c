@@ -29,9 +29,7 @@ EXPORT ER subsystem3_init(void)
 	T_CMBX	cmbx = {0};
 	T_CMTX	cmtx = {0};
 
-	ir_buddy_ctx.threshold_black = 0;  
-	ir_buddy_ctx.threshold_white = 0;
-	ir_buddy_ctx.edge_count = 0;
+
 	ir_buddy_ctx.string_index = 0;
 	ir_buddy_ctx.emergency_stop_active = false;
 	ir_buddy_ctx.current_state.current_state = IR_CALI;

@@ -18,7 +18,7 @@
       "compilerPath": "/usr/bin/arm-none-eabi-gcc", //for windows11 (althea)
       "cStandard": "gnu11",
       //"intelliSenseMode": "macos-clang-arm64" //for mac
-      "intelliSenseMode": "windows-msvc-x64" //for windows 11 (althea)
+      "intelliSenseMode": "windows-msvc-arm" //for windows 11 (althea)
     }
   ],
   "version": 4

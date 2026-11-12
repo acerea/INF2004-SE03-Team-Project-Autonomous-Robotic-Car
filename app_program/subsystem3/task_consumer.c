@@ -10,7 +10,7 @@
 #include "../subsystem2/subsystem2.h"	/* IF-01/02: SAMPLE_MSG, pool, slots */
 #include "../subsystem4/subsystem4.h"	/* IF-03: mbf_summary, flg_events */
 
-#include "app.h"
+#include "../app.h"
 
 IMPORT ID sem_slots;
 IMPORT ID mpf_samples;

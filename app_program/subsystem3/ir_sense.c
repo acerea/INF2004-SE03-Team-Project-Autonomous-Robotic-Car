@@ -1,196 +1,229 @@
 #include <stdint.h>
 #include "ir_sense.h"
 #include <tk/tkernel.h>
-#include <string.h>
-
+#include <stdbool.h>
+#include <bsp/libbsp.h>
+#include <sys/sysdef.h>
+//WHAT IS GOING ON MAN WHY DID I WRITE DUPE INCLUDES
 #define PIN_IR_LEFT 26
 #define PIN_IR_CENTRE 27
 #define PIN_IR_RIGHT 28
 
-//adc channel mapping
-#define ADC_LEFT   0   /* GPIO26 = Channel 0 */
-#define ADC_CENTRE 1   /* GPIO27 = Channel 1 */
-#define ADC_RIGHT  2   /* GPIO28 = Channel 2 */
+#define MAX_PULSES       64
+#define BARCODE_END   150000
+#define TIMEOUTLOSS      2000
 
-#define bthreshold 2000 //threshold of which the ir sensor reads blacklines
-#define wthreshold 500 //threshold of which the ir sensor reads white area
-#define TIMEOUTLOSS 1000 //timout boundary for execute_line_lost(void)
+#define IRQ_IO_BANK0          13
+#define IO_BANK0_INTR_BASE    (IO_BANK0_BASE + 0x0F0)
+#define IO_BANK0_PROC0_INTE   (IO_BANK0_BASE + 0x100)
+#define IO_BANK0_PROC0_INTS   (IO_BANK0_BASE + 0x120)
+#define STATE_TABLE_SIZE (sizeof(state_execution_table) / sizeof(state_execution_table[0]))
 
-#define MAXPULSE 9 //9 elements for barcode character
-#define BLANKS_MS 130 //white space/blanks duration
+#define GPIO_EDGE_FALL_BIT(pin) (1U << (((pin) % 8) * 4 + 2))
+#define GPIO_EDGE_RISE_BIT(pin) (1U << (((pin) % 8) * 4 + 3))
+#define GPIO_INTR_REG_IDX(pin)  ((pin) / 8)
 
 static buddy3_context_t context;
 static ID ir_mutex_id;
 static volatile bool steering_locked = false;
 
-//read raw analag data from gpio/adc channel
-static inline uint16_t read_adc_raw(uint8_t channel) {
-    adc_select_input(channel);
-    return adc_read();
-}
+static volatile uint32_t barcode_pulses[MAX_PULSES];
+static volatile uint8_t  barcode_levels[MAX_PULSES];
+static volatile uint32_t pulse_count = 0;
+static volatile uint64_t last_edge_us = 0;
 
 typedef void (*state_handler_t)(void);
+
+/*gpio*/
+static inline void ir_gpio_init(UINT pin)
+{
+    out_w(GPIO_OE_CLR, (1u << pin));
+    out_w(GPIO_CTRL(pin), 5u); 
+}
+
+static inline bool ir_gpio_get(UINT pin)
+{
+    return (in_w(GPIO_IN) & (1u << pin)) != 0u;
+}
+
+static inline uint64_t ir_time_us_64(void)
+{
+    uint32_t lo = in_w(TIMER_BASE + 0x28u); 
+    uint32_t hi = in_w(TIMER_BASE + 0x24u); 
+    return ((uint64_t)hi << 32) | lo;
+}
+
+static void ir_gpio_irq_enable(UINT pin, bool enable)
+{
+    uint32_t idx       = GPIO_INTR_REG_IDX(pin);
+    uint32_t mask      = GPIO_EDGE_RISE_BIT(pin) | GPIO_EDGE_FALL_BIT(pin);
+    uint32_t intr_addr = IO_BANK0_INTR_BASE + (idx * 4u);
+    uint32_t inte_addr = IO_BANK0_PROC0_INTE + (idx * 4u);
+
+    out_w(intr_addr, mask); /* Clear pending edge flags */
+
+    if (enable) {
+        set_w(inte_addr, mask);
+    } else {
+        clr_w(inte_addr, mask);
+    }
+}
+
+/*preparation*/
+//get current system time in ms
+static uint32_t get_time_ms(void) {
+    SYSTIM tim;
+    tk_get_tim(&tim);
+    return (uint32_t)tim.lo;
+}
 
 //sensor calibration 
 static void execute_cali(void) {
     tk_loc_mtx(ir_mutex_id, TMO_FEVR);
-    context.threshold_black = bthreshold;
-    context.threshold_white = wthreshold;
     context.current_state.current_state = IR_TRACK;
     tk_unl_mtx(ir_mutex_id);
 }
 
-//line following and estimation
+/*line following and estimation*/
 static void execute_track(void) {
-
-    context.current_state.current_state = IR_TRACK & IR_MASK;
-
-    if (steering_locked) { //no line correction if steering locked
-        return;
-    }
-
-    //read adc values
-    uint16_t left_val = read_adc_raw(ADC_LEFT);
-    uint16_t centre_val = read_adc_raw(ADC_CENTRE);
-    uint16_t right_val = read_adc_raw(ADC_RIGHT);
+    bool left_on_line = ir_gpio_get(PIN_IR_LEFT);
+    bool centre_on_line = ir_gpio_get(PIN_IR_CENTRE);
+    bool right_on_line = ir_gpio_get(PIN_IR_RIGHT);
 
     tk_loc_mtx(ir_mutex_id, TMO_FEVR);
 
-    //if side sensors are safe on white, but centre catches black
-    if (left_val < wthreshold && right_val < wthreshold && centre_val >= bthreshold) {
-        context.current_state.current_state = IR_BARCODE;
-        context.barcode_started = false;
-        context.pulse_count = 0;
-        context.string_index = 0;
-        context.decoded_string[0] = '\0';
-        context.last_transition_time = tk_ref_slt();
-        context.last_was_black = true; // Initialized to true because center is black
+    context.current_state.current_state = IR_TRACK & IR_MASK;
+
+    if (steering_locked) {
         tk_unl_mtx(ir_mutex_id);
         return;
     }
 
-    //traditional line-loss fallback logic
-    if (left_val < wthreshold && centre_val < wthreshold) { //might be bthresh need to test further but if sensor data is under white threshold the line is lost
+    // Traditional line-loss fallback logic (all sensors read off-line)
+    if (!left_on_line && !centre_on_line && !right_on_line) {
         context.current_state.current_state = IR_LINE_LOST;
-        context.line_lost_start_ms = tk_ref_slt();
-    }
-    
-    tk_unl_mtx(ir_mutex_id);
-
-}
-
-static char lookup_barcode_char(uint16_t bit_pattern) {
-    for (size_t i = 0; i < LOOKUP_SIZE; i++) {
-        if (nav_letters[i].pattern == bit_pattern) {
-            return nav_letters[i].alphabet; // return matching alpha/ASCII character
-        }
-    }
-    return '?'; // error - placeholder if signature is corrupted
-}
-
-// Convert the 9 accumulated pulse timings into an ASCII character
-static char process_accumulated_pulses(uint16_t *widths, uint8_t count) {
-    if (count < 9) return '\0';
-
-    //Calculate dynamic average width threshold
-    uint32_t total = 0;
-    for (int i = 0; i < 9; i++) {
-        total += widths[i];
-    }
-    uint32_t average_width = total / 9;
-
-    //Map widths into a 9-bit binary string representation
-    uint16_t bit_pattern = 0;
-    for (int i = 0; i < 9; i++) {
-        if (widths[i] > average_width) {
-            bit_pattern |= (1 << (8 - i)); // Element classified as Wide (1)
-        }
-    }
-
-    //Scan the dictionary table structure
-    return lookup_barcode_char(bit_pattern);
-}
-
-//read barcode and generate navigation commands
-// Non-blocking barcode pulse width accumulator and string parser
-static void execute_barcode(void) {
-    context.current_state.current_state = IR_BARCODE & IR_MASK;
-
-    uint16_t centre_val = read_adc_raw(ADC_CENTRE);
-    uint32_t current_time = tk_ref_slt();
-    uint32_t duration = current_time - context.last_transition_time;
-    bool is_black = (centre_val >= bthreshold);
-
-    tk_loc_mtx(ir_mutex_id, TMO_FEVR);
-
-    //dynamic transitions capture
-    if (is_black != context.last_was_black) {
-        if (context.pulse_count < MAXPULSE) {
-            context.pulse_widths[context.pulse_count++] = (uint16_t)duration;
-        }
-        
-        context.last_transition_time = current_time;
-        context.last_was_black = is_black;
-        context.barcode_started = true;
-
-        // letter sequence processing
-        if (context.pulse_count == MAXPULSE) {
-            char parsed_char = process_accumulated_pulses(context.pulse_widths, context.pulse_count);
-            
-            // skip bad captures
-            if (parsed_char != '?' && parsed_char != '*' && parsed_char != '\0') {
-                if (context.string_index < (sizeof(context.decoded_string) - 1)) {
-                    context.decoded_string[context.string_index++] = parsed_char;
-                    context.decoded_string[context.string_index] = '\0'; // Maintain safe null termination
-                }
-            }
-            context.pulse_count = 0; //reset pulse
-        }
-    } 
-    // end-of-barcode handling via white space quiet zone detection
-    else if (!is_black && context.barcode_started && (duration > BLANKS_MS)) {
-        
-        // execute operational rules based on completed keywords parsed into string array
-        if (strcmp(context.decoded_string, "STOP") == 0) {
-            context.emergency_stop_active = true;
-        } else if (strcmp(context.decoded_string, "LEFT") == 0) {
-            context.current_state.junction_detected = 1; 
-        }
-
-        // reset tracking configurations cleanly
-        context.barcode_started = false;
-        context.pulse_count = 0;
-        context.string_index = 0;
-        context.decoded_string[0] = '\0';
-        
-        // transition to navigation routing
-        context.current_state.current_state = IR_TRACK;
-    }
-    // fallback tracking protection if stuck on an unexpected solid bar line mid-scan
-    else if (is_black && (duration > TIMEOUTLOSS)) {
-        context.current_state.current_state = IR_LINE_LOST;
-        context.line_lost_start_ms = current_time;
+        context.line_lost_start_ms = get_time_ms();
     }
 
     tk_unl_mtx(ir_mutex_id);
 }
+
 //detect line loss and response
 static void execute_line_lost(void) {
 
+    uint32_t now = get_time_ms();
+
+    tk_loc_mtx(ir_mutex_id, TMO_FEVR);
+
     context.current_state.current_state = IR_LINE_LOST & IR_MASK;
 
-    //initiate timer for first line loss instance
     if (context.line_lost_start_ms == 0) {
-        context.line_lost_start_ms = tk_ref_slt();
+        context.line_lost_start_ms = now;
     }
-    
-    //timeout boundary if exceeded emergency stop
-    if ((tk_ref_slt() - context.line_lost_start_ms) > TIMEOUTLOSS) {
+
+    if ((now - context.line_lost_start_ms) > TIMEOUTLOSS) {
         context.emergency_stop_active = true;
     }
 
+    tk_unl_mtx(ir_mutex_id);
+
 }
 
+/*barcode task*/
+static void barcode_gpio_isr(UINT intnum) {
+    uint32_t idx       = GPIO_INTR_REG_IDX(PIN_IR_RIGHT);
+    uint32_t fall_mask = GPIO_EDGE_FALL_BIT(PIN_IR_RIGHT);
+    uint32_t rise_mask = GPIO_EDGE_RISE_BIT(PIN_IR_RIGHT);
+    uint32_t both_mask = fall_mask | rise_mask;
+
+    uint32_t status = in_w(IO_BANK0_PROC0_INTS + (idx * 4u)) & both_mask;
+    if (status == 0u) {
+        return;
+    }
+
+    out_w(IO_BANK0_INTR_BASE + (idx * 4u), status);
+
+    uint64_t now = ir_time_us_64();
+
+    if (last_edge_us != 0 && pulse_count < MAX_PULSES) {
+        barcode_pulses[pulse_count] = (uint32_t)(now - last_edge_us);
+        // If falling edge (1 -> 0), the bar that just finished was HIGH (Black)
+        barcode_levels[pulse_count] = (status & fall_mask) ? 1u : 0u;
+        pulse_count++;
+    }
+    last_edge_us = now;
+}
+
+//transition into Barcode mode from execute_track()
+static void start_barcode_scan(void) {
+    pulse_count = 0;
+    last_edge_us = 0;
+
+    tk_loc_mtx(ir_mutex_id, TMO_FEVR);
+    context.current_state.current_state = IR_BARCODE & IR_MASK;
+    context.barcode_started = true;
+    context.pulse_count = 0;
+    context.string_index = 0;
+    context.decoded_string[0] = '\0';
+    tk_unl_mtx(ir_mutex_id);
+
+    ir_locksteer(true);
+    ir_gpio_irq_enable(PIN_IR_RIGHT, true);
+
+}
+
+static char decode_pattern_9bit(uint16_t pattern)
+{
+    for (size_t i = 0; i < LOOKUP_SIZE; i++) {
+        if (nav_letters[i].pattern == pattern) {
+            return nav_letters[i].alphabet;
+        }
+    }
+    return '?';
+}
+//called by state_execution_table[IR_BARCODE]
+static void execute_barcode(void) {
+    uint64_t now = ir_time_us_64();
+
+    // Wait until pulses are captured and a timeout gap indicates the robot cleared the barcode
+    if (pulse_count > 0 && (now - last_edge_us) > BARCODE_END) {
+
+        uint32_t count = pulse_count;
+        uint32_t min_w = UINT32_MAX;
+        uint32_t max_w = 0;
+
+        // 1. Find narrowest and widest bars to adapt to robot driving speed
+        for (uint32_t i = 0; i < count; i++) {
+            if (barcode_pulses[i] < min_w) min_w = barcode_pulses[i];
+            if (barcode_pulses[i] > max_w) max_w = barcode_pulses[i];
+        }
+
+        // Dynamic threshold between narrow (0) and wide (1) bars
+        uint32_t threshold_us = (min_w + max_w) / 2;
+
+        tk_loc_mtx(ir_mutex_id, TMO_FEVR);
+        context.pulse_count = count;
+
+        // Convert pulse widths into '0' (narrow) and '1' (wide) binary stream
+        uint32_t limit = (count < sizeof(context.decoded_string) - 1) ? count : (sizeof(context.decoded_string) - 1);
+        for (uint32_t i = 0; i < limit; i++) {
+            context.decoded_string[i] = (barcode_pulses[i] > threshold_us) ? '1' : '0';
+        }
+        context.decoded_string[limit] = '\0';
+        context.string_index = limit;
+
+        // Return to normal line tracking
+        context.barcode_started = false;
+        context.current_state.current_state = IR_TRACK & IR_MASK;
+        tk_unl_mtx(ir_mutex_id);
+
+        ir_locksteer(false);
+    }
+}
+
+
+
+/*handling*/
 //function table mapping to logical callback
 static const state_handler_t state_execution_table[] = {
     [IR_CALI]      = execute_cali,
@@ -213,20 +246,29 @@ void ir_get_telemetry(ir_subsystem_state_t *out_snapshot) {
 
 
 //toglle for steering lock
-void ir_lock_steering(bool lock) {
+void ir_locksteer(bool lock) {
 
     steering_locked = lock;
 }
+
 
 
 //ir sensor task core 0
 static void ir_sensor_task(INT stacd, void *exinf) {
 
     while (1) {
-
+        tk_loc_mtx(ir_mutex_id, TMO_FEVR);
         uint8_t target_state = context.current_state.current_state & IR_MASK;
-        state_execution_table[target_state]();
-        context.current_state.timestamp = tk_ref_slt();
+        tk_unl_mtx(ir_mutex_id);
+
+        if (target_state < STATE_TABLE_SIZE && state_execution_table[target_state] != NULL) {
+            state_execution_table[target_state]();
+        }
+
+        tk_loc_mtx(ir_mutex_id, TMO_FEVR);
+        context.current_state.timestamp = get_time_ms();
+        tk_unl_mtx(ir_mutex_id);
+
         tk_dly_tsk(10);
     }
 }
@@ -235,10 +277,14 @@ static void ir_sensor_task(INT stacd, void *exinf) {
 //configurations
 void ir_sense_init(void) {
 
-    adc_init();
-    adc_gpio_init(PIN_IR_LEFT);
-    adc_gpio_init(PIN_IR_CENTRE);
-    adc_gpio_init(PIN_IR_RIGHT);
+    ir_gpio_init(PIN_IR_LEFT);
+    gpio_set_pin(PIN_IR_LEFT, GPIO_IN);
+
+    ir_gpio_init(PIN_IR_CENTRE);
+    gpio_set_pin(PIN_IR_CENTRE, GPIO_IN);
+
+    ir_gpio_init(PIN_IR_RIGHT);
+    gpio_set_pin(PIN_IR_RIGHT, GPIO_IN);
 
     //fifo RTOS Mutex for clean thread boundary sync
     T_CMTX cmtx = {
@@ -252,8 +298,6 @@ void ir_sense_init(void) {
     context.current_state.junction_detected = 0;
     context.line_lost_start_ms = 0;
     context.emergency_stop_active = false;
-    context.edge_count = 0;
-    context.barcode_retry_count = 0;
 
     context.barcode_started = false;
     context.pulse_count = 0;
