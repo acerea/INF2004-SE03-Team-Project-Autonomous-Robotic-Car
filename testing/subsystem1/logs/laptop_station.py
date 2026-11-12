@@ -82,6 +82,14 @@ def decode_fields(f):
                  obstacle=OBS_STATES[get_bits(f, 17, 2)],
                  link_lost=get_bits(f, 19, 1), speed_cm_s=get_bits(f, 20, 6))
         return "state", d
+    if typ == 3 and len(f) >= 4:
+        sens = get_bits(f, 16, 3)
+        d.update(state=["CALI", "TRACK", "BARCODE", "LINE_LOST"][get_bits(f, 14, 2)],
+                 sensors="".join(c if sens & b else "." for c, b in
+                                 (("L", 4), ("C", 2), ("R", 1))),
+                 junction=["NONE", "LEFT", "RIGHT", "BOTH"][get_bits(f, 19, 2)],
+                 line_pos=get_bits(f, 21, 11) - 1024)
+        return "line", d
     if typ == 4 and len(f) >= 3:
         code = get_bits(f, 14, 5)
         d.update(letter=chr(ord("A") + code) if code < 26 else "unreadable",
