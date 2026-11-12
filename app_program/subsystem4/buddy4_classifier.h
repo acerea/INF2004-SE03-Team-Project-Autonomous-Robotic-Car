@@ -11,21 +11,18 @@
  *
  * Units:
  *   motion_level_mg: acceleration activity metric (mg)
- *   impact_delta_mg: largest acceleration change between samples (mg)
  *   vertical_delta_mg: Z-axis deviation from gravity baseline (mg)
  *   accel_x_mg/y_mg/z_mg: calibrated acceleration (mg)
  *   yaw_rate_mdps: yaw angular velocity (millidegrees/second)
  */
 
 #define B4_MOTION_THRESHOLD_MG       150
-#define B4_IMPACT_DELTA_THRESHOLD_MG 250
 #define B4_TURN_THRESHOLD_MDPS     30000
 #define B4_LOW_TURN_THRESHOLD_MDPS 15000
 
 typedef struct
 {
     int16_t motion_level_mg;
-    int16_t impact_delta_mg;
     int16_t vertical_delta_mg;
 
     int16_t accel_x_mg;
@@ -33,7 +30,9 @@ typedef struct
     int16_t accel_z_mg;
 
     int16_t yaw_rate_mdps;
-    uint8_t imu_fault;
+    uint8_t imu_fault  : 1;    /* 1 = sensor read failed            */
+    uint8_t lifted     : 1;    /* 1 = handling detector: lifted     */
+    uint8_t overturned : 1;    /* 1 = handling detector: overturned */
 } B4_MOTION_INPUT;
 
 /* Return absolute value safely, including INT16_MIN. */
@@ -58,6 +57,8 @@ static inline B4_EVENT b4_classify_motion(B4_MOTION_INPUT input)
 
     turn_magnitude = b4_abs_i16(input.yaw_rate_mdps);
 
+    uint8_t overturned = (uint8_t)input.overturned;
+
     /* Sensor fault takes priority. */
     if (input.imu_fault != 0u)
     {
@@ -65,13 +66,14 @@ static inline B4_EVENT b4_classify_motion(B4_MOTION_INPUT input)
     }
 
     /*
-     * Detect a sudden acceleration change.
-     * This uses the difference between consecutive samples,
-     * rather than absolute acceleration which includes gravity.
+     * Lifted is reported as the motion state (the robot is being
+     * carried). Overturned is an orientation flag that is reported
+     * with whatever motion state applies. Collision detection was
+     * removed by the change of requirement.
      */
-    if (input.impact_delta_mg >= B4_IMPACT_DELTA_THRESHOLD_MG)
+    if (input.lifted != 0u)
     {
-        return b4_pack_event(B4_STATE_IMPACT, 1u, 0u);
+        return b4_pack_event(B4_STATE_LIFTED, overturned, 0u);
     }
 
     /*
@@ -80,7 +82,7 @@ static inline B4_EVENT b4_classify_motion(B4_MOTION_INPUT input)
      */
     if (turn_magnitude >= B4_TURN_THRESHOLD_MDPS)
     {
-        return b4_pack_event(B4_STATE_TURNING, 0u, 0u);
+        return b4_pack_event(B4_STATE_TURNING, overturned, 0u);
     }
 
     /*
@@ -89,7 +91,7 @@ static inline B4_EVENT b4_classify_motion(B4_MOTION_INPUT input)
      */
     if (input.motion_level_mg >= B4_MOTION_THRESHOLD_MG)
     {
-        return b4_pack_event(B4_STATE_MOVING, 0u, 0u);
+        return b4_pack_event(B4_STATE_MOVING, overturned, 0u);
     }
 
     /*
@@ -98,10 +100,10 @@ static inline B4_EVENT b4_classify_motion(B4_MOTION_INPUT input)
      */
     if (turn_magnitude <= B4_LOW_TURN_THRESHOLD_MDPS)
     {
-        return b4_pack_event(B4_STATE_STATIONARY, 0u, 0u);
+        return b4_pack_event(B4_STATE_STATIONARY, overturned, 0u);
     }
 
-    return b4_pack_event(B4_STATE_UNKNOWN, 0u, 0u);
+    return b4_pack_event(B4_STATE_UNKNOWN, overturned, 0u);
 }
 
 #endif

@@ -1,76 +1,62 @@
+/** @file ir_sense.h
+ *
+ * @brief Subsystem 3: IR line sensing and barcode reading, public API.
+ *
+ * @par
+ * One task (ir_sensor_task) owns the ADC (GP26 left, GP27 centre, GP28
+ * right). It calibrates, estimates the line position, detects line loss
+ * and junctions, reads Code 39 barcodes, and reports:
+ *   - a snapshot any task may read with ir_get_telemetry() (IF-14),
+ *   - one byte per decoded barcode in mbf_s3_nav (IF-15, for the VC),
+ *   - LINE and BARCODE telemetry frames through s1_publish() (IF-10).
+ */
 #ifndef IR_SENSE_H
 #define IR_SENSE_H
-#include <stdbool.h>
+
 #include <stdint.h>
+#include <stdbool.h>
 #include <tk/tkernel.h>
+#include "ir_algo.h"
 
-#define IR_MASK 0x03 //< Bitmask to isolate 2-bit command data
-#define IR_CALI 0x00
-#define IR_TRACK 0x01
-#define IR_BARCODE 0x02
-#define IR_LINE_LOST 0x03
+// IR task state, 2 bits (change requirement 1).
+#define IR_MASK                 (0x03u)
+#define IR_CALI                 (0x00u)     // Calibrating at power-up.
+#define IR_TRACK                (0x01u)     // Following the line.
+#define IR_BARCODE              (0x02u)     // Reading a barcode.
+#define IR_LINE_LOST            (0x03u)     // No sensor sees the line.
 
+// Junction field, 2 bits.
+#define IR_JUNC_NONE            (0u)
+#define IR_JUNC_LEFT            (1u)        // Branch to the left.
+#define IR_JUNC_RIGHT           (2u)        // Branch to the right.
+#define IR_JUNC_BOTH            (3u)        // T / cross / solid black.
 
-//navigation commands w lookup table
-typedef struct {
-    uint16_t pattern;
-    char alphabet;
-} barcode_lu;
+// Sensor bits (black = 1), 3 bits.
+#define IR_SENS_LEFT            (0x04u)
+#define IR_SENS_CENTRE          (0x02u)
+#define IR_SENS_RIGHT           (0x01u)
 
-static const barcode_lu nav_letters[] = { //lookup table for alphabets
-    { 0b100001001, 'A' }, { 0b001001001, 'B' }, { 0b101001000, 'C' }, { 0b000011001, 'D' }, { 0b100011000, 'E' }, 
-    { 0b001011000, 'F' }, { 0b000001101, 'G' }, { 0b100001100, 'H' }, { 0b001001100, 'I' }, { 0b000011100, 'J' }, 
-    { 0b100000011, 'K' }, { 0b001000011, 'L' }, { 0b101000010, 'M' }, { 0b000010011, 'N' }, { 0b100010010, 'O' }, 
-    { 0b001010010, 'P' }, { 0b000000111, 'Q' }, { 0b100000110, 'R' }, { 0b001000110, 'S' }, { 0b000010110, 'T' }, 
-    { 0b110000001, 'U' }, { 0b011000001, 'V' }, { 0b111000000, 'W' }, { 0b010010001, 'X' }, { 0b110010000, 'Y' }, { 0b011010000, 'Z' }
-};
+// Snapshot of subsystem 3, read with ir_get_telemetry(). The fields
+// share one 32-bit word, sized to their range (change requirement 1);
+// it is written and read only under the subsystem's mutex.
+typedef struct
+{
+    uint32_t     timestamp_ms;          // Time of the last update.
+    signed int   line_pos     : 11;     // -1000..+1000, + = line to the right.
+    unsigned int state        : 2;      // IR_CALI .. IR_LINE_LOST.
+    unsigned int sensors      : 3;      // IR_SENS_xxx bits.
+    unsigned int junction     : 2;      // IR_JUNC_xxx.
+    unsigned int lost_timeout : 1;      // Line lost for > IR_LOST_TIMEOUT_MS.
+    unsigned int nav_cmd      : 3;      // Last barcode command, IR_NAV_xxx.
+    unsigned int letter       : 5;      // Last barcode letter, 0-25 / 31.
+    unsigned int barcode_seq  : 4;      // +1 per barcode read (wraps).
+} ir_snapshot_t;
 
-#define LOOKUP_SIZE (sizeof(nav_letters)/sizeof(barcode_lu))
+ER   ir_sense_init(void);
+ER   ir_sense_start(void);
+void ir_lock_steering(bool b_lock);
+void ir_get_telemetry(ir_snapshot_t * p_out);
 
-//realtime subsys snapshot
-typedef struct {
-    uint32_t timestamp;
-    int16_t estimated_line_pos;
-    uint8_t junction_detected;
-    uint8_t current_state;
-    
-} ir_subsystem_state_t;
+#endif /* IR_SENSE_H */
 
-//subsys tracking
-typedef struct {
-    ir_subsystem_state_t current_state;
-    
-    /* Sensor Thresholding Context */
-    uint16_t threshold_black;
-    uint16_t threshold_white;
-    
-    /* Barcode Decoder Status */
-    uint32_t edge_intervals[16];
-    uint8_t edge_count;
-    uint8_t barcode_retry_count;
-    uint8_t pending_raw_payload; /**< Bit-packed 2-bit navigation payload    */
-    
-    /* Line Lost Safety Monitoring */
-    uint32_t line_lost_start_ms;
-    bool emergency_stop_active;
-
-    //non-blocking barcode parsing
-    uint16_t pulse_widths[9];
-    uint8_t pulse_count; 
-    bool barcode_started; 
-    uint32_t last_transition_time;
-    bool last_was_black; 
-
-    //navigation generatino buffer
-    char decoded_string[16]; 
-    uint8_t string_index;
-
-} buddy3_context_t;
-
-// system integration
-ER ir_sense_init(void);
-void ir_sense_start(void);
-void ir_lock_steering(bool lock);
-void ir_get_telemetry(ir_subsystem_state_t *out_snapshot);
-
-#endif // IR_SENSE_H
+/*** end of file ***/
