@@ -52,7 +52,7 @@ fixed.
 | GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
 | GP2 | S5 | Ultrasonic Trigger (TRIG_PIN) |
 | GP3 | S5 | Ultrasonic Echo (ECHO_PIN) |
-| GP4 | S5 | Ultrasonic Scan Servo PWM (SERVO_PIN) |
+| GP4 | S5 | |
 | GP5 | | |
 | GP6 | S2 | Right Wheel Encoder A (RIGHT_ENCODER_A) |
 | GP7 | S2 | Right Wheel Encoder B (RIGHT_ENCODER_B) |
@@ -63,7 +63,7 @@ fixed.
 | GP12 | | |
 | GP13 | | |
 | GP14 | | |
-| GP15 | | |
+| GP15 | S5 | Ultrasonic Scan Servo PWM (SERVO_PIN) |
 | GP16 | S2 | Left Wheel Encoder A (LEFT_ENCODER_A) |
 | GP17 | S2 | Left Wheel Encoder B (LEFT_ENCODER_B) |
 | GP18 | | |
