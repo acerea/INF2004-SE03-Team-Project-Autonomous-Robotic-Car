@@ -3,15 +3,18 @@
  * @brief Vehicle Controller (VC): mission state machine, stage 1.
  *
  * @par
- * Stage 1: START / STOP / ESTOP / RESET from the laptop, and obstacle
- * slow-down and stop from subsystem 5. Turning (S3) and bypassing (S5)
+ * Stage 1: START / STOP / ESTOP / RESET from the laptop, obstacle
+ * slow-down and stop from subsystem 5, and stop when subsystem 4 reports
+ * the car lifted or overturned (end of run). Turning (S3) and bypassing (S5)
  * are added in later stages. The VC polls its inputs every VC_TICK_MS,
  * because a task can wait on only one kernel object at a time, turns them
  * into events and handles each event in vc_dispatch() (switch on state).
  *
- * State table (ESTOP and STOP are accepted in every state):
+ * State table (ESTOP, STOP and LIFTED are accepted in every state):
  *   any        ESTOP              -> FAULT      motors stop
  *   not FAULT  STOP               -> STOPPED    motors stop
+ *   driving    LIFTED             -> STOPPED    motors stop
+ *   IDLE, STOPPED, FAULT  LIFTED  -> no change  motors stop
  *   IDLE       START              -> FOLLOWING  speed by obstacle level
  *   FOLLOWING  OBS_EMERGENCY      -> BLOCKED    motors stop
  *   FOLLOWING  OBS_SLOW / CLEAR   -> FOLLOWING  speed 10 / 20 cm/s
@@ -20,12 +23,14 @@
  *   STOPPED    RESET              -> IDLE       motors stop
  *   FAULT      RESET              -> IDLE       motors stop
  *   Any other state/event pair is ignored (e.g. START in FAULT).
+ *   START is also ignored while the car is lifted.
  */
 #include <stdint.h>
 #include <stdbool.h>
 #include "vehicle.h"
 #include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
+#include "../subsystem4/subsystem4.h"
 #include "../subsystem5/subsystem5.h"
 
 // Motion requests go to subsystem 2's mbf_motion_req (2 bytes, see
@@ -50,6 +55,14 @@ typedef uint8_t vc_event_t;
 #define VC_EV_OBS_CLEAR     (4u)    // Obstacle level from S5, every tick.
 #define VC_EV_OBS_SLOW      (5u)
 #define VC_EV_OBS_EMERGENCY (6u)
+#define VC_EV_LIFTED        (7u)    // Car lifted or overturned (S4), every tick.
+
+// Lift detection is on once subsystem 4 publishes S4_FLAG_LIFTED (IF-13).
+#ifdef S4_FLAG_LIFTED
+#define VC_LIFT_DETECT      (1)
+#else
+#define VC_LIFT_DETECT      (0)
+#endif
 
 #define VC_STATE_MS         (1000u)               // STATE frame every 1 s.
 #define VC_SPEED_MAX        (63u)                 // Largest speed field value.
@@ -57,6 +70,7 @@ typedef uint8_t vc_event_t;
 static volatile vc_state_t g_vc_state = VC_STATE_IDLE;  // One writer: VC.
 static uint32_t g_vc_speed    = 0u;             // Last speed sent, cm/s.
 static uint32_t g_vc_obstacle = VC_OBS_CLEAR;   // Last obstacle level read.
+static bool     g_vc_lifted   = false;          // Last lift level read.
 static uint32_t g_vc_want_cmd = S2_MOTION_STOP; // Latest motion request.
 static uint32_t g_vc_want_arg = 0u;
 static uint32_t g_vc_sent_cmd = VC_MOTION_NONE; // Last one subsystem 2 took.
@@ -71,6 +85,7 @@ static void       vc_motion(uint32_t cmd, uint32_t arg);
 static void       vc_motion_send(void);
 static void       vc_set_state(vc_state_t next);
 static uint32_t   vc_obstacle_level(void);
+static bool       vc_is_lifted(void);
 static char const * vc_state_name(vc_state_t state);
 static void       vc_publish_state(void);
 
@@ -106,11 +121,20 @@ vc_task (INT stacd, void * exinf)
     uint32_t last_pub = 0u;
 
     vc_motion(S2_MOTION_STOP, 0u);              // Motors off at start.
-    tm_printf((UB*)"vc: started, state %s\n", vc_state_name(g_vc_state));
+    tm_printf((UB*)"vc: started, state %s, lift detection %s\n",
+              vc_state_name(g_vc_state), VC_LIFT_DETECT ? "on" : "off");
 
     for (;;)
     {
-        vc_poll_remote();       // Safety commands first.
+        // Lifted or overturned: stop, and keep stopping while it lasts.
+        // Read first, so a START in the same tick is already refused.
+        g_vc_lifted = vc_is_lifted();
+        if (g_vc_lifted)
+        {
+            vc_dispatch(VC_EV_LIFTED);
+        }
+
+        vc_poll_remote();       // Remote safety commands and START/RESET.
 
         g_vc_obstacle = vc_obstacle_level();
         vc_dispatch(vc_obstacle_event(g_vc_obstacle));
@@ -204,6 +228,24 @@ vc_dispatch (vc_event_t ev)
         {
             vc_set_state(VC_STATE_STOPPED);
         }
+        return;
+    }
+
+    if (VC_EV_LIFTED == ev)
+    {
+        vc_motion(S2_MOTION_STOP, 0u);
+        if ((VC_STATE_IDLE != g_vc_state) && (VC_STATE_STOPPED != g_vc_state)
+            && (VC_STATE_FAULT != g_vc_state))
+        {
+            vc_set_state(VC_STATE_STOPPED);
+        }
+        return;
+    }
+
+    // The wheels must not start while the car is in the air.
+    if ((VC_EV_START == ev) && g_vc_lifted)
+    {
+        tm_printf((UB*)"vc: START ignored, car lifted\n");
         return;
     }
 
@@ -335,6 +377,25 @@ vc_obstacle_level (void)
     }
 
     return (level);
+}
+
+static bool
+vc_is_lifted (void)
+{
+    bool lifted = false;
+
+#if VC_LIFT_DETECT
+    T_RFLG rflg;
+
+    // A level kept by subsystem 4: read it, never clear it.
+    if ((E_OK == tk_ref_flg(flg_s4_imu, &rflg))
+        && (0u != (rflg.flgptn & S4_FLAG_LIFTED)))
+    {
+        lifted = true;
+    }
+#endif
+
+    return (lifted);
 }
 
 static void
