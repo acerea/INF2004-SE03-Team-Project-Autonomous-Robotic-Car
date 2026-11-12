@@ -30,13 +30,6 @@ typedef uint8_t vc_state_t;
 #define VC_STATE_STOPPED    (5u)      // Remote STOP; START resumes.
 #define VC_STATE_FAULT      (6u)      // ESTOP or fault; RESET to IDLE.
 
-// Motion requests to subsystem 2 (proposed interface, see vehicle.c).
-#define VC_MOTION_STOP      (0u)
-#define VC_MOTION_SPEED     (1u)      // arg: speed in cm/s.
-#define VC_MOTION_DISTANCE  (2u)      // arg: distance in cm.
-#define VC_MOTION_LEFT      (3u)      // arg: angle in degrees.
-#define VC_MOTION_RIGHT     (4u)      // arg: angle in degrees.
-
 IMPORT ER vehicle_init(void);
 IMPORT ER vehicle_start(void);
 
