@@ -1,0 +1,33 @@
+INT-VC4 VC -> S2 motion requests through mbf_motion_req, 2026-11-12
+Firmware: normal image (NET=lwip MQTT=1), VC commit named in TEST_LOG.md + local S3 workaround.
+Bench Pico only (no motors connected): checks that S2 accepts every request.
+Wheel response is a separate test on the car (pending).
+PowerShell serial logger on COM5, laptop clock time in front.
+Commands typed in laptop_station.py: start, stop, start, estop, start, reset.
+No "busy, retrying" line: every request fitted in mbf_motion_req at once.
+cmd=1 arg=20 is S2_MOTION_SET_SPEED 20 cm/s, cmd=0 is S2_MOTION_STOP.
+
+14:24:49  vc: motion cmd=0 arg=0
+14:24:49  vc: started, state IDLE
+14:24:49  wifi: cyw43_utk_task starting (proc 1)
+14:24:49  wifi: cyw43_init() ...
+14:24:49  wifi: cyw43_init() returned, bringing interface up ...
+14:24:49  s1: 110 ms link OFFLINE -> INIT
+14:24:49  wifi: joining "homeschool" ...
+14:24:49  wifi: link status -> joined AP, waiting for IP (1)
+14:24:49  s1: 1610 ms link INIT -> WIFI_CONNECTING
+14:24:52  wifi: link status -> joined AP, no IP yet (2)
+14:24:54  wifi: link up, ip=192.168.137.201
+14:24:54  s1: 6210 ms link WIFI_CONNECTING -> MQTT_CONNECTING
+14:24:54  mqtt: connected to 192.168.137.1
+14:24:54  mqtt: subscribed to picocar-01/cmd
+14:24:54  s1: 6310 ms link MQTT_CONNECTING -> CONNECTED
+14:25:28  vc: state IDLE -> FOLLOWING
+14:25:28  vc: motion cmd=1 arg=20
+14:25:33  vc: motion cmd=0 arg=0
+14:25:33  vc: state FOLLOWING -> STOPPED
+14:25:35  vc: state STOPPED -> FOLLOWING
+14:25:35  vc: motion cmd=1 arg=20
+14:25:40  vc: motion cmd=0 arg=0
+14:25:40  vc: state FOLLOWING -> FAULT
+14:25:50  vc: state FAULT -> IDLE

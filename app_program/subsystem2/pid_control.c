@@ -59,7 +59,7 @@ float speed_pi_update(SpeedPI *controller, float target_speed,
     return pwm;
 }
 
-/* Full PID Controller */
+/* PID Controller */
 void speed_pid_init(SpeedPID *controller, float kp, float ki,
                     float kd, float base_pwm)
 {
@@ -84,7 +84,7 @@ float speed_pid_update(SpeedPID *controller, float target_speed,
 
     error = target_speed - measured_speed;
 
-    /* Derivative term */
+    /* Skip the derivative term on the first update */
     if (controller->first_update) {
         derivative = 0.0f;
         controller->first_update = 0;
@@ -94,7 +94,6 @@ float speed_pid_update(SpeedPID *controller, float target_speed,
                    / dt_seconds;
     }
 
-    /* Integral term */
     proposed_integral = controller->integral
                       + error * dt_seconds;
 
@@ -104,7 +103,7 @@ float speed_pid_update(SpeedPID *controller, float target_speed,
         + controller->ki * proposed_integral
         + controller->kd * derivative;
 
-    /* PWM clamping with basic anti-windup */
+    /* Clamp PWM and allow integration when it reduces saturation */
     if (pwm > 100.0f) {
         pwm = 100.0f;
         if (error < 0.0f)

@@ -1,0 +1,23 @@
+INT-VC1 Vehicle Controller stage 1, firmware cb98e5e + local subsystem 3 workaround, 2026-11-11
+PowerShell serial logger (vc:, s1:, mqtt: lines), laptop clock time in front.
+Commands typed in laptop_station.py: start, stop, start, estop, reset. Motion requests are stubbed (printed only).
+Hotspot was off at power-on, so Wi-Fi only connected at 14:13.
+
+14:11:40  vc: motion cmd=0 arg=0 (stub)
+14:11:40  vc: started, state IDLE
+14:11:40  s1: 110 ms link OFFLINE -> INIT
+14:11:40  s1: 1610 ms link INIT -> WIFI_CONNECTING
+14:13:15  s1: 108610 ms link WIFI_CONNECTING -> MQTT_CONNECTING
+14:13:16  mqtt: connected to 192.168.137.1
+14:13:16  mqtt: subscribed to picocar-01/cmd
+14:13:16  s1: 109610 ms link MQTT_CONNECTING -> CONNECTED
+14:15:04  vc: state IDLE -> FOLLOWING
+14:15:04  vc: motion cmd=1 arg=20 (stub)
+14:15:18  vc: motion cmd=0 arg=0 (stub)
+14:15:18  vc: state FOLLOWING -> STOPPED
+14:15:49  vc: state STOPPED -> FOLLOWING
+14:15:49  vc: motion cmd=1 arg=20 (stub)
+14:16:02  vc: motion cmd=0 arg=0 (stub)
+14:16:02  vc: state FOLLOWING -> FAULT
+14:16:18  vc: state FAULT -> IDLE
+Shortened: the CONNECTED/LOST flaps between 14:13 and 14:15 (caused by two laptop_station.py copies running) are left out.

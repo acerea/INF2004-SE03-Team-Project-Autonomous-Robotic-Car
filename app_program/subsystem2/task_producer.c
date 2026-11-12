@@ -22,7 +22,7 @@ IMPORT ID mbx_samples;
 EXPORT INT s2_make_value(UW seq)
 {
 	INT	phase = (INT)(seq % 20);
-	/* return (phase < 10 ? phase : 20 - phase) * 10; */
+	return (phase < 10 ? phase : 20 - phase) * 10;
 	return (INT)ultrasonic_read_distance_cm();
 }
 

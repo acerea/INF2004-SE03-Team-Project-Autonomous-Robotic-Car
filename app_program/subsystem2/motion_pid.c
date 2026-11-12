@@ -1,9 +1,19 @@
+/*
+ * motion_pid.c
+ * Encoder-based speed control, distance movement and in-place turning.
+ * Updated periodically by the RTOS motion task.
+ */
+
+#include <stddef.h>
+
 #include "motion_pid.h"
 #include "pid_control.h"
 #include "wheel_encoder.h"
 #include "motion_control.h"
 
-/* PID controllers for left and right wheels */
+/* Controller state */
+
+/* Independent speed controllers for each wheel. */
 static SpeedPID left_pid;
 static SpeedPID right_pid;
 
@@ -36,10 +46,13 @@ static float turn_target_cm = 0.0f;
 static float turn_left_start = 0.0f;
 static float turn_right_start = 0.0f;
 
-/* Initialise both PID controllers */
+
+/* Initialisation and speed commands */
+
+/* Initialise controllers and action flags. */
 void motion_pidInit(void)
 {
-    /* Preliminary gains from your PID tests */
+    /* Preliminary gains from recorded PID tests */
     speed_pid_init(&left_pid, 2.0f, 1.0f, 0.01f, 30.0f);
     speed_pid_init(&right_pid, 2.0f, 1.0f, 0.01f, 30.0f);
 
@@ -74,7 +87,28 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
     motion_complete = 0;
 }
 
-/* Run one PID control iteration */
+/* Change speed without cancelling an active distance target. */
+void motion_pidChangeSpeed(float speed_cm_s)
+{
+    if (speed_cm_s <= 0.0f) {
+        motion_pidStop();
+        return;
+    }
+
+    if (turn_mode) {
+        return;
+    }
+
+    if (distance_mode) {
+        target_speed = speed_cm_s;
+    } else {
+        motion_pidSetTargetSpeed(speed_cm_s);
+    }
+}
+
+/* Periodic control update */
+
+/* Handle turning first, then forward distance/speed control. */
 void motion_pidUpdate(float dt_seconds)
 {
     if (turn_mode) {
@@ -172,7 +206,10 @@ void motion_pidUpdate(float dt_seconds)
     motion_setWheelPWM((int)left_pwm, (int)right_pwm);
 }
 
-/* Stop PID-controlled movement */
+
+/* Stop and distance commands */
+
+/* Disable the active action and stop both motors. */
 void motion_pidStop(void)
 {
     pid_active = 0;
@@ -201,11 +238,14 @@ void motion_pidMoveDistance(float distance_cm, float speed_cm_s)
     motion_complete = 0;
 }
 
-/* Check whether the requested distance was reached */
+/* Return the completion flag for the last distance or turn action. */
 int motion_pidIsComplete(void)
 {
     return motion_complete;
 }
+
+
+/* Encoder-based turning */
 
 static void motion_pidStartTurn(float angle_degrees, int direction)
 {

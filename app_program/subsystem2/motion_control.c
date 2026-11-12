@@ -4,10 +4,6 @@
 
 #include "motion_control.h"
 
-/* --------------------------------
- * 1. Motor GPIO Configuration
- * -------------------------------- */
-
 /* Cytron Robo Pico motor pins */
 #define M1A 8
 #define M1B 9
@@ -18,9 +14,7 @@
 #define PWM_DIV_REG(slice) \
     (*(volatile unsigned int *)(0x40050004u + (slice) * 0x14u))
 
-/* --------------------------------
- * 2. Motor PWM Initialisation
- * -------------------------------- */
+/* Motor PWM Initialisation */
 void motion_init(void)
 {
     const UINT pins[] = {M1A, M1B, M2A, M2B};
@@ -32,11 +26,10 @@ void motion_init(void)
     while ((in_w(RESETS_RESET_DONE) & RESETS_RESET_PWM) == 0u) {
     }
 
-    /* Set PWM clock divider to 125 */
+    /* Configure the clock divider for both motor PWM slices. */
     PWM_DIV_REG(4u) = 125u << 4;
     PWM_DIV_REG(5u) = 125u << 4;
 
-    /* Set motor pins for PWM output */
     for (int i = 0; i < 4; i++) {
         pwm_set_cc(pins[i], 0);
         pwm_set_wrap(pins[i], 999);
@@ -45,11 +38,9 @@ void motion_init(void)
     }
 }
 
-/* --------------------------------
- * 3. PWM Duty Cycle Control
- * -------------------------------- */
+/* Private motor helpers */
 
- /* Set PWM duty cycle (0-100%) */
+/* Set PWM duty cycle (0-100%) */
 static void motor_pwm(UINT pin, int speed)
 {
     if (speed < 0) speed = 0;
@@ -58,15 +49,7 @@ static void motor_pwm(UINT pin, int speed)
     pwm_set_cc(pin, (UW)speed * 10u);
 }
 
-/* --------------------------------
- * 4. Motor Control Functions
- * -------------------------------- */
-
-/* 
- * Left Motor (M1) 
- * Positive speed: Forward (M1B) 
- * Negative speed: Backward (M1A) 
-*/
+/* Left motor: positive drives M1B; negative drives M1A. */
 static void motor_leftm1(int speed)
 {
     if (speed > 100) {
@@ -86,11 +69,7 @@ static void motor_leftm1(int speed)
     }
 }
 
-/* 
- * Right Motor (M2) 
- * Positive speed: Forward (M2A) 
- * Negative speed: Backward (M2B) 
- */
+/* Right motor: positive drives M2A; negative drives M2B. */
 static void motor_rightm2(int speed)
 {
     if (speed > 100) {
@@ -110,17 +89,14 @@ static void motor_rightm2(int speed)
     }
 }
 
-/* --------------------------------
- * 5. Public Motor Control APIs
- * -------------------------------- */
- 
- /* Set left and right wheel PWM independently. */
+/* Public movement commands */
+
+/* Set signed wheel PWM independently: -100 to +100. */
 void motion_setWheelPWM(int left_pwm, int right_pwm)
 {
     motor_leftm1(left_pwm);
     motor_rightm2(right_pwm);
 }
-
 
 /* Move both wheels forward */
 void motion_moveForward(int speed)

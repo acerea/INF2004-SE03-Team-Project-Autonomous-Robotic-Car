@@ -1,0 +1,33 @@
+INT-VC1 re-run after the VC refactor to switch(state) event dispatch, 2026-11-12
+Firmware: normal image (NET=lwip MQTT=1), vehicle.c as committed in the commit named in TEST_LOG.md
+PowerShell serial logger on COM5 (vc:, s1:, mqtt:, wifi: lines), laptop clock time in front.
+Commands typed in laptop_station.py: start, stop, start, estop, start, reset.
+The second start (in FAULT) prints nothing: ignored as designed.
+RESET prints no motion line: motors already stopped, VC sends only changes.
+Note: one earlier boot after flashing hung in cyw43 bring-up; a 10 s full power-cycle fixed it
+(the old and new VC both joined Wi-Fi normally after power-cycling).
+
+11:54:14  vc: motion cmd=0 arg=0 (stub)
+11:54:14  vc: started, state IDLE
+11:54:14  wifi: cyw43_utk_task starting (proc 1)
+11:54:14  wifi: cyw43_init() ...
+11:54:14  wifi: cyw43_init() returned, bringing interface up ...
+11:54:14  s1: 110 ms link OFFLINE -> INIT
+11:54:14  wifi: joining "homeschool" ...
+11:54:15  wifi: link status -> joined AP, waiting for IP (1)
+11:54:15  s1: 1610 ms link INIT -> WIFI_CONNECTING
+11:54:18  wifi: link status -> joined AP, no IP yet (2)
+11:54:20  wifi: link up, ip=192.168.137.112
+11:54:20  s1: 7110 ms link WIFI_CONNECTING -> MQTT_CONNECTING
+11:54:21  mqtt: connected to 192.168.137.1
+11:54:21  mqtt: subscribed to picocar-01/cmd
+11:54:21  s1: 7610 ms link MQTT_CONNECTING -> CONNECTED
+11:54:28  vc: state IDLE -> FOLLOWING
+11:54:28  vc: motion cmd=1 arg=20 (stub)
+11:54:30  vc: motion cmd=0 arg=0 (stub)
+11:54:30  vc: state FOLLOWING -> STOPPED
+11:54:33  vc: state STOPPED -> FOLLOWING
+11:54:33  vc: motion cmd=1 arg=20 (stub)
+11:54:36  vc: motion cmd=0 arg=0 (stub)
+11:54:36  vc: state FOLLOWING -> FAULT
+11:54:45  vc: state FAULT -> IDLE
