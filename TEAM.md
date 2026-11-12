@@ -20,7 +20,7 @@ subsystem, ask its owner or open a pull request for them to review.
 | 1 | *example:* LED heartbeat on GP19 | | | `app_program/subsystem1/` | `testing/subsystem1/` |
 | 2 | *Motion Control:* motor PWM, wheel encoders, PID speed control, straight-line correction, distance movement and turning | 2503272 | yjmockkk | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | *example:* Consumer: collects samples into statistics | | | `app_program/subsystem3/` | `testing/subsystem3/` |
-| 4 | *example:* Monitor: prints reports, pauses the LED | | | `app_program/subsystem4/` | `testing/subsystem4/` |
+| 4 | **IMU and Motion Sensing:** reads and calibrates accelerometer data, detects vehicle motion and impact events, and publishes compact terrain telemetry | 2503813 | jx0-0 | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | | | | `app_program/subsystem5/` | `testing/subsystem5/` |
 
 Shared files (`app_program/app_main.c`, `app_program/app.h`, this file)
@@ -52,8 +52,8 @@ fixed.
 | GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
 | GP2 | S5 | Ultrasonic Trigger (TRIG_PIN) |
 | GP3 | S5 | Ultrasonic Echo (ECHO_PIN) |
-| GP4 | S5 | |
-| GP5 | | |
+| GP4 | S4 | IMU I2C SDA (TBD – confirm configured pin) |
+| GP5 | S4 | IMU I2C SCL (TBD – confirm configured pin) |
 | GP6 | S2 | Right Wheel Encoder A (RIGHT_ENCODER_A) |
 | GP7 | S2 | Right Wheel Encoder B (RIGHT_ENCODER_B) |
 | GP8 | S2 | Left Motor PWM (M1A) |
@@ -106,7 +106,7 @@ the drivers have no locking to stop it.
 | Peripheral | Owner subsystem | Owning task | Pins |
 |---|---|---|---|
 | UART1 | | | |
-| I2C0 | | | |
+| I2C0 | S4 | `b4_imu_task` | [actual SDA/SCL pins] |
 | I2C1 | | | |
 | SPI0 | | | |
 | SPI1 | | | |
