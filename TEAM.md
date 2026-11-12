@@ -19,8 +19,8 @@ subsystem, ask its owner or open a pull request for them to review.
 |---|---|---|---|---|---|
 | 1 | *Comms:* Wi-Fi/MQTT link supervision, remote commands from the laptop, telemetry publishing | 2502049 | thryn | `app_program/subsystem1/` | `testing/subsystem1/` |
 | 2 | *Motion Control:* motor PWM, wheel encoders, PID speed control, straight-line correction, distance movement and turning | 2503272 | yjmockkk | `app_program/subsystem2/` | `testing/subsystem2/` |
-| 3 | *example:* Consumer: collects samples into statistics | | | `app_program/subsystem3/` | `testing/subsystem3/` |
-| 4 | **IMU and Motion Sensing:** reads and calibrates accelerometer data, detects vehicle motion and impact events, and publishes compact terrain telemetry | 2503813 | jx0-0 | `app_program/subsystem4/` | `testing/subsystem4/` |
+| 3 | *Line + barcode:* IR calibration, line position, line-loss and junction detection, Code 39 barcode decoding, navigation commands to the VC | <student ID> | ystd | `app_program/subsystem3/` | `testing/subsystem3/` |
+| 4 | **IMU and Motion Sensing:** reads and calibrates accelerometer data, classifies motion, detects when the robot is **lifted or overturned** (replaces collision detection, change of requirement wk 12), and publishes compact terrain telemetry | 2503813 | jx0-0 | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | | | | `app_program/subsystem5/` | `testing/subsystem5/` |
 | VC | *Vehicle Controller:* mission state machine | 2502049 | thryn | `app_program/vehicle/` | `testing/integration/` |
 
@@ -53,8 +53,8 @@ fixed.
 | GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
 | GP2 | S5 | Ultrasonic Trigger (TRIG_PIN) |
 | GP3 | S5 | Ultrasonic Echo (ECHO_PIN) |
-| GP4 | S4 | IMU I2C SDA (TBD – confirm configured pin) |
-| GP5 | S4 | IMU I2C SCL (TBD – confirm configured pin) |
+| GP4 | S4 | IMU I2C0 SDA (set in `device/i2c/sysdepend/rp2040`) |
+| GP5 | S4 | IMU I2C0 SCL |
 | GP6 | S2 | Right Wheel Encoder A (RIGHT_ENCODER_A) |
 | GP7 | S2 | Right Wheel Encoder B (RIGHT_ENCODER_B) |
 | GP8 | S2 | Left Motor PWM (M1A) |
@@ -72,9 +72,9 @@ fixed.
 | GP20 | | |
 | GP21 | | |
 | GP22 | | |
-| GP26 | (ADC0 capable) | S3 | Left IR Sensor |
-| GP27 | (ADC1 capable) | S3 | Centre IR Sensor |
-| GP28 | (ADC2 capable) | S3 | Right IR Sensor |
+| GP26 | S3 | Left IR sensor (ADC0) |
+| GP27 | S3 | Centre IR sensor (ADC1) |
+| GP28 | S3 | Right IR sensor (ADC2) |
 
 ## 3. Peripherals
 
@@ -107,12 +107,12 @@ the drivers have no locking to stop it.
 | Peripheral | Owner subsystem | Owning task | Pins |
 |---|---|---|---|
 | UART1 | | | |
-| I2C0 | S4 | `b4_imu_task` | [actual SDA/SCL pins] |
+| I2C0 | S4 | `b4_imu_task` | GP4 SDA, GP5 SCL |
 | I2C1 | | | |
 | SPI0 | | | |
 | SPI1 | | | |
-| ADC | | | GP26–GP28 |
-| PWM slices (list) | S5 | s5_scan_task | GP4 (PWM Slice 2, Channel A) |
+| ADC (`adca`) | S3 | `ir_sensor_task` | GP26–GP28 |
+| PWM slices (list) | S5 | s5_scan_task | GP15 (slice 7, channel B) |
 | PWM slices (list) | S2 | motion control task | GP8–GP11 (slices 4 and 5) |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in) | GP23–25, GP29 |
 
@@ -149,9 +149,9 @@ change it only by team agreement. Write down every task you create.
 | Subsystem | Priority band | Tasks (name – priority – core) |
 |---|---|---|
 | 1 | 22 | comms_task – 22 – core 0 |
-| 2 | 14–15 | *example:* producer_task – 14 – core 1 |
-| 3 | 16–17 | *example:* consumer_task – 16 – core 0 |
-| 4 | 18–19 | *example:* monitor_task – 18 – any |
+| 2 | 14–15 | motion_control_task – 15 – core 1 (producer not started) |
+| 3 | 16–17 | ir_sensor_task – 16 – core 0 (legacy consumer_task no longer started) |
+| 4 | 18–19 | monitor_task – 18 – any; b4_imu_task – 19 – any |
 | 5 | 20–21 | s5_scan_task – 20 – any |
 | VC | 10 | vc_task – 10 – core 1 |
 
@@ -177,6 +177,9 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-10 | all → S1 | message buffer (owned by S1) | `g_mbf_telemetry` | frame from `s1_publish()`, `wire_format.h` | S1 / all |
 | IF-11 | VC → S2 | message buffer (owned by S2) | `mbf_motion_req` | 2 bytes, `motion_packRequest()` | S2 / VC |
 | IF-12 | S2 → VC | event flag (owned by S2) | `flg_motion` | `S2_MOTION_DONE`, VC clears | S2 / VC |
+| IF-13 | S4 → VC | event flag, level bits (owned by S4) | `flg_s4_imu` | `S4_FLG_LIFTED`, `S4_FLG_OVERTURNED`, `S4_FLG_IMU_FAULT`; written only by `b4_imu_task`, VC reads with `tk_ref_flg`. VC stops the motors on LIFTED (→ STOPPED, end of run) or OVERTURNED (→ FAULT) and refuses START while either is set | S4 / VC |
+| IF-14 | S3 → any | function under a mutex (owned by S3) | `ir_get_telemetry()` | `ir_snapshot_t`: line position (11 bits), state, sensors, junction, lost timeout, last barcode | S3 / VC |
+| IF-15 | S3 → VC | message buffer (owned by S3) | `mbf_s3_nav` | 1 byte per barcode: letter (5 bits) + command (3 bits), `s3_nav_pack()`; VC reads with `TMO_POL` | S3 / VC |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
@@ -188,15 +191,15 @@ limit there. The numbers below are the example's usage.
 
 | Object | Limit | S1 | S2 | S3 | S4 | S5 |
 |---|---|---|---|---|---|---|
-| Task | 32 | 1 | 1 | 1 | 1 | 1 |
-| Semaphore | 16 | | 1 | | | |
-| Event flag | 16 | 2 | | | 1 | 1 |
+| Task | 32 | 1 | 1 | 1 | 2 | 1 |
+| Semaphore | 16 | | 2 | | | |
+| Event flag | 16 | 2 | 1 | | 2 | 1 |
 | Mailbox | 12 | | | 1 | | |
-| Mutex | 12 | | | 1 | | |
-| Message buffer | 12 | 3 | | | 1 | |
+| Mutex | 12 | | | 2 | | |
+| Message buffer | 12 | 3 | 1 | 1 | 1 | |
 | Fixed memory pool | 12 | | 1 | | | |
 | Variable memory pool | 12 | | | | | |
-| Cyclic handler | 12 | | | | | |
+| Cyclic handler | 12 | | 1 | | | |
 | Alarm handler | 12 | | | | 1 | |
 
 (The kernel's USB and WiFi service tasks also use a few of these.)

@@ -10,6 +10,7 @@
 EXPORT ID	mbf_summary;	/* IF-03 */
 EXPORT ID	flg_events;	/* IF-03 */
 EXPORT ID	alm_monitor;
+EXPORT ID	flg_s4_imu;	/* IF-13 */
 
 EXPORT ER subsystem4_init(void)
 {
@@ -24,6 +25,16 @@ EXPORT ER subsystem4_init(void)
 	flg_events = tk_cre_flg(&cflg);
 	if (flg_events < E_OK) {
 		return flg_events;
+	}
+
+	/* IF-13: lift / overturn / IMU fault levels for the VC.  Starts
+	   with IMU_FAULT set until the IMU task has found the sensor, so a
+	   missing IMU is visible.  TA_WMUL: any task may read it. */
+	cflg.flgatr  = TA_TFIFO | TA_WMUL;
+	cflg.iflgptn = S4_FLG_IMU_FAULT;
+	flg_s4_imu = tk_cre_flg(&cflg);
+	if (flg_s4_imu < E_OK) {
+		return flg_s4_imu;
 	}
 
 	/* Message buffer: COPIES variable-length data into a kernel ring

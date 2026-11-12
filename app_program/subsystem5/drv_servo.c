@@ -3,8 +3,8 @@
 #include <sys/machine.h>
 
 /* RP2040 PWM hardware register defines matching libbsp_pwm.c */
-#define PWM_BASE            0x40050000
-#define PWM_CHx_DIV         0x04
+// #define PWM_BASE            0x40050000
+// #define PWM_CHx_DIV         0x04
 #define PWM_CH_DIV(n)       (PWM_BASE + PWM_CHx_DIV + ((n) * 0x14))
 #define PWM_GET_CHNO(pin)   (((pin) >> 1) & 0x07)
 

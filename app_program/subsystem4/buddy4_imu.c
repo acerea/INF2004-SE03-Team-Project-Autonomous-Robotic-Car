@@ -11,12 +11,18 @@
  * Z = upwards
  *
  * Sampling interval: approximately 10 ms.
- * Classification is currently for standalone testing.
+ *
+ * Change of requirement (week 12): collision detection removed. Each
+ * sample now also runs the lift / overturn detector (buddy4_handling.h)
+ * and mirrors the result into flg_s4_imu (IF-13) at once, so the Vehicle
+ * Controller can stop the motors within one VC tick.
  */
 
 #include "buddy4_imu_processing.h"
 #include "buddy4_imu.h"
 #include "buddy4_classifier.h"
+#include "buddy4_handling.h"
+#include "subsystem4.h"
 
 #include <tk/device.h>
 #include "../../device/include/dev_i2c.h"
@@ -56,6 +62,7 @@
 #define B4_GRAVITY_MG 1000
 
 LOCAL ID b4_i2c_device = -1;
+LOCAL UINT b4_flag_bits = S4_FLG_IMU_FAULT;   /* Mirror of flg_s4_imu. */
 LOCAL UW b4_accel_address = B4_IMU_ACCEL_ADDR_DEFAULT;
 
 /* --------------------------------------------------------- */
@@ -362,34 +369,6 @@ LOCAL int16_t b4_limit_i16(int32_t value)
     return (int16_t)value;
 }
 /*
- * Calculate the largest acceleration change across
- * the three axes between consecutive samples.
- */
-LOCAL int16_t b4_calculate_max_axis_delta(
-    const B4_ACCEL_MG *current,
-    const B4_ACCEL_MG *previous)
-{
-    int32_t dx;
-    int32_t dy;
-    int32_t dz;
-    int32_t maximum;
-
-    dx = b4_abs_difference(current->x_mg, previous->x_mg);
-    dy = b4_abs_difference(current->y_mg, previous->y_mg);
-    dz = b4_abs_difference(current->z_mg, previous->z_mg);
-
-    maximum = dx;
-
-    if (dy > maximum)
-        maximum = dy;
-
-    if (dz > maximum)
-        maximum = dz;
-
-    return b4_limit_i16(maximum);
-}
-
-/*
  * Calculate acceleration activity using changes between
  * consecutive calibrated samples.
  *
@@ -443,6 +422,42 @@ LOCAL int16_t b4_calculate_vertical_delta(
 }
 
 /* --------------------------------------------------------- */
+/* IF-13: lift / overturn / fault levels for the VC           */
+/* --------------------------------------------------------- */
+
+/*
+ * Make flg_s4_imu equal to the given bits. Only this task writes the
+ * flag, and only bits that changed are touched, so the VC (which reads
+ * with tk_ref_flg) never sees a stale or half-written pattern.
+ */
+LOCAL void b4_set_flag_bits(UINT bits)
+{
+    UINT set_bits = bits & ~b4_flag_bits;
+    UINT clr_bits = b4_flag_bits & ~bits;
+
+    if (set_bits != 0u)
+    {
+        (void)tk_set_flg(flg_s4_imu, set_bits);
+    }
+
+    if (clr_bits != 0u)
+    {
+        /* tk_clr_flg keeps the bits that are 1 in its pattern. */
+        (void)tk_clr_flg(flg_s4_imu, ~clr_bits);
+    }
+
+    if ((set_bits | clr_bits) != 0u)
+    {
+        tm_printf((UB *)"[B4-IMU] lifted=%u overturned=%u fault=%u\n",
+                  (bits & S4_FLG_LIFTED) ? 1u : 0u,
+                  (bits & S4_FLG_OVERTURNED) ? 1u : 0u,
+                  (bits & S4_FLG_IMU_FAULT) ? 1u : 0u);
+    }
+
+    b4_flag_bits = bits;
+}
+
+/* --------------------------------------------------------- */
 /* MQTT terrain telemetry                                    */
 /* --------------------------------------------------------- */
 
@@ -460,8 +475,8 @@ LOCAL void b4_publish_terrain(B4_EVENT event)
               PROTO_TER_STATE_BITS);
 
     proto_put(&bits,
-              b4_event_has_collision(event),
-              PROTO_TER_COLLIDE_BITS);
+              b4_event_is_overturned(event),
+              PROTO_TER_FLIP_BITS);
 
     proto_put(&bits,
               b4_event_has_imu_fault(event),
@@ -491,13 +506,13 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     B4_EVENT previous_event = 0u;
     uint16_t terrain_publish_counter = 0u;
     uint8_t terrain_first_publish = 1u;
-    int16_t impact_delta_mg = 0;
+    B4_HANDLING handling;
+    UINT flag_bits;
 
     ER er;
 
     int32_t filtered_activity = 0;
     uint16_t print_counter = 0u;
-    int16_t peak_impact_delta = 0;
 
     uint8_t previous_valid = 0u;
 
@@ -568,6 +583,10 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
         (UB *)"[B4-IMU] Sampling every %u ms\n",
         B4_IMU_SAMPLE_MS);
 
+    /* Sensor found: clear IMU_FAULT, start the handling detector. */
+    b4_handling_init(&handling);
+    b4_set_flag_bits(0u);
+
     /*
      * Main sensor sampling and classification loop.
      */
@@ -587,7 +606,6 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * Step 3: Prepare motion classifier input.
              */
             motion_input.imu_fault = 0u;
-            motion_input.impact_delta_mg = 0;
             /* Pass calibrated acceleration readings to classifier. */
             motion_input.accel_x_mg = calibrated_mg.x_mg;
             motion_input.accel_y_mg = calibrated_mg.y_mg;
@@ -609,7 +627,6 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                 previous_valid = 1u;
 
                 motion_input.motion_level_mg = 0;
-                impact_delta_mg = 0;
             }
             else
             {
@@ -620,19 +637,6 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                         &previous_mg,
                         &filtered_activity);
 
-                /*
-                 * Calculate the largest acceleration change
-                 * across X, Y and Z.
-                 */
-                impact_delta_mg =
-                    b4_calculate_max_axis_delta(
-                        &calibrated_mg,
-                        &previous_mg);
-                if (impact_delta_mg > peak_impact_delta)
-                {
-                    peak_impact_delta = impact_delta_mg;
-                }
-
                 /* Save the current sample for the next iteration. */
                 previous_mg = calibrated_mg;
             }
@@ -640,12 +644,34 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * Calculate vertical acceleration deviation.
              * Positive Z is upwards.
              */
-            motion_input.impact_delta_mg = impact_delta_mg;
             motion_input.vertical_delta_mg =
                 b4_calculate_vertical_delta(&calibrated_mg);
 
             /*
-             * Step 4: Classify the processed sensor readings.
+             * Step 4: Lift / overturn detection (replaces collision
+             * detection). Tell the VC at once, before anything else.
+             */
+            b4_handling_update(&handling,
+                               calibrated_mg.x_mg,
+                               calibrated_mg.y_mg,
+                               calibrated_mg.z_mg);
+
+            motion_input.lifted = handling.b_lifted;
+            motion_input.overturned = handling.b_overturned;
+
+            flag_bits = 0u;
+            if (handling.b_lifted != 0u)
+            {
+                flag_bits |= S4_FLG_LIFTED;
+            }
+            if (handling.b_overturned != 0u)
+            {
+                flag_bits |= S4_FLG_OVERTURNED;
+            }
+            b4_set_flag_bits(flag_bits);
+
+            /*
+             * Step 5: Classify the processed sensor readings.
              */
             event = b4_classify_motion(motion_input);
         }
@@ -657,15 +683,23 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * invalid sensor data.
              */
             motion_input.motion_level_mg = 0;
-            motion_input.impact_delta_mg = 0;
             motion_input.vertical_delta_mg = 0;
             motion_input.accel_x_mg = 0;
             motion_input.accel_y_mg = 0;
             motion_input.accel_z_mg = 0;
             motion_input.yaw_rate_mdps = 0;
             motion_input.imu_fault = 1u;
-            impact_delta_mg = 0;
-            peak_impact_delta = 0;
+            motion_input.lifted = 0u;
+            motion_input.overturned = 0u;
+
+            /*
+             * Keep any LIFTED / OVERTURNED latch (the VC has already
+             * stopped), forget the integrator, and report the fault.
+             */
+            b4_handling_reset_integrator(&handling);
+            b4_set_flag_bits((b4_flag_bits & (S4_FLG_LIFTED |
+                                              S4_FLG_OVERTURNED)) |
+                             S4_FLG_IMU_FAULT);
 
             event = b4_classify_motion(motion_input);
 
@@ -697,7 +731,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
         }
 
         /*
-         * Step 5: Limit serial output.
+         * Step 7: Limit serial output.
          * Sensor sampling and classification continue every loop.
          */
         print_counter++;
@@ -712,16 +746,17 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                     (UB *)"[B4-IMU] "
                           "CAL X=%d Y=%d Z=%d mg | "
                           "Motion=%d mg | "
-                          "Impact delta=%d mg | "
-                          "Peak impact delta=%d mg | "
+                          "Lift acc=%d | "
+                          "Lifted=%u Overturned=%u | "
                           "Vertical delta=%d mg | "
                           "Event=0x%02x | State=%u\n",
                     calibrated_mg.x_mg,
                     calibrated_mg.y_mg,
                     calibrated_mg.z_mg,
                     motion_input.motion_level_mg,
-                    impact_delta_mg,
-                    peak_impact_delta,
+                    (INT)handling.lift_acc,
+                    (UINT)handling.b_lifted,
+                    (UINT)handling.b_overturned,
                     motion_input.vertical_delta_mg,
                     (UB)event,
                     (UB)b4_event_state(event));
@@ -736,7 +771,6 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                     (UB)b4_event_state(event));
             }
         }
-        peak_impact_delta = 0;
 
         /* Wait before taking the next sample. */
         tk_dly_tsk(B4_IMU_SAMPLE_MS);

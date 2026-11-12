@@ -18,28 +18,32 @@
 #define B4_STATE_TURNING       3u
 #define B4_STATE_CLIMBING      4u
 #define B4_STATE_DESCENDING    5u
-#define B4_STATE_IMPACT        6u
+#define B4_STATE_LIFTED        6u   /* Robot picked up: end of run. */
 #define B4_STATE_FAULT         7u
 
 /*
  * Packed event byte:
  *
  * Bits 0-2: motion state
- * Bit  3:   collision detected
+ * Bit  3:   robot overturned (tilted past B4_FLIP_Z_MG)
  * Bit  4:   IMU fault detected
+ *
+ * Collision detection was removed (change of requirement, week 12):
+ * the IMU now reports when the robot is lifted or overturned, and the
+ * Vehicle Controller stops the motors on either condition.
  * Bits 5-7: reserved for future use
  */
 typedef uint8_t B4_EVENT;
 
 #define B4_STATE_MASK          0x07u
-#define B4_COLLISION_MASK      0x08u
+#define B4_OVERTURNED_MASK     0x08u
 #define B4_IMU_FAULT_MASK      0x10u
 #define B4_RESERVED_MASK       0xE0u
 
 /* Pack the state and flags into one byte. */
 static inline B4_EVENT b4_pack_event(
     uint8_t state,
-    uint8_t collision,
+    uint8_t overturned,
     uint8_t imu_fault)
 {
     B4_EVENT event = 0u;
@@ -51,8 +55,8 @@ static inline B4_EVENT b4_pack_event(
 
     event |= (B4_EVENT)(state & B4_STATE_MASK);
 
-    if (collision != 0u) {
-        event |= B4_COLLISION_MASK;
+    if (overturned != 0u) {
+        event |= B4_OVERTURNED_MASK;
     }
 
     if (imu_fault != 0u) {
@@ -68,10 +72,10 @@ static inline uint8_t b4_event_state(B4_EVENT event)
     return (uint8_t)(event & B4_STATE_MASK);
 }
 
-/* Check whether the collision flag is set. */
-static inline uint8_t b4_event_has_collision(B4_EVENT event)
+/* Check whether the overturned flag is set. */
+static inline uint8_t b4_event_is_overturned(B4_EVENT event)
 {
-    return (uint8_t)((event & B4_COLLISION_MASK) != 0u);
+    return (uint8_t)((event & B4_OVERTURNED_MASK) != 0u);
 }
 
 /* Check whether the IMU fault flag is set. */
