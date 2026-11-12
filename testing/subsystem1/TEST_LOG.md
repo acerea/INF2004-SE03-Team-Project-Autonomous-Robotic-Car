@@ -140,3 +140,14 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-11 | S1-U10 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
 | 2026-11-11 | S1-U11 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
 | 2026-11-11 | S1-M14 | `9c151da` | Kathryn | PASS | `logs/2026-11-11_barcode_simulated.png` | Simulated input (fake_car_barcode.py), not the real car: all 5 frames decoded correctly. Real end-to-end test needs subsystem 3 and the printed samples |
+| 2026-11-11 | S1-U01 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` | Test build after merging subsystem 4 and 5 telemetry (clean rebuild; an earlier stale test image had S1-U08 compiled out). Subsystem 3 restored to the template locally (uncommitted) |
+| 2026-11-11 | S1-U02 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U03 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U04 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U05 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U06 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U07 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U08 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U09 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U10 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U11 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |

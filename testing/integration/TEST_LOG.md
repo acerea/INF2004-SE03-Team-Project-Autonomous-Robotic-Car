@@ -26,4 +26,5 @@ Add a new row for every run. Never edit or delete old rows.
 |---|---|---|---|---|---|---|
 | YYYY-MM-DD | INT-01 | `abc1234` | | PASS / FAIL | `logs/YYYY-MM-DD_….txt` | |
 | 2026-11-11 | INT-VC1 | `cb98e5e` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_vc_stage1.txt` | All transitions as expected; motion requests printed (stub) until subsystem 2 provides its request buffer |
+| 2026-11-12 | INT-VC1 | `b2d2262` + local S3 workaround | Kathryn | PASS | `logs/2026-11-12_vc_switch.txt` | Re-run after refactor to switch(state) event dispatch: same transitions; START ignored in FAULT |
 | 2026-11-11 | INT-VC2 | `9710c67` + local S3 workaround | Kathryn | PASS | `../subsystem1/logs/2026-11-11_mqtt_explorer.png` | STATE about 1 s apart after the clock-based fix; IDLE -> FOLLOWING -> STOPPED visible in History |

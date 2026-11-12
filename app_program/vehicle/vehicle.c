@@ -6,7 +6,20 @@
  * Stage 1: START / STOP / ESTOP / RESET from the laptop, and obstacle
  * slow-down and stop from subsystem 5. Turning (S3) and bypassing (S5)
  * are added in later stages. The VC polls its inputs every VC_TICK_MS,
- * because a task can wait on only one kernel object at a time.
+ * because a task can wait on only one kernel object at a time, turns them
+ * into events and handles each event in vc_dispatch() (switch on state).
+ *
+ * State table (ESTOP and STOP are accepted in every state):
+ *   any        ESTOP              -> FAULT      motors stop
+ *   not FAULT  STOP               -> STOPPED    motors stop
+ *   IDLE       START              -> FOLLOWING  speed by obstacle level
+ *   FOLLOWING  OBS_EMERGENCY      -> BLOCKED    motors stop
+ *   FOLLOWING  OBS_SLOW / CLEAR   -> FOLLOWING  speed 10 / 20 cm/s
+ *   BLOCKED    OBS_SLOW / CLEAR   -> FOLLOWING  speed 10 cm/s
+ *   STOPPED    START              -> FOLLOWING  speed by obstacle level
+ *   STOPPED    RESET              -> IDLE       motors stop
+ *   FAULT      RESET              -> IDLE       motors stop
+ *   Any other state/event pair is ignored (e.g. START in FAULT).
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -25,6 +38,17 @@
 #define VC_OBS_SLOW         (1u)
 #define VC_OBS_EMERGENCY    (2u)
 
+// Events: every input is turned into one of these and passed to
+// vc_dispatch(), the only place where the mission state changes.
+typedef uint8_t vc_event_t;
+#define VC_EV_START         (0u)    // Remote START.
+#define VC_EV_STOP          (1u)    // Remote STOP (flag from comms).
+#define VC_EV_ESTOP         (2u)    // Remote ESTOP (flag from comms).
+#define VC_EV_RESET         (3u)    // Remote RESET.
+#define VC_EV_OBS_CLEAR     (4u)    // Obstacle level from S5, every tick.
+#define VC_EV_OBS_SLOW      (5u)
+#define VC_EV_OBS_EMERGENCY (6u)
+
 #define VC_STATE_MS         (1000u)               // STATE frame every 1 s.
 #define VC_SPEED_MAX        (63u)                 // Largest speed field value.
 
@@ -33,12 +57,13 @@ static uint32_t g_vc_speed    = 0u;             // Last speed sent, cm/s.
 static uint32_t g_vc_obstacle = VC_OBS_CLEAR;   // Last obstacle level read.
 
 static void       vc_task(INT stacd, void * exinf);
+static void       vc_poll_remote(void);
+static void       vc_dispatch(vc_event_t ev);
+static void       vc_enter_following(void);
+static vc_event_t vc_obstacle_event(uint32_t level);
 static void       vc_motion(uint32_t cmd, uint32_t arg);
 static void       vc_set_state(vc_state_t next);
 static uint32_t   vc_obstacle_level(void);
-static void       vc_handle_command(uint8_t packed);
-static void       vc_handle_remote(void);
-static void       vc_handle_obstacle(void);
 static char const * vc_state_name(vc_state_t state);
 static void       vc_publish_state(void);
 
@@ -78,8 +103,10 @@ vc_task (INT stacd, void * exinf)
 
     for (;;)
     {
-        vc_handle_remote();     // Safety commands first.
-        vc_handle_obstacle();
+        vc_poll_remote();       // Safety commands first.
+
+        g_vc_obstacle = vc_obstacle_level();
+        vc_dispatch(vc_obstacle_event(g_vc_obstacle));
 
         // Telemetry: the dashboard sees the state at least once a second.
         // Timed by the clock: a 10 ms delay can take up to 20 ms here.
@@ -95,7 +122,7 @@ vc_task (INT stacd, void * exinf)
 }
 
 static void
-vc_handle_remote (void)
+vc_poll_remote (void)
 {
     UINT ptn = 0u;
     ER   err = tk_wai_flg(g_flg_remote, VC_REMOTE_EVENTS,
@@ -105,16 +132,11 @@ vc_handle_remote (void)
     {
         if (0u != (ptn & S1_FLG_ESTOP))
         {
-            vc_motion(VC_MOTION_STOP, 0u);
-            vc_set_state(VC_STATE_FAULT);
+            vc_dispatch(VC_EV_ESTOP);
         }
         else if (0u != (ptn & S1_FLG_STOP))
         {
-            vc_motion(VC_MOTION_STOP, 0u);
-            if (VC_STATE_FAULT != g_vc_state)
-            {
-                vc_set_state(VC_STATE_STOPPED);
-            }
+            vc_dispatch(VC_EV_STOP);
         }
         else
         {
@@ -132,7 +154,21 @@ vc_handle_remote (void)
                 size = tk_rcv_mbf(g_mbf_remote_cmd, &packed, TMO_POL);
                 if (size > 0)
                 {
-                    vc_handle_command(packed);
+                    uint32_t cmd = s1_cmd_of(packed);
+
+                    // STOP and ESTOP already arrived through their flags.
+                    if (S1_CMD_START == cmd)
+                    {
+                        vc_dispatch(VC_EV_START);
+                    }
+                    else if (S1_CMD_RESET == cmd)
+                    {
+                        vc_dispatch(VC_EV_RESET);
+                    }
+                    else
+                    {
+                        // STOP, ESTOP (flags) and MODE (not used yet).
+                    }
                 }
             } while (size > 0);
         }
@@ -142,31 +178,90 @@ vc_handle_remote (void)
 }
 
 static void
-vc_handle_command (uint8_t packed)
+vc_dispatch (vc_event_t ev)
 {
-    uint32_t cmd = s1_cmd_of(packed);
-
-    switch (cmd)
+    // Safety events are accepted in every state.
+    if (VC_EV_ESTOP == ev)
     {
-      case S1_CMD_START:
-        if ((VC_STATE_IDLE == g_vc_state) || (VC_STATE_STOPPED == g_vc_state))
+        vc_motion(VC_MOTION_STOP, 0u);
+        vc_set_state(VC_STATE_FAULT);
+        return;
+    }
+
+    if (VC_EV_STOP == ev)
+    {
+        vc_motion(VC_MOTION_STOP, 0u);
+        if (VC_STATE_FAULT != g_vc_state)
         {
-            vc_set_state(VC_STATE_FOLLOWING);
-            vc_handle_obstacle();               // Sets the speed.
+            vc_set_state(VC_STATE_STOPPED);
+        }
+        return;
+    }
+
+    // Every other event: only the current state's case runs.
+    switch (g_vc_state)
+    {
+      case VC_STATE_IDLE:
+        if (VC_EV_START == ev)
+        {
+            vc_enter_following();
         }
       break;
 
-      case S1_CMD_RESET:
-        if ((VC_STATE_FAULT == g_vc_state) || (VC_STATE_STOPPED == g_vc_state))
+      case VC_STATE_FOLLOWING:
+        if (VC_EV_OBS_EMERGENCY == ev)
+        {
+            vc_motion(VC_MOTION_STOP, 0u);
+            vc_set_state(VC_STATE_BLOCKED);
+        }
+        else if (VC_EV_OBS_SLOW == ev)
+        {
+            vc_motion(VC_MOTION_SPEED, VC_SLOW_CM_S);
+        }
+        else if (VC_EV_OBS_CLEAR == ev)
+        {
+            vc_motion(VC_MOTION_SPEED, VC_CRUISE_CM_S);
+        }
+        else
+        {
+            // START and RESET are ignored while driving.
+        }
+      break;
+
+      case VC_STATE_BLOCKED:
+        if ((VC_EV_OBS_SLOW == ev) || (VC_EV_OBS_CLEAR == ev))
+        {
+            vc_set_state(VC_STATE_FOLLOWING);
+            vc_motion(VC_MOTION_SPEED, VC_SLOW_CM_S);
+        }
+      break;
+
+      case VC_STATE_STOPPED:
+        if (VC_EV_START == ev)
+        {
+            vc_enter_following();
+        }
+        else if (VC_EV_RESET == ev)
+        {
+            vc_motion(VC_MOTION_STOP, 0u);
+            vc_set_state(VC_STATE_IDLE);
+        }
+        else
+        {
+            // Obstacle levels do not change a stopped car.
+        }
+      break;
+
+      case VC_STATE_FAULT:
+        if (VC_EV_RESET == ev)
         {
             vc_motion(VC_MOTION_STOP, 0u);
             vc_set_state(VC_STATE_IDLE);
         }
       break;
 
-      case S1_CMD_STOP:     // Already handled through the STOP flag.
-      case S1_CMD_ESTOP:    // Already handled through the ESTOP flag.
-      case S1_CMD_MODE:     // Not used yet.
+      case VC_STATE_TURNING:        // Reserved for stage 2.
+      case VC_STATE_BYPASSING:      // Reserved for stage 3.
       default:
       break;
     }
@@ -175,39 +270,36 @@ vc_handle_command (uint8_t packed)
 }
 
 static void
-vc_handle_obstacle (void)
+vc_enter_following (void)
 {
-    uint32_t level = vc_obstacle_level();
+    vc_set_state(VC_STATE_FOLLOWING);
 
-    g_vc_obstacle = level;
+    // Set the speed (or stop) for the obstacle level right now.
+    g_vc_obstacle = vc_obstacle_level();
+    vc_dispatch(vc_obstacle_event(g_vc_obstacle));
 
-    if (VC_STATE_FOLLOWING == g_vc_state)
+    return;
+}
+
+static vc_event_t
+vc_obstacle_event (uint32_t level)
+{
+    vc_event_t ev = VC_EV_OBS_CLEAR;
+
+    if (VC_OBS_EMERGENCY == level)
     {
-        if (VC_OBS_EMERGENCY == level)
-        {
-            vc_motion(VC_MOTION_STOP, 0u);
-            vc_set_state(VC_STATE_BLOCKED);
-        }
-        else
-        {
-            vc_motion(VC_MOTION_SPEED, (VC_OBS_SLOW == level)
-                                       ? VC_SLOW_CM_S : VC_CRUISE_CM_S);
-        }
+        ev = VC_EV_OBS_EMERGENCY;
     }
-    else if (VC_STATE_BLOCKED == g_vc_state)
+    else if (VC_OBS_SLOW == level)
     {
-        if (VC_OBS_EMERGENCY != level)
-        {
-            vc_set_state(VC_STATE_FOLLOWING);
-            vc_motion(VC_MOTION_SPEED, VC_SLOW_CM_S);
-        }
+        ev = VC_EV_OBS_SLOW;
     }
     else
     {
-        // Not driving: obstacles do not change the state.
+        // Clear.
     }
 
-    return;
+    return (ev);
 }
 
 static uint32_t
