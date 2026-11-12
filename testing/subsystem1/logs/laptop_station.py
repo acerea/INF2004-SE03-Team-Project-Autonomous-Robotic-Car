@@ -14,6 +14,7 @@ Install once:  pip install paho-mqtt
 Run:           python laptop_station.py
 """
 import json
+import os
 import time
 import paho.mqtt.client as mqtt
 
@@ -163,7 +164,15 @@ client.on_message = on_message
 client.connect(BROKER, 1883, 60)
 client.loop_start()
 
-cmd_seq = 0
+# Continue the command sequence across restarts: the car rejects numbers it
+# has already seen (replay protection), so starting again at 0 would make it
+# ignore START until RESET. Kept outside the repo.
+SEQ_FILE = os.path.join(os.path.expanduser("~"), ".picocar_cmd_seq")
+try:
+    with open(SEQ_FILE) as fh:
+        cmd_seq = (int(fh.read().strip()) + 1) & 0xFF
+except (OSError, ValueError):
+    cmd_seq = 0
 try:
     while True:
         line = input().strip().lower().split()
@@ -176,6 +185,11 @@ try:
         frame = encode_cmd(cmd_seq, CMDS[line[0]], arg & 0xF)
         client.publish(f"{CAR}/cmd", frame, qos=1)
         print(f"[station] sent {line[0]} seq={cmd_seq} bytes={frame.hex()}")
+        try:
+            with open(SEQ_FILE, "w") as fh:
+                fh.write(str(cmd_seq))
+        except OSError:
+            pass
         cmd_seq = (cmd_seq + 1) & 0xFF
 except KeyboardInterrupt:
     pass
