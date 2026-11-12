@@ -90,7 +90,7 @@ def decode_fields(f):
     if typ == 5 and len(f) >= 4:
         valid = get_bits(f, 19, 1)
         d.update(motion=B4_STATES[get_bits(f, 14, 3)],
-                 collision=get_bits(f, 17, 1), imu_fault=get_bits(f, 18, 1))
+                 lifted=get_bits(f, 17, 1), imu_fault=get_bits(f, 18, 1))
         if valid:
             d.update(hump_mm=get_bits(f, 20, 8), hump_count=get_bits(f, 28, 4))
         else:

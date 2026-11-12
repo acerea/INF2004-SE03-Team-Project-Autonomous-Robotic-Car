@@ -63,7 +63,8 @@ typedef uint8_t proto_type_t;
 
 // Terrain (type 5, subsystem 4): 18 bits. Send on change and every 1 s.
 #define PROTO_TER_STATE_BITS    (3u)    // 0-7, B4_STATE_xxx.
-#define PROTO_TER_COLLIDE_BITS  (1u)    // 1 = collision detected.
+#define PROTO_TER_LIFTED_BITS   (1u)    // 1 = car lifted or overturned.
+#define PROTO_TER_COLLIDE_BITS  PROTO_TER_LIFTED_BITS   // Old name, until S4 switches.
 #define PROTO_TER_FAULT_BITS    (1u)    // 1 = IMU fault.
 #define PROTO_TER_HUMP_OK_BITS  (1u)    // 0 = hump not measured yet.
 #define PROTO_TER_HUMP_MM_BITS  (8u)    // Peak hump height, 0-255 mm.
