@@ -53,6 +53,7 @@
   <section class="card" id="cLink"><h2>Link</h2><p class="big" id="link">—</p><div class="sub" id="linkSub">no heartbeat yet</div></section>
   <section class="card" id="cState"><h2>Vehicle state</h2><p class="big" id="state">—</p><div class="sub" id="stateSub"></div></section>
   <section class="card" id="cSpeed"><h2>Speed</h2><p class="big" id="speed">—</p><div class="sub">cm/s requested</div></section>
+  <section class="card" id="cMo"><h2>Wheels (measured)</h2><p class="big" id="mo">—</p><div class="sub" id="moSub">left / right cm/s</div></section>
   <section class="card" id="cObs"><h2>Obstacle</h2><p class="big" id="obs">—</p><div class="sub" id="obsSub"></div></section>
   <section class="card" id="cBc"><h2>Last barcode</h2><p class="big" id="bc">—</p><div class="sub" id="bcSub"></div></section>
   <section class="card" id="cTer"><h2>Lifted / terrain</h2><p class="big" id="ter">—</p><div class="sub" id="terSub"></div></section>
@@ -66,21 +67,24 @@
 
   var lastHb = 0, lastLink = "", lastState = "", lastLetterSeq = -1;
   var obsState = "", obsProfile = "";
+  var lastUptime = -1;   // car uptime (s) from the latest heartbeat
 
   function $(id) { return document.getElementById(id); }
   function setCard(id, level) {
     var c = $(id); c.classList.remove("ok", "warn", "bad");
     if (level) { c.classList.add(level); }
   }
-  function log(text) {
+  function upText() { return lastUptime >= 0 ? " (uptime " + lastUptime + " s)" : ""; }
+  function log(text, level) {
     var ul = $("log");
     if (ul.dataset.started !== "1") { ul.innerHTML = ""; ul.dataset.started = "1"; }
     var li = document.createElement("li");
     var t = document.createElement("time");
     t.textContent = new Date().toLocaleTimeString();
     li.appendChild(t); li.appendChild(document.createTextNode(text));
+    if (level === "bad") { li.style.color = "var(--bad)"; li.style.fontWeight = "600"; }
     ul.insertBefore(li, ul.firstChild);
-    while (ul.children.length > 12) { ul.removeChild(ul.lastChild); }
+    while (ul.children.length > 30) { ul.removeChild(ul.lastChild); }
   }
 
   var STATE_LEVEL = { FOLLOWING: "ok", TURNING: "ok", BYPASSING: "ok",
@@ -90,20 +94,34 @@
   function handle(kind, d) {
     if (kind === "hb") {
       lastHb = Date.now();
+      // Uptime going backwards means the Pico rebooted (e.g. a brownout).
+      if (!d.last_will && lastUptime >= 0 && d.uptime_s < lastUptime) {
+        log("CAR RESTARTED: uptime " + lastUptime + " s → " + d.uptime_s + " s", "bad");
+      }
+      if (!d.last_will) { lastUptime = d.uptime_s; }
       $("link").textContent = d.last_will ? "LOST" : d.link;
       $("linkSub").textContent = d.last_will ? "car went offline (last will)"
         : "uptime " + d.uptime_s + " s · drops " + d.drops +
           (d.cmd_ok !== undefined ? " · cmds ok " + d.cmd_ok + " / bad " + d.cmd_bad : "");
       setCard("cLink", d.last_will ? "bad" : (d.link === "CONNECTED" ? "ok" : "warn"));
       var l = d.last_will ? "LOST" : d.link;
-      if (l !== lastLink) { log("link " + l); lastLink = l; }
+      if (l !== lastLink) { log("link " + l + upText()); lastLink = l; }
     } else if (kind === "state") {
       $("state").textContent = d.state;
       $("stateSub").textContent = d.link_lost ? "car reports link lost" : "";
       setCard("cState", STATE_LEVEL[d.state] || "");
       $("speed").textContent = d.speed_cm_s;
       setCard("cSpeed", d.speed_cm_s > 0 ? "ok" : "");
-      if (d.state !== lastState) { log(lastState ? "state " + lastState + " → " + d.state : "state " + d.state); lastState = d.state; }
+      if (d.state !== lastState) { log((lastState ? "state " + lastState + " → " + d.state : "state " + d.state) + upText()); lastState = d.state; }
+    } else if (kind === "motion") {
+      $("mo").textContent = d.left_cm_s.toFixed(1) + " / " + d.right_cm_s.toFixed(1);
+      $("moSub").textContent = d.mode + " · target " + d.target_cm_s +
+        " cm/s · PWM " + d.left_pwm + "% / " + d.right_pwm + "%";
+      // Green when both wheels are within 10% (or 2 cm/s) of the target.
+      var tol = Math.max(2, d.target_cm_s * 0.1);
+      var good = d.mode === "SPEED" && Math.abs(d.left_cm_s - d.target_cm_s) <= tol &&
+                 Math.abs(d.right_cm_s - d.target_cm_s) <= tol;
+      setCard("cMo", d.mode === "STOP" ? "" : (good ? "ok" : "warn"));
     } else if (kind === "obstacle") {
       $("obs").textContent = d.distance;
       obsState = d.state;
@@ -116,12 +134,13 @@
       $("bc").textContent = d.letter;
       $("bcSub").textContent = "turn " + d.command + " · " + d.time;
       setCard("cBc", d.letter === "unreadable" ? "warn" : "ok");
-      if (d.seq !== lastLetterSeq) { log("barcode " + d.letter + " → " + d.command); lastLetterSeq = d.seq; }
+      if (d.seq !== lastLetterSeq) { log("barcode " + d.letter + " → " + d.command + upText()); lastLetterSeq = d.seq; }
     } else if (kind === "terrain") {
-      $("ter").textContent = d.lifted ? "LIFTED" : "on ground";
+      var lifted = d.motion === "LIFTED";
+      $("ter").textContent = lifted ? "LIFTED" : (d.overturned ? "OVERTURNED" : "on ground");
       $("terSub").textContent = d.motion + (d.imu_fault ? " · IMU FAULT" : "") +
         (d.hump_mm !== undefined ? " · hump " + d.hump_mm + " mm ×" + d.hump_count : "");
-      setCard("cTer", d.lifted || d.imu_fault ? "bad" : "ok");
+      setCard("cTer", lifted || d.overturned || d.imu_fault ? "bad" : "ok");
     }
   }
 

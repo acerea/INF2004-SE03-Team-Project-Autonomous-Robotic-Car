@@ -32,6 +32,7 @@ OBS_STATES = ["CLEAR", "SLOWDOWN", "EMERGENCY", "?"]
 SIDES = ["NONE", "LEFT", "RIGHT", "?"]
 VC_STATES = ["IDLE", "FOLLOWING", "TURNING", "BYPASSING", "BLOCKED",
              "STOPPED", "FAULT", "?"]
+MO_MODES = ["STOP", "SPEED", "DISTANCE", "TURN"]
 BC_CMDS = ["NONE", "LEFT", "RIGHT", "STRAIGHT", "U-TURN", "?", "?", "?"]
 CMDS = {"start": 0, "stop": 1, "estop": 2, "reset": 3, "mode": 4}
 
@@ -57,6 +58,11 @@ def put_bits(fields):
 def encode_cmd(seq, cmd, arg):
     # seq 8 | version 2 | command 3 | argument 4  -> 17 bits -> 3 bytes
     return put_bits([(seq, 8), (PROTO_VERSION, 2), (cmd, 3), (arg, 4)])
+
+
+def get_signed(buf, pos, n):
+    """Read an offset-binary signed field (see proto_put_s)."""
+    return get_bits(buf, pos, n) - (1 << (n - 1))
 
 
 def cm_text(cm, zero):
@@ -90,6 +96,11 @@ def decode_fields(f):
                  junction=["NONE", "LEFT", "RIGHT", "BOTH"][get_bits(f, 19, 2)],
                  line_pos=get_bits(f, 21, 11) - 1024)
         return "line", d
+    if typ == 2 and len(f) >= 8:
+        d.update(mode=MO_MODES[get_bits(f, 14, 2)], target_cm_s=get_bits(f, 16, 6),
+                 left_cm_s=get_signed(f, 22, 11) / 10, right_cm_s=get_signed(f, 33, 11) / 10,
+                 left_pwm=get_signed(f, 44, 8), right_pwm=get_signed(f, 52, 8))
+        return "motion", d
     if typ == 4 and len(f) >= 3:
         code = get_bits(f, 14, 5)
         d.update(letter=chr(ord("A") + code) if code < 26 else "unreadable",

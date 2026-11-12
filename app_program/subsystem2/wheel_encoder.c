@@ -183,7 +183,7 @@ static void encoder_updateCounts(uint32_t left_events, uint32_t right_events)
             encoder_readState(LEFT_ENCODER_A, LEFT_ENCODER_B);
 
         /* Forward rotation increases the count */
-        left_count -= encoder_decode(left_prev, left_now);
+        left_count += encoder_decode(left_prev, left_now);
         left_prev = left_now;
     }
 

@@ -56,6 +56,15 @@ typedef uint8_t proto_type_t;
 #define PROTO_LN_SENSORS_BITS   (3u)    // Black sensors: L=4, C=2, R=1.
 #define PROTO_LN_JUNCTION_BITS  (2u)    // 0 none, 1 left, 2 right, 3 both.
 #define PROTO_LN_POS_BITS       (11u)   // Line position -1000..1000, signed.
+// Motion (type 2, subsystem 2): 46 bits. Every 200 ms while moving, 1 s idle.
+#define PROTO_MO_MODE_BITS      (2u)    // 0 stopped, 1 speed, 2 distance, 3 turn.
+#define PROTO_MO_TARGET_BITS    (6u)    // Target speed, 0-63 cm/s.
+#define PROTO_MO_SPEED_BITS     (11u)   // Measured wheel speed, signed, 0.1 cm/s.
+#define PROTO_MO_PWM_BITS       (8u)    // Wheel PWM, signed, -100..100 %.
+#define PROTO_MO_MODE_STOP      (0u)
+#define PROTO_MO_MODE_SPEED     (1u)
+#define PROTO_MO_MODE_DISTANCE  (2u)
+#define PROTO_MO_MODE_TURN      (3u)
 
 // Barcode (type 4, subsystem 3): 8 bits. Send once per barcode read.
 #define PROTO_BC_LETTER_BITS    (5u)    // 0-25 = 'A'-'Z'; 31 = unreadable.
