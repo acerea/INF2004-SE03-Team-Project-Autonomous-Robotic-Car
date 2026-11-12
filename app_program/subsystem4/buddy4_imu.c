@@ -62,7 +62,7 @@
 #define B4_GRAVITY_MG 1000
 
 LOCAL ID b4_i2c_device = -1;
-LOCAL UINT b4_flag_bits = S4_FLG_IMU_FAULT;   /* Mirror of flg_s4_imu. */
+LOCAL UINT b4_flag_bits = S4_FLG_IMU_FAULT; /* Mirror of flg_s4_imu. */
 LOCAL UW b4_accel_address = B4_IMU_ACCEL_ADDR_DEFAULT;
 
 /* --------------------------------------------------------- */
@@ -523,56 +523,46 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
         (UB *)"[B4-IMU] Physical motion classification task starting\n");
 
     /* Open I2C device. */
-    b4_i2c_device = tk_opn_dev(
-        (const UB *)"iica",
-        TD_UPDATE);
-
-    if (b4_i2c_device < E_OK)
+    /*
+     * Find and configure the IMU. If anything fails, report it (console
+     * every 2 s, terrain frame with the fault bit) and try again, instead
+     * of ending the task: a loose wire or a late power-up then recovers,
+     * and the failure stays visible after the boot messages are gone.
+     */
+    for (;;)
     {
-        tm_printf(
-            (UB *)"[B4-IMU] cannot open iica: %d\n",
-            b4_i2c_device);
+        if (b4_i2c_device < E_OK)
+        {
+            b4_i2c_device = tk_opn_dev((const UB *)"iica", TD_UPDATE);
+        }
 
-        tk_ext_tsk();
-    }
+        if (b4_i2c_device < E_OK)
+        {
+            er = b4_i2c_device;
+            tm_printf((UB *)"[B4-IMU] cannot open iica: %d\n", er);
+        }
+        else if ((er = b4_read_accel_id()) < E_OK)
+        {
+            tm_printf((UB *)"[B4-IMU] accelerometer not detected: %d "
+                            "(check SDA=GP4, SCL=GP5, 3V3, GND)\n",
+                      er);
+        }
+        else if ((er = b4_check_mag_id()) < E_OK)
+        {
+            tm_printf((UB *)"[B4-IMU] magnetometer not detected: %d\n", er);
+        }
+        else if ((er = b4_configure_sensor()) < E_OK)
+        {
+            tm_printf((UB *)"[B4-IMU] sensor configuration failed: %d\n",
+                      er);
+        }
+        else
+        {
+            break; /* IMU ready. */
+        }
 
-    /* Check accelerometer identity. */
-    er = b4_read_accel_id();
-
-    if (er < E_OK)
-    {
-        tm_printf(
-            (UB *)"[B4-IMU] accelerometer not detected: %d\n",
-            er);
-
-        tk_cls_dev(b4_i2c_device, 0);
-        tk_ext_tsk();
-    }
-
-    /* Check magnetometer identity. */
-    er = b4_check_mag_id();
-
-    if (er < E_OK)
-    {
-        tm_printf(
-            (UB *)"[B4-IMU] magnetometer not detected: %d\n",
-            er);
-
-        tk_cls_dev(b4_i2c_device, 0);
-        tk_ext_tsk();
-    }
-
-    /* Configure both sensor components. */
-    er = b4_configure_sensor();
-
-    if (er < E_OK)
-    {
-        tm_printf(
-            (UB *)"[B4-IMU] sensor configuration failed: %d\n",
-            er);
-
-        tk_cls_dev(b4_i2c_device, 0);
-        tk_ext_tsk();
+        b4_publish_terrain(b4_pack_event(B4_STATE_FAULT, 0u, 1u));
+        tk_dly_tsk(2000u);
     }
 
     tm_printf(
