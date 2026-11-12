@@ -10,14 +10,14 @@ Define a test here before running it. Test IDs never change.
 
 | ID | What is tested | Requirement / interface | Method | Steps / how | Expected result |
 |---|---|---|---|---|---|
-| S1-U01 | kernel objects exist (3 message buffers, 2 event flags) | NFR11, IF-06, IF-07, IF-08 | auto | `subsystem1_test.c` | `[TEST] S1-U01 PASS` |
+| S1-U01 | kernel objects exist (3 message buffers, 2 event flags) | NFR11, IF-10, IF-07, IF-08 | auto | `subsystem1_test.c` | `[TEST] S1-U01 PASS` |
 | S1-U02 | frame pack/unpack round trip at min and max values | CR, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U02 PASS` |
 | S1-U03 | out-of-range value saturates and sets the error flag | CR, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U03 PASS` |
 | S1-U04 | valid command accepted, duplicate rejected, STOP always accepted | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U04 PASS` |
 | S1-U05 | sequence window edges | FR2, IF-07 | auto | `subsystem1_test.c` (uses S1-U04 state, run in order) | `[TEST] S1-U05 PASS` |
 | S1-U06 | bad version, bad command, bad length rejected | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U06 PASS` |
-| S1-U07 | full telemetry queue drops frames and never blocks (within 20 ms) | NFR4, NFR11, IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U07 PASS` |
-| S1-U08 | frame type bits match the MQTT library | FR1, IF-06 | auto | `subsystem1_test.c` | `[TEST] S1-U08 PASS` |
+| S1-U07 | full telemetry queue drops frames and never blocks (within 20 ms) | NFR4, NFR11, IF-10 | auto | `subsystem1_test.c` | `[TEST] S1-U07 PASS` |
+| S1-U08 | frame type bits match the MQTT library | FR1, IF-10 | auto | `subsystem1_test.c` | `[TEST] S1-U08 PASS` |
 | S1-U09 | 1-byte frame (oversize marker) rejected by the length check | FR2, IF-07 | auto | `subsystem1_test.c` | `[TEST] S1-U09 PASS` |
 | S1-U10 | command counters wrap 255 to 0 and fit their 8-bit heartbeat fields | FR2, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U10 PASS` |
 | S1-U11 | uptime field counts whole seconds, wraps at 65536 s and fits 16 bits | FR1, wire format | auto | `subsystem1_test.c` | `[TEST] S1-U11 PASS` |
@@ -34,6 +34,7 @@ Define a test here before running it. Test IDs never change.
 | S1-M11 | RAM and size of subsystem 1 data vs the natural representation | CR | manual | 1. Build the test image. 2. Run `arm-none-eabi-size` on the subsystem 1 and `mqtt_utk` object files. 3. Compare each field with its natural C size. | every field uses fewer or equal bytes than its natural representation |
 | S1-M12 | runs with no USB computer attached: Wi-Fi, MQTT, heartbeat and commands | FR1, FR2 | manual | 1. Flash normal image. 2. Power the Pico from a phone charger (no computer). 3. Run `laptop_station.py` and send `stop`. | heartbeats with `link=CONNECTED` after power-on; `cmd_ok` up by 1 after `stop` |
 | S1-M13 | power-on while Wi-Fi is unavailable: connects within 10 s once the hotspot is on | FR1, NFR6 | manual | 1. Hotspot off. 2. Power the Pico. 3. After about 20 s switch the hotspot on. 4. Read the `s1:`, `wifi:` and `mqtt:` lines with the PowerShell serial logger. | join retried every 5-6 s; `-> CONNECTED` within 10 s of the hotspot being on |
+| S1-M14 | barcode frame (type 4) decoded and shown on the MQTT dashboard | FR21, CR | manual | 1. Run `laptop_station.py` and MQTT Explorer. 2. Run `logs/fake_car_barcode.py` (simulated car). 3. Open `picocar-01/view/barcode` and its History. | 5 frames decoded: A LEFT, B RIGHT, C STRAIGHT, D U-TURN, unreadable NONE |
 
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
@@ -127,3 +128,26 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-03 | S1-U11 | `274c64e` | Kathryn | PASS | `logs/2026-11-03_unit_final.jpg` |  |
 | 2026-11-04 | S1-M09 | `9206e6d` | Kathryn | PASS | `logs/2026-11-04_wifi_drop_fixed.txt` | With the watchdog tick fix (`time_us_64` now 1009775 us per 1 s, was 23672; `logs/2026-11-04_timer_fixed.png`): LOST at 41210 ms, FAULT 10.0 s later, join retried every 5-6 s, hotspot on at 01:49:02, CONNECTED at 01:49:10 (8 s) |
 | 2026-11-04 | S1-M13 | `9206e6d` | Kathryn | PASS | `logs/2026-11-04_poweron_no_wifi.txt` | First join failed at power-on and retried every 6 s; hotspot on at 01:51:43, CONNECTED at 01:51:49 (6 s). Before the fix the same case took 228 s (S1-M12) |
+| 2026-11-11 | S1-U01 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` | Test build after adding telemetry types 5-7 and the Vehicle Controller. Subsystem 3 restored to the template locally (uncommitted) because main's subsystem3 does not compile |
+| 2026-11-11 | S1-U02 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U03 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U04 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U05 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U06 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U07 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U08 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U09 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U10 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-U11 | `1146ded` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit.png` |  |
+| 2026-11-11 | S1-M14 | `9c151da` | Kathryn | PASS | `logs/2026-11-11_barcode_simulated.png` | Simulated input (fake_car_barcode.py), not the real car: all 5 frames decoded correctly. Real end-to-end test needs subsystem 3 and the printed samples |
+| 2026-11-11 | S1-U01 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` | Test build after merging subsystem 4 and 5 telemetry (clean rebuild; an earlier stale test image had S1-U08 compiled out). Subsystem 3 restored to the template locally (uncommitted) |
+| 2026-11-11 | S1-U02 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U03 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U04 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U05 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U06 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U07 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U08 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U09 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U10 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-11 | S1-U11 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |

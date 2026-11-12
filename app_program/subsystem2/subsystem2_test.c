@@ -356,7 +356,7 @@ EXPORT void subsystem2_test(void)
 		const int pwms[2] = {40, 60};
 		int i;
 
-		tm_printf((UB*)"[S2-S02] Speed response: 40%% vs 60%% PWM\n");
+		tm_printf((UB*)"[S2-S02] Speed response: 40% vs 60% PWM\n");
 
 		tk_dly_tsk(5000);
 
@@ -411,7 +411,7 @@ EXPORT void subsystem2_test(void)
 
 
 	/* S2-S03: Manual Speed Estimation Test
-		* Tests: Estimate wheel speed by manually rotating the wheels and observing encoder counts */
+	* Tests: Estimate wheel speed by manually rotating the wheels and observing encoder counts */
 	#if 0
 	{
 		int32_t l0, r0, l1, r1;
@@ -460,6 +460,76 @@ EXPORT void subsystem2_test(void)
 		tm_printf((UB*)"[S2-S03] Stationary right speed: %d cm/s\n", (int)rs);
 
 		tm_printf((UB*)"[S2-S03] Test completed\n");
+	}
+	#endif
+
+	/* S2-S04: Wheel speed at 100% PWM.
+	* Requires the robot and a clear test area. */
+	#if 0
+	{
+		int32_t l0, r0, l1, r1;
+		SYSTIM start, end;
+		ER start_result, end_result;
+		uint64_t start_ms, end_ms;
+		float dt, ls, rs;
+
+		motion_pidStop();
+
+		tm_printf((UB *)
+			"[S2-S04] 100%% PWM test starts in 5 seconds\n");
+
+		tk_dly_tsk(5000);
+
+		motion_moveForward(100);
+
+		/* Allow acceleration before measuring. */
+		tk_dly_tsk(500);
+
+		start_result = tk_get_tim(&start);
+		l0 = encoder_getLeftCount();
+		r0 = encoder_getRightCount();
+
+		tk_dly_tsk(200);
+
+		l1 = encoder_getLeftCount();
+		r1 = encoder_getRightCount();
+		end_result = tk_get_tim(&end);
+
+		/* Stop before calculations and printing. */
+		motion_pidStop();
+
+		if (start_result != E_OK || end_result != E_OK) {
+			tm_printf((UB *)"[S2-S04] Time read failed\n");
+		} else {
+			start_ms = ((uint64_t)(uint32_t)start.hi << 32)
+					| (uint32_t)start.lo;
+
+			end_ms = ((uint64_t)(uint32_t)end.hi << 32)
+				| (uint32_t)end.lo;
+
+			if (end_ms > start_ms) {
+				dt = (float)(end_ms - start_ms) / 1000.0f;
+
+				ls = encoder_calculateLeftSpeed(l1 - l0, dt);
+				rs = encoder_calculateRightSpeed(r1 - r0, dt);
+
+				tm_printf((UB *)
+					"[S2-S04] PWM=100%%, elapsed=%lu ms\n",
+					(unsigned long)(end_ms - start_ms));
+
+				tm_printf((UB *)
+					"[S2-S04] Left speed: %d.%01d cm/s\n",
+					(int)ls, ((int)(ls * 10)) % 10);
+
+				tm_printf((UB *)
+					"[S2-S04] Right speed: %d.%01d cm/s\n",
+					(int)rs, ((int)(rs * 10)) % 10);
+			} else {
+				tm_printf((UB *)"[S2-S04] Invalid elapsed time\n");
+			}
+		}
+
+		tm_printf((UB *)"[S2-S04] Test completed\n");
 	}
 	#endif
 

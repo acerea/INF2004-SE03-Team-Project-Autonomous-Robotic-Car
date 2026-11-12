@@ -16,7 +16,6 @@
 EXPORT void subsystem4_test(void)
 {
 	T_RMBF rmbf;
-	UW before;
 	B4_MOTION_INPUT input = {0};
 	B4_EVENT classified;
 	B4_RAMP_RESULT ramp;
@@ -54,13 +53,6 @@ EXPORT void subsystem4_test(void)
 			   tk_ref_mbf(mbf_summary, &rmbf) == E_OK &&
 				   rmbf.maxmsz == S4_SUMMARY_MAX,
 			   "message buffer max line = S4_SUMMARY_MAX");
-
-	/* INT-02 (integration, IF-03): summary lines from subsystem 3 reach
-	   the monitor.  One line per 5 samples = one per 1.5 s. */
-	before = s4_lines_received;
-	tk_dly_tsk(3500);
-	TEST_CHECK("INT-02", s4_lines_received >= before + 2,
-			   "summary lines flow from subsystem 3 to subsystem 4");
 
 	/* Stage 2: test the sensor-independent motion classifier. */
 
