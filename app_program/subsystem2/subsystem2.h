@@ -25,8 +25,9 @@
 #define S2_MOTION_TURN_LEFT     3u
 #define S2_MOTION_TURN_RIGHT    4u
 
-/* Agreed speed settings (in cm/s). The 40 cm/s max speed is just a sample, not measured. */
-#define S2_MOTION_MAX_SPEED     40u
+/* Agreed speed settings (in cm/s). Max measured at 95 % PWM (S2-S04): slower
+ * wheel about 40 cm/s; 30 leaves the PID room to keep the car straight. */
+#define S2_MOTION_MAX_SPEED     30u
 #define S2_MOTION_DEFAULT_SPEED 10u
 
 /* Request format: command in bits 0–2, argument in bits 3–15. */
