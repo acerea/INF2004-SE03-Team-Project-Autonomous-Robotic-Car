@@ -51,6 +51,9 @@
 /* Accelerometer is configured for 100 Hz. */
 #define B4_IMU_SAMPLE_MS 10u
 
+/* Consecutive failed reads (10 ms each) before reconnecting. */
+#define B4_IMU_RECONNECT_ERRORS 50u
+
 /* Print diagnostic information approximately once per second. */
 #define B4_IMU_PRINT_SAMPLES 100u
 
@@ -62,7 +65,7 @@
 #define B4_GRAVITY_MG 1000
 
 LOCAL ID b4_i2c_device = -1;
-LOCAL UINT b4_flag_bits = S4_FLG_IMU_FAULT; /* Mirror of flg_s4_imu. */
+LOCAL UINT b4_flag_bits = S4_FLG_IMU_FAULT;   /* Mirror of flg_s4_imu. */
 LOCAL UW b4_accel_address = B4_IMU_ACCEL_ADDR_DEFAULT;
 
 /* --------------------------------------------------------- */
@@ -491,6 +494,62 @@ LOCAL void b4_publish_terrain(B4_EVENT event)
 }
 
 /* --------------------------------------------------------- */
+/* Connect: open I2C, find and configure the IMU (retries)   */
+/* --------------------------------------------------------- */
+
+/*
+ * Returns only when the IMU answers and is configured. Until then it
+ * reports the reason on the console and a fault terrain frame every 2 s.
+ */
+LOCAL void b4_imu_connect(void)
+{
+    ER er;
+
+    /*
+     * Find and configure the IMU. If anything fails, report it (console
+     * every 2 s, terrain frame with the fault bit) and try again, instead
+     * of ending the task: a loose wire or a late power-up then recovers,
+     * and the failure stays visible after the boot messages are gone.
+     */
+    for (;;)
+    {
+        if (b4_i2c_device < E_OK)
+        {
+            b4_i2c_device = tk_opn_dev((const UB *)"iica", TD_UPDATE);
+        }
+
+        if (b4_i2c_device < E_OK)
+        {
+            er = b4_i2c_device;
+            tm_printf((UB *)"[B4-IMU] cannot open iica: %d\n", er);
+        }
+        else if ((er = b4_read_accel_id()) < E_OK)
+        {
+            tm_printf((UB *)"[B4-IMU] accelerometer not detected: %d "
+                            "(check SDA=GP4, SCL=GP5, 3V3, GND)\n", er);
+        }
+        else if ((er = b4_check_mag_id()) < E_OK)
+        {
+            tm_printf((UB *)"[B4-IMU] magnetometer not detected: %d\n", er);
+        }
+        else if ((er = b4_configure_sensor()) < E_OK)
+        {
+            tm_printf((UB *)"[B4-IMU] sensor configuration failed: %d\n",
+                      er);
+        }
+        else
+        {
+            break;                          /* IMU ready. */
+        }
+
+        b4_publish_terrain(b4_pack_event(B4_STATE_FAULT, 0u, 1u));
+        tk_dly_tsk(2000u);
+    }
+
+    tm_printf((UB *)"[B4-IMU] I2C device id=%d\n", (INT)b4_i2c_device);
+}
+
+/* --------------------------------------------------------- */
 /* Physical motion classification                            */
 /* --------------------------------------------------------- */
 
@@ -515,6 +574,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     uint16_t print_counter = 0u;
 
     uint8_t previous_valid = 0u;
+    uint8_t read_errors = 0u;
 
     (void)stacd;
     (void)exinf;
@@ -522,48 +582,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     tm_printf(
         (UB *)"[B4-IMU] Physical motion classification task starting\n");
 
-    /* Open I2C device. */
-    /*
-     * Find and configure the IMU. If anything fails, report it (console
-     * every 2 s, terrain frame with the fault bit) and try again, instead
-     * of ending the task: a loose wire or a late power-up then recovers,
-     * and the failure stays visible after the boot messages are gone.
-     */
-    for (;;)
-    {
-        if (b4_i2c_device < E_OK)
-        {
-            b4_i2c_device = tk_opn_dev((const UB *)"iica", TD_UPDATE);
-        }
-
-        if (b4_i2c_device < E_OK)
-        {
-            er = b4_i2c_device;
-            tm_printf((UB *)"[B4-IMU] cannot open iica: %d\n", er);
-        }
-        else if ((er = b4_read_accel_id()) < E_OK)
-        {
-            tm_printf((UB *)"[B4-IMU] accelerometer not detected: %d "
-                            "(check SDA=GP4, SCL=GP5, 3V3, GND)\n",
-                      er);
-        }
-        else if ((er = b4_check_mag_id()) < E_OK)
-        {
-            tm_printf((UB *)"[B4-IMU] magnetometer not detected: %d\n", er);
-        }
-        else if ((er = b4_configure_sensor()) < E_OK)
-        {
-            tm_printf((UB *)"[B4-IMU] sensor configuration failed: %d\n",
-                      er);
-        }
-        else
-        {
-            break; /* IMU ready. */
-        }
-
-        b4_publish_terrain(b4_pack_event(B4_STATE_FAULT, 0u, 1u));
-        tk_dly_tsk(2000u);
-    }
+    b4_imu_connect();
 
     tm_printf(
         (UB *)"[B4-IMU] LSM303DLHC detected; accel address=0x%02x\n",
@@ -586,6 +605,8 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
 
         if (er >= E_OK)
         {
+            read_errors = 0u;
+
             /* Step 1: Convert raw accelerometer readings into mg. */
             b4_accel_convert(&sample, &accel_mg);
 
@@ -700,6 +721,31 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              */
             previous_valid = 0u;
             filtered_activity = 0;
+
+            /*
+             * Persistent failure (0.5 s): print why, drop the device
+             * and connect again. E_ID (-18) means the device descriptor
+             * itself is no longer valid, so it must be reopened.
+             */
+            if (read_errors < 255u)
+            {
+                read_errors++;
+            }
+
+            if (read_errors >= B4_IMU_RECONNECT_ERRORS)
+            {
+                tm_printf((UB *)"[B4-IMU] %u read errors (last %d, "
+                                "dev id %d): reconnecting\n",
+                          (UINT)read_errors, er, (INT)b4_i2c_device);
+
+                if (er != E_ID)
+                {
+                    (void)tk_cls_dev(b4_i2c_device, 0);
+                }
+                b4_i2c_device = -1;
+                read_errors = 0u;
+                b4_imu_connect();
+            }
         }
 
         /* ----------------------------------------------------- */
