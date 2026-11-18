@@ -15,6 +15,7 @@ Run:           python laptop_station.py
 """
 import json
 import os
+import threading
 import time
 import paho.mqtt.client as mqtt
 
@@ -35,7 +36,8 @@ VC_STATES = ["IDLE", "FOLLOWING", "TURNING", "BYPASSING", "BLOCKED",
              "STOPPED", "FAULT", "?"]
 MO_MODES = ["STOP", "SPEED", "DISTANCE", "TURN"]
 BC_CMDS = ["NONE", "LEFT", "RIGHT", "STRAIGHT", "U-TURN", "?", "?", "?"]
-CMDS = {"start": 0, "stop": 1, "estop": 2, "reset": 3, "mode": 4}
+CMDS = {"start": 0, "stop": 1, "estop": 2, "reset": 3, "mode": 4, "ping": 5}
+PING_S = 0.5    # keep-alive period; the car stops after 2 s without commands
 
 
 def get_bits(buf, pos, n):
@@ -175,6 +177,35 @@ try:
         cmd_seq = (int(fh.read().strip()) + 1) & 0xFF
 except (OSError, ValueError):
     cmd_seq = 0
+seq_lock = threading.Lock()
+
+
+def send_cmd(name, arg=0, quiet=False):
+    """Send one command; the sequence number is shared with the pinger."""
+    global cmd_seq
+    with seq_lock:
+        frame = encode_cmd(cmd_seq, CMDS[name], arg & 0xF)
+        client.publish(f"{CAR}/cmd", frame, qos=1)
+        if not quiet:
+            print(f"[station] sent {name} seq={cmd_seq} bytes={frame.hex()}")
+        try:
+            with open(SEQ_FILE, "w") as fh:
+                fh.write(str(cmd_seq))
+        except OSError:
+            pass
+        cmd_seq = (cmd_seq + 1) & 0xFF
+
+
+def pinger():
+    """Keep-alive: if this program stops, the car stops 2 s later."""
+    while True:
+        time.sleep(PING_S)
+        send_cmd("ping", quiet=True)
+
+
+threading.Thread(target=pinger, daemon=True).start()
+print("[station] keep-alive on: closing this window stops the car within 2 s")
+
 try:
     while True:
         line = input().strip().lower().split()
@@ -184,14 +215,6 @@ try:
             print("commands: start | stop | estop | reset | mode N")
             continue
         arg = int(line[1]) if len(line) > 1 and line[1].isdigit() else 0
-        frame = encode_cmd(cmd_seq, CMDS[line[0]], arg & 0xF)
-        client.publish(f"{CAR}/cmd", frame, qos=1)
-        print(f"[station] sent {line[0]} seq={cmd_seq} bytes={frame.hex()}")
-        try:
-            with open(SEQ_FILE, "w") as fh:
-                fh.write(str(cmd_seq))
-        except OSError:
-            pass
-        cmd_seq = (cmd_seq + 1) & 0xFF
+        send_cmd(line[0], arg)
 except KeyboardInterrupt:
     pass

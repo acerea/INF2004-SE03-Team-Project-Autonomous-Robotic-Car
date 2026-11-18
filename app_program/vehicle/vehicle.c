@@ -67,6 +67,10 @@ typedef uint8_t vc_event_t;
 
 #define VC_HANDLED_BITS     (S4_FLG_LIFTED | S4_FLG_OVERTURNED)
 
+// Keep-alive: laptop_station.py sends PING every 0.5 s. With no command at
+// all for this long (station closed, Wi-Fi or broker gone) the car stops.
+#define VC_LINK_TIMEOUT_MS  (2000u)
+
 #define VC_STATE_MS         (1000u)
 #define VC_BARCODE_TURN_ANGLE  (90u)
 #define VC_BARCODE_UTURN_ANGLE (180u)
@@ -81,6 +85,7 @@ static uint32_t g_vc_want_arg = 0u;
 static uint32_t g_vc_sent_cmd = VC_MOTION_NONE; // Last one subsystem 2 took.
 static uint32_t g_vc_sent_arg = VC_MOTION_NONE;
 static UINT     g_vc_imu_bits = 0u;             // Last flg_s4_imu read.
+static uint32_t g_vc_last_remote_ms = 0u;       // Last command (any) time.
 
 typedef enum {
     VC_BYPASS_TURN_OUT = 0,
@@ -104,6 +109,7 @@ static void       vc_poll_navigation(void);
 static void       vc_poll_line_following(void);
 static void       vc_poll_motion_done(void);
 static void       vc_poll_imu(void);
+static void       vc_check_link(void);
 static void       vc_poll_bypass(void);
 static void       vc_dispatch(vc_event_t ev);
 static void       vc_enter_following(void);
@@ -157,6 +163,7 @@ vc_task (INT stacd, void * exinf)
     {
         vc_poll_imu();          // Lifted / overturned: stop at once.
         vc_poll_remote();       // Safety commands next.
+        vc_check_link();        // No laptop keep-alive: stop.
         vc_poll_motion_done();
         vc_poll_navigation();
         if (VC_STATE_FOLLOWING == g_vc_state)
@@ -217,6 +224,11 @@ vc_poll_remote (void)
                 if (size > 0)
                 {
                     uint32_t cmd = s1_cmd_of(packed);
+                    SYSTIM   rx_tm;
+
+                    // Any command, PING included, proves the laptop is there.
+                    (void) tk_get_otm(&rx_tm);
+                    g_vc_last_remote_ms = rx_tm.lo;
 
                     // STOP and ESTOP already arrived through their flags.
                     if (S1_CMD_START == cmd)
@@ -279,6 +291,46 @@ vc_poll_imu (void)
     else
     {
         // Nothing new.
+    }
+
+    return;
+}
+
+static void
+vc_check_link (void)
+{
+    SYSTIM   now;
+    T_RFLG   rflg;
+    uint32_t quiet_ms;
+    bool     b_lost;
+    bool     b_moving = (VC_STATE_FOLLOWING == g_vc_state)
+                        || (VC_STATE_TURNING == g_vc_state)
+                        || (VC_STATE_BYPASSING == g_vc_state)
+                        || (VC_STATE_BLOCKED == g_vc_state);
+
+    if (!b_moving)
+    {
+        return;
+    }
+
+    (void) tk_get_otm(&now);
+    quiet_ms = now.lo - g_vc_last_remote_ms;
+    b_lost   = (quiet_ms > VC_LINK_TIMEOUT_MS);
+
+    // LINK_LOST is a level kept by comms_task: read it, never clear it.
+    if ((E_OK == tk_ref_flg(g_flg_remote, &rflg))
+        && (0u != (rflg.flgptn & S1_FLG_LINK_LOST)))
+    {
+        b_lost = true;
+    }
+
+    if (b_lost)
+    {
+        tm_printf((UB*)"vc: laptop link lost (quiet %u ms), stopping\n",
+                  (unsigned int) quiet_ms);
+        ir_lock_steering(false);
+        s2_setLineCorrection(0);
+        vc_dispatch(VC_EV_STOP);
     }
 
     return;
