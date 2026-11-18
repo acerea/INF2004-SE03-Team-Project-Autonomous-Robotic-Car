@@ -36,7 +36,7 @@ static float fast_sqrtf(float val);
 /* Helper to clear old state flags and set the new state atomically */
 static void s5_set_state(UINT new_flag)
 {
-    tk_clr_flg(flg_s5_obstacle, ~S5_STATE_MASK);
+    tk_clr_flg(flg_s5_obstacle, S5_STATE_MASK);
     tk_set_flg(flg_s5_obstacle, new_flag);
 }
 /* ====================================================================
@@ -107,7 +107,7 @@ s5_publish_profile (S5_BYPASS_DIR dir, float width_cm, float d_left,
 /* Replace the old state bit with a new one (only one state bit is set). */
 static void s5_set_state_flag(UINT flag)
 {
-    tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_STATE_FLAGS);
+    tk_clr_flg(flg_s5_obstacle, (UINT)S5_STATE_FLAGS);
     tk_set_flg(flg_s5_obstacle, flag);
 }
 
@@ -139,7 +139,7 @@ LOCAL void s5_scan_task(INT stacd, void *param)
             s5_set_state_flag(S5_FLAG_SLOWDOWN);
         } else {
             s5_set_state_flag(S5_FLAG_CLEAR);
-            tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_SIDE_FLAGS); /* No side */
+            tk_clr_flg(flg_s5_obstacle, (UINT)S5_SIDE_FLAGS); /* No side */
         }
         s5_publish_obstacle(state, d_center);
 
@@ -162,7 +162,7 @@ LOCAL void s5_scan_task(INT stacd, void *param)
 
             /* 5. Choose direction, replace the old side bit, publish */
             S5_BYPASS_DIR dir = s5_calculate_clearance(d_left, d_right);
-            tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_SIDE_FLAGS);
+            tk_clr_flg(flg_s5_obstacle, (UINT)S5_SIDE_FLAGS);
             tk_set_flg(flg_s5_obstacle, (dir == S5_DIR_LEFT)
                        ? S5_FLAG_AVOID_LEFT : S5_FLAG_AVOID_RIGHT);
 
