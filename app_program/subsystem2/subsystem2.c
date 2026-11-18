@@ -96,6 +96,10 @@ EXPORT ER subsystem2_init(void)
     return E_OK;
 }
 
+EXPORT void s2_setLineCorrection(int line_pos)
+{
+    motion_pidSetLineCorrection(line_pos);
+}
 /* Cyclic handler: signal the motion task without performing PID work here. */
 static void motion_tick(void *exinf)
 {

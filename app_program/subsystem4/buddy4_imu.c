@@ -22,7 +22,9 @@
 #include "buddy4_imu.h"
 #include "buddy4_classifier.h"
 #include "buddy4_handling.h"
+#include "buddy4_ramp.h"
 #include "subsystem4.h"
+#include "../subsystem2/wheel_encoder.h"
 
 #include <tk/device.h>
 #include "../../device/include/dev_i2c.h"
@@ -72,10 +74,15 @@
  * on its Z-axis because of gravity.
  */
 #define B4_GRAVITY_MG 1000
+#define B4_HUMP_TILT_MG 180
+#define B4_HUMP_END_MS 300u
 
 LOCAL ID b4_i2c_device = -1;
 LOCAL UINT b4_flag_bits = S4_FLG_IMU_FAULT;   /* Mirror of flg_s4_imu. */
 LOCAL UW b4_accel_address = B4_IMU_ACCEL_ADDR_DEFAULT;
+LOCAL uint8_t b4_hump_ok = 0u;
+LOCAL uint8_t b4_hump_height_mm = 0u;
+LOCAL uint8_t b4_hump_count = 0u;
 
 /* --------------------------------------------------------- */
 /* I2C register access                                       */
@@ -541,12 +548,44 @@ LOCAL void b4_publish_terrain(B4_EVENT event)
               b4_event_has_imu_fault(event),
               PROTO_TER_FAULT_BITS);
 
-    /* Hump measurement is not implemented yet. */
-    proto_put(&bits, 0u, PROTO_TER_HUMP_OK_BITS);
-    proto_put(&bits, 0u, PROTO_TER_HUMP_MM_BITS);
-    proto_put(&bits, 0u, PROTO_TER_HUMPS_BITS);
+    proto_put(&bits, b4_hump_ok, PROTO_TER_HUMP_OK_BITS);
+    proto_put(&bits, b4_hump_height_mm, PROTO_TER_HUMP_MM_BITS);
+    proto_put(&bits, b4_hump_count, PROTO_TER_HUMPS_BITS);
 
     (void)s1_publish(frame, proto_end(&bits), false);
+}
+
+LOCAL uint16_t b4_hump_angle_deci_deg(int16_t x_mg, int16_t y_mg,
+                                      int16_t z_mg)
+{
+    int32_t horizontal = (int32_t)x_mg * x_mg
+                       + (int32_t)y_mg * y_mg;
+    int32_t magnitude = b4_accel_magnitude_mg(x_mg, y_mg, z_mg);
+    int32_t z_abs = (z_mg < 0) ? -(int32_t)z_mg : (int32_t)z_mg;
+    int32_t ratio;
+
+    if ((magnitude <= 0) || (horizontal < (int32_t)B4_HUMP_TILT_MG
+                             * B4_HUMP_TILT_MG))
+    {
+        return 0u;
+    }
+
+    ratio = (z_abs * 1000) / magnitude;
+    if (ratio >= 966) return 0u;
+    if (ratio >= 866) return 300u;
+    if (ratio >= 707) return 450u;
+    if (ratio >= 500) return 600u;
+    return 900u;
+}
+
+LOCAL float b4_encoder_distance_cm(void)
+{
+    float left = encoder_getLeftDistance();
+    float right = encoder_getRightDistance();
+
+    if (left < 0.0f) left = -left;
+    if (right < 0.0f) right = -right;
+    return (left + right) * 0.5f;
 }
 
 /* --------------------------------------------------------- */
@@ -628,6 +667,10 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     int32_t dt_ms = (int32_t)B4_IMU_SAMPLE_MS;
     int32_t lift_peak = 0;      /* Largest lift_acc since the last print. */
     int32_t dt_peak = 0;        /* Longest sample interval since then. */
+    uint8_t hump_active = 0u;
+    uint16_t hump_angle = 0u;
+    uint32_t hump_quiet_ms = 0u;
+    float hump_start_distance = 0.0f;
 
     ER er;
 
@@ -740,6 +783,64 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                                   calibrated_mg.y_mg,
                                   calibrated_mg.z_mg,
                                   dt_ms);
+
+            {
+                uint16_t angle = b4_hump_angle_deci_deg(
+                    calibrated_mg.x_mg,
+                    calibrated_mg.y_mg,
+                    calibrated_mg.z_mg);
+
+                if (angle != 0u)
+                {
+                    if (hump_active == 0u)
+                    {
+                        hump_active = 1u;
+                        hump_start_distance = b4_encoder_distance_cm();
+                        hump_angle = angle;
+                    }
+                    else if (angle > hump_angle)
+                    {
+                        hump_angle = angle;
+                    }
+                    hump_quiet_ms = 0u;
+                }
+                else if (hump_active != 0u)
+                {
+                    hump_quiet_ms += (uint32_t)dt_ms;
+                    if (hump_quiet_ms >= B4_HUMP_END_MS)
+                    {
+                        float distance_cm = b4_encoder_distance_cm()
+                                          - hump_start_distance;
+                        B4_RAMP_RESULT result;
+                        uint16_t distance_mm;
+
+                        if (distance_cm < 0.0f)
+                        {
+                            distance_cm = -distance_cm;
+                        }
+                        distance_mm = (distance_cm >= 65535.0f)
+                                     ? 65535u
+                                     : (uint16_t)(distance_cm * 10.0f
+                                                  + 0.5f);
+                        result = b4_estimate_ramp_height(distance_mm,
+                                                         hump_angle);
+                        if (result.valid != 0u)
+                        {
+                            b4_hump_ok = 1u;
+                            b4_hump_height_mm = (result.height_mm > 255u)
+                                              ? 255u
+                                              : (uint8_t)result.height_mm;
+                            if (b4_hump_count < 15u)
+                            {
+                                b4_hump_count++;
+                            }
+                        }
+                        hump_active = 0u;
+                        hump_angle = 0u;
+                        hump_quiet_ms = 0u;
+                    }
+                }
+            }
 
             if (handling.lift_acc > lift_peak)
             {

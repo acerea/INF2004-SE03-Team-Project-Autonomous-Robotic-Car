@@ -619,6 +619,29 @@ ir_lock_steering (bool b_lock)
     return;
 }
 
+bool
+ir_receive_nav_event (ir_nav_event_t * p_out)
+{
+    uint8_t packed;
+
+    if ((NULL == p_out) || (mbf_s3_nav < E_OK))
+    {
+        return false;
+    }
+
+    if (tk_rcv_mbf(mbf_s3_nav, &packed, TMO_POL) == S3_NAV_MSG_BYTES)
+    {
+        ir_snapshot_t snap;
+        p_out->letter = s3_nav_letter_of(packed);
+        p_out->cmd = s3_nav_cmd_of(packed);
+
+        ir_get_telemetry(&snap);
+        p_out->barcode_seq = snap.barcode_seq;
+        return true;
+    }
+
+    return false;
+}
 void
 ir_get_telemetry (ir_snapshot_t * p_out)
 {

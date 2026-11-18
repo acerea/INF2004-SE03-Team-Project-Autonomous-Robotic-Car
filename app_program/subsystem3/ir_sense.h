@@ -52,10 +52,19 @@ typedef struct
     unsigned int barcode_seq  : 4;      // +1 per barcode read (wraps).
 } ir_snapshot_t;
 
+typedef struct
+{
+    uint8_t     letter;
+    ir_nav_cmd_t cmd;
+    uint8_t     barcode_seq;
+} ir_nav_event_t;
 ER   ir_sense_init(void);
 ER   ir_sense_start(void);
 void ir_lock_steering(bool b_lock);
 void ir_get_telemetry(ir_snapshot_t * p_out);
+
+// Non-blocking consumption of one decoded barcode command.
+bool ir_receive_nav_event(ir_nav_event_t * p_out);
 
 #endif /* IR_SENSE_H */
 

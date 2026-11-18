@@ -1,11 +1,9 @@
 /** @file vehicle.c
  *
- * @brief Vehicle Controller (VC): mission state machine, stage 1.
+ * @brief Vehicle Controller (VC): mission state machine and obstacle bypass.
  *
  * @par
- * Stage 1: START / STOP / ESTOP / RESET from the laptop, and obstacle
- * slow-down and stop from subsystem 5. Turning (S3) and bypassing (S5)
- * are added in later stages. The VC polls its inputs every VC_TICK_MS,
+ * The VC polls its inputs every VC_TICK_MS,
  * because a task can wait on only one kernel object at a time, turns them
  * into events and handles each event in vc_dispatch() (switch on state).
  *
@@ -21,8 +19,9 @@
  *   not FAULT  LIFTED             -> STOPPED    motors stop: end of run
  *                                               (IDLE stays IDLE)
  *   IDLE       START              -> FOLLOWING  speed by obstacle level
- *   FOLLOWING  OBS_EMERGENCY      -> BLOCKED    motors stop
+ *   FOLLOWING  OBS_EMERGENCY      -> BYPASSING  S5 side selected, S2 sequence
  *   FOLLOWING  OBS_SLOW / CLEAR   -> FOLLOWING  speed 10 / 20 cm/s
+ *   BLOCKED    OBS_EMERGENCY      -> BYPASSING  once S5 side flags are ready
  *   BLOCKED    OBS_SLOW / CLEAR   -> FOLLOWING  speed 10 cm/s
  *   STOPPED    START              -> FOLLOWING  speed by obstacle level
  *   STOPPED    RESET              -> IDLE       motors stop
@@ -35,6 +34,7 @@
 #include "vehicle.h"
 #include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
+#include "../subsystem3/ir_sense.h"
 #include "../subsystem4/subsystem4.h"
 #include "../subsystem5/subsystem5.h"
 
@@ -62,10 +62,15 @@ typedef uint8_t vc_event_t;
 #define VC_EV_OBS_EMERGENCY (6u)
 #define VC_EV_LIFTED        (7u)    // S4: robot picked up (rising edge).
 #define VC_EV_OVERTURNED    (8u)    // S4: robot overturned (rising edge).
+#define VC_EV_MOTION_DONE   (9u)    // S2 completed a distance/turn command.
+#define VC_EV_REJOIN        (10u)   // S3 saw the guide line stably.
 
 #define VC_HANDLED_BITS     (S4_FLG_LIFTED | S4_FLG_OVERTURNED)
 
-#define VC_STATE_MS         (1000u)               // STATE frame every 1 s.
+#define VC_STATE_MS         (1000u)
+#define VC_BARCODE_TURN_ANGLE  (90u)
+#define VC_BARCODE_UTURN_ANGLE (180u)
+#define VC_BARCODE_STRAIGHT_CM (20u)               // STATE frame every 1 s.
 #define VC_SPEED_MAX        (63u)                 // Largest speed field value.
 
 static volatile vc_state_t g_vc_state = VC_STATE_IDLE;  // One writer: VC.
@@ -77,9 +82,29 @@ static uint32_t g_vc_sent_cmd = VC_MOTION_NONE; // Last one subsystem 2 took.
 static uint32_t g_vc_sent_arg = VC_MOTION_NONE;
 static UINT     g_vc_imu_bits = 0u;             // Last flg_s4_imu read.
 
+typedef enum {
+    VC_BYPASS_TURN_OUT = 0,
+    VC_BYPASS_LATERAL_OUT,
+    VC_BYPASS_FORWARD,
+    VC_BYPASS_TURN_IN,
+    VC_BYPASS_LATERAL_IN,
+    VC_BYPASS_TURN_ALIGN,
+    VC_BYPASS_WAIT_REJOIN
+} vc_bypass_step_t;
+
+static vc_bypass_step_t g_vc_bypass_step;
+static S5_BYPASS_DIR    g_vc_bypass_dir;
+static uint32_t         g_vc_bypass_started;
+static uint8_t          g_vc_rejoin_samples;
+static bool              g_vc_rejoin_armed;
+
 static void       vc_task(INT stacd, void * exinf);
 static void       vc_poll_remote(void);
+static void       vc_poll_navigation(void);
+static void       vc_poll_line_following(void);
+static void       vc_poll_motion_done(void);
 static void       vc_poll_imu(void);
+static void       vc_poll_bypass(void);
 static void       vc_dispatch(vc_event_t ev);
 static void       vc_enter_following(void);
 static vc_event_t vc_obstacle_event(uint32_t level);
@@ -89,6 +114,10 @@ static void       vc_set_state(vc_state_t next);
 static uint32_t   vc_obstacle_level(void);
 static char const * vc_state_name(vc_state_t state);
 static void       vc_publish_state(void);
+static void       vc_start_bypass(void);
+static void       vc_bypass_command(uint32_t cmd, uint32_t arg);
+static bool       vc_rejoin_seen(void);
+static void       vc_finish_bypass(bool rejoined);
 
 ER
 vehicle_init (void)
@@ -128,9 +157,16 @@ vc_task (INT stacd, void * exinf)
     {
         vc_poll_imu();          // Lifted / overturned: stop at once.
         vc_poll_remote();       // Safety commands next.
+        vc_poll_motion_done();
+        vc_poll_navigation();
+        if (VC_STATE_FOLLOWING == g_vc_state)
+        {
+            vc_poll_line_following();
+        }
 
         g_vc_obstacle = vc_obstacle_level();
         vc_dispatch(vc_obstacle_event(g_vc_obstacle));
+        vc_poll_bypass();
 
         vc_motion_send();       // Retries a request that did not fit.
 
@@ -249,6 +285,88 @@ vc_poll_imu (void)
 }
 
 static void
+vc_poll_navigation (void)
+{
+    ir_nav_event_t nav;
+
+    while (ir_receive_nav_event(&nav))
+    {
+        if (VC_STATE_FOLLOWING != g_vc_state)
+        {
+            continue;
+        }
+
+        if (IR_NAV_LEFT == nav.cmd)
+        {
+            s2_setLineCorrection(0);
+            ir_lock_steering(true);
+            vc_set_state(VC_STATE_TURNING);
+            vc_motion(S2_MOTION_TURN_LEFT, VC_BARCODE_TURN_ANGLE);
+        }
+        else if (IR_NAV_RIGHT == nav.cmd)
+        {
+            s2_setLineCorrection(0);
+            ir_lock_steering(true);
+            vc_set_state(VC_STATE_TURNING);
+            vc_motion(S2_MOTION_TURN_RIGHT, VC_BARCODE_TURN_ANGLE);
+        }
+        else if (IR_NAV_STRAIGHT == nav.cmd)
+        {
+            s2_setLineCorrection(0);
+            ir_lock_steering(true);
+            vc_set_state(VC_STATE_TURNING);
+            vc_motion(S2_MOTION_MOVE_DISTANCE, VC_BARCODE_STRAIGHT_CM);
+        }
+        else if (IR_NAV_UTURN == nav.cmd)
+        {
+            s2_setLineCorrection(0);
+            ir_lock_steering(true);
+            vc_set_state(VC_STATE_TURNING);
+            vc_motion(S2_MOTION_TURN_LEFT, VC_BARCODE_UTURN_ANGLE);
+        }
+    }
+
+    return;
+}
+
+static void
+vc_poll_line_following (void)
+{
+    ir_snapshot_t snap;
+
+    ir_get_telemetry(&snap);
+    if (IR_TRACK == snap.state)
+    {
+        s2_setLineCorrection(snap.line_pos);
+    }
+    else
+    {
+        s2_setLineCorrection(0);
+    }
+
+    return;
+}
+
+static void
+vc_poll_motion_done (void)
+{
+    UINT ptn = 0u;
+
+    if ((VC_STATE_TURNING == g_vc_state)
+        && (E_OK == tk_wai_flg(flg_motion, S2_MOTION_DONE,
+                               TWF_ORW | TWF_BITCLR, &ptn, TMO_POL)))
+    {
+        if (0u != (ptn & S2_MOTION_DONE))
+        {
+            ir_lock_steering(false);
+            s2_setLineCorrection(0);
+            vc_enter_following();
+        }
+    }
+
+    return;
+}
+static void
 vc_dispatch (vc_event_t ev)
 {
     // Safety events are accepted in every state.
@@ -298,8 +416,7 @@ vc_dispatch (vc_event_t ev)
       case VC_STATE_FOLLOWING:
         if (VC_EV_OBS_EMERGENCY == ev)
         {
-            vc_motion(S2_MOTION_STOP, 0u);
-            vc_set_state(VC_STATE_BLOCKED);
+            vc_start_bypass();
         }
         else if (VC_EV_OBS_SLOW == ev)
         {
@@ -316,10 +433,75 @@ vc_dispatch (vc_event_t ev)
       break;
 
       case VC_STATE_BLOCKED:
-        if ((VC_EV_OBS_SLOW == ev) || (VC_EV_OBS_CLEAR == ev))
+        if (VC_EV_OBS_EMERGENCY == ev)
+        {
+            /* S5 may publish EMERGENCY before its side sweep has set the
+             * direction bits.  Retry on the next VC tick. */
+            vc_start_bypass();
+        }
+        else if ((VC_EV_OBS_SLOW == ev) || (VC_EV_OBS_CLEAR == ev))
         {
             vc_set_state(VC_STATE_FOLLOWING);
             vc_motion(S2_MOTION_SET_SPEED, VC_SLOW_CM_S);
+        }
+      break;
+
+      case VC_STATE_BYPASSING:
+        if (VC_EV_MOTION_DONE == ev)
+        {
+            switch (g_vc_bypass_step)
+            {
+              case VC_BYPASS_TURN_OUT:
+                g_vc_bypass_step = VC_BYPASS_LATERAL_OUT;
+                vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
+                                  VC_BYPASS_LATERAL_CM);
+              break;
+              case VC_BYPASS_LATERAL_OUT:
+                g_vc_bypass_step = VC_BYPASS_FORWARD;
+                vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
+                                      ? S2_MOTION_TURN_RIGHT
+                                      : S2_MOTION_TURN_LEFT,
+                                  VC_BYPASS_TURN_DEG);
+              break;
+              case VC_BYPASS_FORWARD:
+                g_vc_bypass_step = VC_BYPASS_TURN_IN;
+                vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
+                                  VC_BYPASS_FORWARD_CM);
+              break;
+              case VC_BYPASS_TURN_IN:
+                g_vc_bypass_step = VC_BYPASS_LATERAL_IN;
+                vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
+                                      ? S2_MOTION_TURN_LEFT
+                                      : S2_MOTION_TURN_RIGHT,
+                                  VC_BYPASS_TURN_DEG);
+              break;
+              case VC_BYPASS_LATERAL_IN:
+                g_vc_bypass_step = VC_BYPASS_TURN_ALIGN;
+                vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
+                                  VC_BYPASS_LATERAL_CM);
+              break;
+              case VC_BYPASS_TURN_ALIGN:
+                g_vc_bypass_step = VC_BYPASS_WAIT_REJOIN;
+                vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
+                                      ? S2_MOTION_TURN_RIGHT
+                                      : S2_MOTION_TURN_LEFT,
+                                  VC_BYPASS_TURN_DEG);
+              break;
+              default:
+                /* Completion of the final turn only starts the explicit
+                 * line rejoin window; it does not assume success. */
+                {
+                    SYSTIM now;
+                    (void)tk_get_otm(&now);
+                    g_vc_bypass_started = now.lo;
+                    g_vc_rejoin_armed = true;
+                }
+              break;
+            }
+        }
+        else if (VC_EV_REJOIN == ev)
+        {
+            vc_finish_bypass(true);
         }
       break;
 
@@ -348,13 +530,144 @@ vc_dispatch (vc_event_t ev)
       break;
 
       case VC_STATE_TURNING:        // Reserved for stage 2.
-      case VC_STATE_BYPASSING:      // Reserved for stage 3.
       default:
       break;
     }
 
     return;
 }
+
+    static void
+    vc_start_bypass (void)
+    {
+        T_RFLG flags;
+        UINT side = 0u;
+
+        if (E_OK == tk_ref_flg(flg_s5_obstacle, &flags))
+        {
+            side = flags.flgptn & (S5_FLAG_AVOID_LEFT | S5_FLAG_AVOID_RIGHT);
+        }
+        if (S5_FLAG_AVOID_LEFT == side)
+        {
+            g_vc_bypass_dir = S5_DIR_LEFT;
+        }
+        else if (S5_FLAG_AVOID_RIGHT == side)
+        {
+            g_vc_bypass_dir = S5_DIR_RIGHT;
+        }
+        else
+        {
+            /* No sweep result is safer as a stop than choosing a side. */
+            vc_motion(S2_MOTION_STOP, 0u);
+            vc_set_state(VC_STATE_BLOCKED);
+            return;
+        }
+
+        (void)tk_wai_flg(flg_motion, S2_MOTION_DONE, TWF_ORW | TWF_BITCLR,
+                         &side, TMO_POL);
+        g_vc_bypass_step = VC_BYPASS_TURN_OUT;
+        g_vc_rejoin_samples = 0u;
+        g_vc_rejoin_armed = false;
+        g_vc_bypass_started = 0u;
+        ir_lock_steering(true);
+        vc_set_state(VC_STATE_BYPASSING);
+        vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
+                              ? S2_MOTION_TURN_LEFT : S2_MOTION_TURN_RIGHT,
+                          VC_BYPASS_TURN_DEG);
+    }
+
+    static void
+    vc_bypass_command (uint32_t cmd, uint32_t arg)
+    {
+        SYSTIM now;
+
+        vc_motion(cmd, arg);
+        (void)tk_get_otm(&now);
+        g_vc_bypass_started = now.lo;
+    }
+
+    static bool
+    vc_rejoin_seen (void)
+    {
+        ir_snapshot_t snap;
+        int pos;
+
+        ir_get_telemetry(&snap);
+        pos = snap.line_pos;
+        if ((snap.state == IR_TRACK) && (snap.lost_timeout == 0u)
+            && ((snap.sensors & IR_SENS_CENTRE) != 0u)
+            && (pos >= -250) && (pos <= 250))
+        {
+            if (g_vc_rejoin_samples < VC_REJOIN_STABLE_SAMPLES)
+            {
+                g_vc_rejoin_samples++;
+            }
+        }
+        else
+        {
+            g_vc_rejoin_samples = 0u;
+        }
+        return (g_vc_rejoin_samples >= VC_REJOIN_STABLE_SAMPLES);
+    }
+
+    static void
+    vc_finish_bypass (bool rejoined)
+    {
+        ir_lock_steering(false);
+        vc_motion(S2_MOTION_STOP, 0u);
+        g_vc_rejoin_samples = 0u;
+        g_vc_rejoin_armed = false;
+        if (rejoined)
+        {
+            vc_set_state(VC_STATE_FOLLOWING);
+            vc_motion(S2_MOTION_SET_SPEED, VC_CRUISE_CM_S);
+        }
+        else
+        {
+            vc_set_state(VC_STATE_BLOCKED);
+        }
+    }
+
+    static void
+    vc_poll_bypass (void)
+    {
+        SYSTIM now;
+        UINT ptn = 0u;
+
+        if (VC_STATE_BYPASSING != g_vc_state)
+        {
+            return;
+        }
+        if (E_OK == tk_wai_flg(flg_motion, S2_MOTION_DONE,
+                               TWF_ORW | TWF_BITCLR, &ptn, TMO_POL))
+        {
+            vc_dispatch(VC_EV_MOTION_DONE);
+        }
+        if ((VC_BYPASS_WAIT_REJOIN == g_vc_bypass_step)
+            && g_vc_rejoin_armed)
+        {
+            if (vc_rejoin_seen())
+            {
+                vc_dispatch(VC_EV_REJOIN);
+            }
+            else
+            {
+                (void)tk_get_otm(&now);
+                if ((now.lo - g_vc_bypass_started) >= VC_REJOIN_TIMEOUT_MS)
+                {
+                    vc_finish_bypass(false);
+                }
+            }
+        }
+        else
+        {
+            (void)tk_get_otm(&now);
+            if ((now.lo - g_vc_bypass_started) >= VC_BYPASS_TIMEOUT_MS)
+            {
+                vc_finish_bypass(false);
+            }
+        }
+    }
 
 static void
 vc_enter_following (void)
