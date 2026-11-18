@@ -163,7 +163,8 @@
       var lifted = d.motion === "LIFTED";
       $("ter").textContent = lifted ? "LIFTED" : (d.overturned ? "OVERTURNED" : "on ground");
       $("terSub").textContent = d.motion + (d.imu_fault ? " · IMU FAULT" : "") +
-        (d.hump_mm !== undefined ? " · hump " + d.hump_mm + " mm ×" + d.hump_count : "");
+        (d.hump_mm !== undefined ? " · hump " + d.hump_mm + " mm ×" + d.hump_count : "") +
+        (d.lift_peak !== undefined ? " · lift peak " + d.lift_peak : "");
       setCard("cTer", lifted || d.overturned || d.imu_fault ? "bad" : "ok");
     }
   }

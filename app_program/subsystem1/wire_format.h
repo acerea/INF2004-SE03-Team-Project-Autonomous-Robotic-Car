@@ -83,6 +83,7 @@ typedef uint8_t proto_type_t;
 #define PROTO_TER_HUMP_OK_BITS  (1u)    // 0 = hump not measured yet.
 #define PROTO_TER_HUMP_MM_BITS  (8u)    // Peak hump height, 0-255 mm.
 #define PROTO_TER_HUMPS_BITS    (4u)    // Hump count, 0-15.
+#define PROTO_TER_LIFT_PEAK_BITS (8u)   // Debug: peak lift_acc, x1000 mg.ms.
 
 // Obstacle (type 6, subsystem 5): 11 bits. Send at 5 Hz.
 #define PROTO_OBS_STATE_BITS    (2u)    // 0 clear, 1 slow down, 2 emergency.
