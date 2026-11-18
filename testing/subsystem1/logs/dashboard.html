@@ -67,6 +67,7 @@
   <section class="card" id="cMo"><h2>Wheels (measured)</h2><p class="big" id="mo">—</p><div class="sub" id="moSub">left / right cm/s</div></section>
   <section class="card" id="cObs"><h2>Obstacle</h2><p class="big" id="obs">—</p><div class="sub" id="obsSub"></div></section>
   <section class="card" id="cBc"><h2>Last barcode</h2><p class="big" id="bc">—</p><div class="sub" id="bcSub"></div></section>
+  <section class="card" id="cLine"><h2>Line status</h2><p class="big" id="line">—</p><div class="sub" id="lineSub">no line telemetry yet</div></section>
   <section class="card" id="cTer"><h2>Lifted / terrain</h2><p class="big" id="ter">—</p><div class="sub" id="terSub"></div></section>
   <section class="card wide">
     <div class="hist-head">
@@ -114,6 +115,7 @@
   var STATE_LEVEL = { FOLLOWING: "ok", TURNING: "ok", BYPASSING: "ok",
                       IDLE: "", BLOCKED: "warn", STOPPED: "warn", FAULT: "bad" };
   var OBS_LEVEL = { CLEAR: "ok", SLOWDOWN: "warn", EMERGENCY: "bad" };
+  var LINE_LEVEL = { CALI: "warn", TRACK: "ok", BARCODE: "ok", LINE_LOST: "bad" };
 
   function handle(kind, d) {
     if (kind === "hb") {
@@ -159,11 +161,17 @@
       $("bcSub").textContent = "turn " + d.command + " · " + d.time;
       setCard("cBc", d.letter === "unreadable" ? "warn" : "ok");
       if (d.seq !== lastLetterSeq) { log("barcode " + d.letter + " → " + d.command + upText()); lastLetterSeq = d.seq; }
+    } else if (kind === "line") {
+      $("line").textContent = d.state;
+      $("lineSub").textContent = "sensors " + d.sensors + " · junction " + d.junction +
+        " · position " + (d.line_pos >= 0 ? "+" : "") + d.line_pos;
+      setCard("cLine", LINE_LEVEL[d.state] || "warn");
     } else if (kind === "terrain") {
       var lifted = d.motion === "LIFTED";
       $("ter").textContent = lifted ? "LIFTED" : (d.overturned ? "OVERTURNED" : "on ground");
       $("terSub").textContent = d.motion + (d.imu_fault ? " · IMU FAULT" : "") +
-        (d.hump_mm !== undefined ? " · hump " + d.hump_mm + " mm ×" + d.hump_count : "");
+        (d.hump_mm !== undefined ? " · hump " + d.hump_mm + " mm ×" + d.hump_count : "") +
+        (d.lift_peak !== undefined ? " · lift peak " + d.lift_peak : "");
       setCard("cTer", lifted || d.overturned || d.imu_fault ? "bad" : "ok");
     }
   }

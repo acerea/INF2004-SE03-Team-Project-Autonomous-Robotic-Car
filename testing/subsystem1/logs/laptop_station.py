@@ -115,6 +115,8 @@ def decode_fields(f):
             d.update(hump_mm=get_bits(f, 20, 8), hump_count=get_bits(f, 28, 4))
         else:
             d["hump"] = "not measured"
+        if len(f) >= 5:     # 5-byte terrain: lift detector peak (tuning)
+            d["lift_peak"] = get_bits(f, 32, 8) * 1000
         return "terrain", d
     if typ == 6 and len(f) >= 4:
         d.update(state=OBS_STATES[get_bits(f, 14, 2)],

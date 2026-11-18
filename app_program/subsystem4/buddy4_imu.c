@@ -527,7 +527,7 @@ LOCAL void b4_set_flag_bits(UINT bits)
 /* MQTT terrain telemetry                                    */
 /* --------------------------------------------------------- */
 
-LOCAL void b4_publish_terrain(B4_EVENT event)
+LOCAL void b4_publish_terrain(B4_EVENT event, int32_t lift_peak)
 {
     uint8_t frame[PROTO_MAX_FRAME_BYTES];
     proto_bits_t bits;
@@ -551,6 +551,11 @@ LOCAL void b4_publish_terrain(B4_EVENT event)
     proto_put(&bits, b4_hump_ok, PROTO_TER_HUMP_OK_BITS);
     proto_put(&bits, b4_hump_height_mm, PROTO_TER_HUMP_MM_BITS);
     proto_put(&bits, b4_hump_count, PROTO_TER_HUMPS_BITS);
+
+    /* Tuning aid: largest positive lift_acc since the last frame. */
+    proto_put_sat(&bits,
+                  (lift_peak > 0) ? (uint32_t)(lift_peak / 1000) : 0u,
+                  PROTO_TER_LIFT_PEAK_BITS);
 
     (void)s1_publish(frame, proto_end(&bits), false);
 }
@@ -637,7 +642,7 @@ LOCAL void b4_imu_connect(void)
             break;                          /* IMU ready. */
         }
 
-        b4_publish_terrain(b4_pack_event(B4_STATE_FAULT, 0u, 1u));
+        b4_publish_terrain(b4_pack_event(B4_STATE_FAULT, 0u, 1u), 0);
         tk_dly_tsk(2000u);
     }
 
@@ -658,7 +663,8 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     B4_MOTION_INPUT motion_input;
     B4_EVENT event;
     B4_EVENT previous_event = 0u;
-    uint16_t terrain_publish_counter = 0u;
+    int32_t terrain_ms = 0;
+    int32_t terrain_peak = 0;
     uint8_t terrain_first_publish = 1u;
     B4_HANDLING handling;
     UINT flag_bits;
@@ -846,6 +852,10 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
             {
                 lift_peak = handling.lift_acc;
             }
+            if (handling.lift_acc > terrain_peak)
+            {
+                terrain_peak = handling.lift_acc;
+            }
 
             motion_input.lifted = handling.b_lifted;
             motion_input.overturned = handling.b_overturned;
@@ -933,16 +943,17 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
         /* Publish on event change or approximately every 1 sec. */
         /* ----------------------------------------------------- */
 
-        terrain_publish_counter++;
+        terrain_ms += dt_ms;
 
         if ((terrain_first_publish != 0u) ||
             (event != previous_event) ||
-            (terrain_publish_counter >= 100u))
+            (terrain_ms >= 1000))
         {
-            b4_publish_terrain(event);
+            b4_publish_terrain(event, terrain_peak);
 
             previous_event = event;
-            terrain_publish_counter = 0u;
+            terrain_ms = 0;
+            terrain_peak = 0;
             terrain_first_publish = 0u;
         }
 
