@@ -134,7 +134,6 @@ LOCAL void s5_scan_task(INT stacd, void *param)
         if (d_center > 0.0f && d_center < S5_STOP_DIST_CM) {
             state = S5_TLM_EMERGENCY;
             s5_set_state_flag(S5_FLAG_EMERGENCY);
-            tk_clr_flg(flg_s5_obstacle, (UINT)S5_SIDE_FLAGS);
         } else if (d_center > 0.0f && d_center < S5_WARN_DIST_CM) {
             state = S5_TLM_SLOWDOWN;
             s5_set_state_flag(S5_FLAG_SLOWDOWN);

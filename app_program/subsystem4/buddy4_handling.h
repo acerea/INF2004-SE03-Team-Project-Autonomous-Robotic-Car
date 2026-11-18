@@ -63,7 +63,7 @@
 // Lift detector: Z axis only (Z points up).
 #define B4_LIFT_TAU_MS (320)       // Integrator leak time constant.
 #define B4_LIFT_BASE_TAU_MS (2560) // Z baseline time constant.
-#define B4_LIFT_TRIGGER (15000)    // mg x ms; catches normal lifts before the baseline absorbs them.
+#define B4_LIFT_TRIGGER (30000)    // mg x ms; margin above driving vibration.
 #define B4_LIFT_RUN_MS (80)        // Trigger held 80 ms.
 #define B4_LIFT_HOLD_MS (2000)     // LIFTED latched 2 s after trigger.
 #define B4_LIFT_ACC_LIMIT (200000) // Integrator clamp, mg x ms.
