@@ -468,6 +468,9 @@ vc_dispatch (vc_event_t ev)
       case VC_STATE_FOLLOWING:
         if (VC_EV_OBS_EMERGENCY == ev)
         {
+            /* Stop the forward PID immediately.  Side selection may take
+             * several servo readings before the bypass can begin. */
+            vc_motion(S2_MOTION_STOP, 0u);
             vc_start_bypass();
         }
         else if (VC_EV_OBS_SLOW == ev)
@@ -594,6 +597,10 @@ vc_dispatch (vc_event_t ev)
     {
         T_RFLG flags;
         UINT side = 0u;
+
+        /* Emergency handling must never leave the forward PID active while
+         * waiting for the ultrasonic servo sweep to select a side. */
+        vc_motion(S2_MOTION_STOP, 0u);
 
         if (E_OK == tk_ref_flg(flg_s5_obstacle, &flags))
         {
