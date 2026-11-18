@@ -15,19 +15,21 @@
  *
  * Method (LSM303DLHC has an accelerometer only, no gyroscope):
  *
- *  LIFTED     Lifting the robot accelerates it upwards, so the magnitude
- *             of the measured acceleration rises above its resting value.
- *             The excess |a| - baseline (tilt-independent) is fed into a
- *             leaky integrator (time constant 2^B4_LIFT_LEAK_SHIFT
- *             samples), i.e. an upward-velocity estimate. The baseline is
- *             a slow average of |a| (2^B4_LIFT_BASE_SHIFT samples), which
- *             removes calibration error and the small positive bias that
- *             sideways vibration adds to |a|. A hump or ledge jolt is
+ *  LIFTED     Lifting the robot accelerates it upwards, so Z (which
+ *             points up) rises above its resting value. The excess
+ *             z - baseline is fed into a leaky integrator (time constant
+ *             B4_LIFT_TAU_MS), i.e. an upward-velocity estimate. The
+ *             baseline is a slow average of z (B4_LIFT_BASE_TAU_MS), which
+ *             removes calibration error. Z only, not |a|: driving
+ *             vibration on X/Y always adds to |a| and built up into a
+ *             false LIFTED after ~2 s of driving (2026-11-18 CSV); on Z it
+ *             averages to zero. Tilting only lowers z, so it cannot lift. A hump or ledge jolt is
  *             followed by a rebound (the chassis ends at rest on the
  *             floor), so its velocity estimate returns to zero quickly; a
  *             lift keeps it positive. The trigger must hold for
- *             B4_LIFT_RUN_SAMPLES samples. LIFTED then latches for
- *             B4_LIFT_HOLD_SAMPLES after the last trigger.
+ *             B4_LIFT_RUN_MS. LIFTED then latches for B4_LIFT_HOLD_MS
+ *             after the last trigger. All times are in ms (dt is measured),
+ *             because the IMU loop runs slower than its nominal 10 ms.
  *
  *             Host simulation (100 Hz, values below): no false trigger
  *             for 60 s of 150 mg RMS per-axis vibration, 150 humps with
@@ -39,10 +41,10 @@
  *
  *  OVERTURNED The Z axis points up. Its gravity share is cos(tilt), so
  *             z < B4_FLIP_Z_MG (500 mg, tilt > 60 deg) held for
- *             B4_FLIP_SET_SAMPLES means the robot is on its side or upside
+ *             B4_FLIP_SET_MS means the robot is on its side or upside
  *             down. A hump never tilts the robot that far for that long.
  *             It clears with hysteresis: z > B4_FLIP_CLEAR_Z_MG for
- *             B4_FLIP_CLEAR_SAMPLES.
+ *             B4_FLIP_CLEAR_MS.
  *
  * All thresholds are provisional and MUST be tuned on the robot
  * (testing/subsystem4/TEST_LOG.md, S4-M01 to S4-M04).
@@ -55,30 +57,35 @@
 
 #define B4_ONE_G_MG             (1000)    // Calibrated 1 g, see processing.h.
 
-// Lift detector (10 ms samples).
-#define B4_LIFT_LEAK_SHIFT      (5u)      // Integrator time constant 32 samples.
-#define B4_LIFT_BASE_SHIFT      (8u)      // Baseline time constant 2.56 s.
-#define B4_LIFT_TRIGGER         (2000)    // mg x samples (~0.2 m/s upwards).
-#define B4_LIFT_RUN_SAMPLES     (8u)      // Trigger held 80 ms.
-#define B4_LIFT_HOLD_SAMPLES    (200u)    // LIFTED latched 2 s after trigger.
-#define B4_LIFT_ACC_LIMIT       (20000)   // Integrator clamp, mg x samples.
+// All times are in ms, so the detector works at the real sample rate (the
+// IMU loop is slower than 10 ms: 12 single-register I2C reads per sample).
+
+// Lift detector: Z axis only (Z points up).
+#define B4_LIFT_TAU_MS          (320)     // Integrator leak time constant.
+#define B4_LIFT_BASE_TAU_MS     (2560)    // Z baseline time constant.
+#define B4_LIFT_TRIGGER         (20000)   // mg x ms (20 mg.s ~ 0.2 m/s up).
+#define B4_LIFT_RUN_MS          (80)      // Trigger held 80 ms.
+#define B4_LIFT_HOLD_MS         (2000)    // LIFTED latched 2 s after trigger.
+#define B4_LIFT_ACC_LIMIT       (200000)  // Integrator clamp, mg x ms.
 
 // Overturn detector.
 #define B4_FLIP_Z_MG            (500)     // cos(60 deg) = 0.5 g.
 #define B4_FLIP_CLEAR_Z_MG      (800)     // cos(37 deg) = 0.8 g.
-#define B4_FLIP_SET_SAMPLES     (20u)     // 200 ms.
-#define B4_FLIP_CLEAR_SAMPLES   (50u)     // 500 ms.
+#define B4_FLIP_SET_MS          (200)
+#define B4_FLIP_CLEAR_MS        (500)
 
-// Detector state: counters sized to their range (change requirement 1).
+#define B4_HANDLING_DT_MAX_MS   (100)     // Longer gaps count as 100 ms.
+
+// Detector state.
 typedef struct
 {
-    int32_t  base_q8;               // |a| baseline, mg x 256 (Q8).
-    int16_t  lift_acc;              // Leaky integral, clamped to +/-20000.
-    uint8_t  lift_hold;             // 0..200 samples of LIFTED latch left.
-    uint8_t  lift_run    : 4;       // 0..8 samples above trigger.
-    uint8_t  b_lifted    : 1;
-    uint8_t  b_overturned: 1;
-    uint8_t  flip_run    : 6;       // 0..50 samples (set or clear run).
+    int32_t  base_q8;               // Z baseline, mg x 256 (Q8).
+    int32_t  lift_acc;              // Leaky integral of Z excess, mg x ms.
+    uint16_t lift_hold_ms;          // LIFTED latch time left.
+    uint16_t lift_run_ms;           // Time above trigger.
+    uint16_t flip_run_ms;           // Set or clear run time.
+    uint8_t  b_lifted;
+    uint8_t  b_overturned;
 } B4_HANDLING;
 
 /** Integer square root of a 32-bit value (floor). */
@@ -127,38 +134,66 @@ b4_handling_init (B4_HANDLING * p_h)
 {
     p_h->base_q8      = (int32_t) B4_ONE_G_MG * 256;
     p_h->lift_acc     = 0;
-    p_h->lift_hold    = 0u;
-    p_h->lift_run     = 0u;
+    p_h->lift_hold_ms = 0u;
+    p_h->lift_run_ms  = 0u;
+    p_h->flip_run_ms  = 0u;
     p_h->b_lifted     = 0u;
     p_h->b_overturned = 0u;
-    p_h->flip_run     = 0u;
 }
 
 /** Forget the lift integrator (after a sensor fault). Latches are kept. */
 static inline void
 b4_handling_reset_integrator (B4_HANDLING * p_h)
 {
-    p_h->lift_acc = 0;
-    p_h->lift_run = 0u;
+    p_h->lift_acc    = 0;
+    p_h->lift_run_ms = 0u;
+}
+
+/** Add dt to a run timer without overflow. */
+static inline uint16_t
+b4_run_add (uint16_t run_ms, int32_t dt_ms, int32_t limit_ms)
+{
+    int32_t t = (int32_t) run_ms + dt_ms;
+
+    return ((uint16_t) ((t > limit_ms) ? limit_ms : t));
 }
 
 /**
- * Feed one calibrated sample (mg). Updates b_lifted and b_overturned.
+ * Feed one calibrated sample (mg) taken dt_ms after the previous one.
+ * Updates b_lifted and b_overturned.
  */
 static inline void
-b4_handling_update (B4_HANDLING * p_h, int16_t x_mg, int16_t y_mg,
-                    int16_t z_mg)
+b4_handling_update_dt (B4_HANDLING * p_h, int16_t x_mg, int16_t y_mg,
+                       int16_t z_mg, int32_t dt_ms)
 {
-    int32_t mag    = b4_accel_magnitude_mg(x_mg, y_mg, z_mg);
-    int32_t excess = mag - (p_h->base_q8 / 256);
-    int32_t acc    = (int32_t) p_h->lift_acc;
+    int32_t excess;
+    int32_t acc = p_h->lift_acc;
 
-    // ---- Baseline: slow average of |a| (Q8 fixed point). ----
-    p_h->base_q8 += ((mag * 256) - p_h->base_q8)
-                    / (int32_t) (1u << B4_LIFT_BASE_SHIFT);
+    (void) x_mg;
+    (void) y_mg;
 
-    // ---- Lift: leaky integrator of the excess over the baseline. ----
-    acc = acc - (acc / (int32_t) (1u << B4_LIFT_LEAK_SHIFT)) + excess;
+    if (dt_ms < 1)
+    {
+        dt_ms = 1;
+    }
+    else if (dt_ms > B4_HANDLING_DT_MAX_MS)
+    {
+        dt_ms = B4_HANDLING_DT_MAX_MS;
+    }
+    else
+    {
+        // In range.
+    }
+
+    // ---- Lift: Z only. Driving vibration on Z averages to zero, while
+    //      |a| (all axes) always grows with X/Y vibration and made the
+    //      old detector fire after ~2 s of normal driving. ----
+    excess = (int32_t) z_mg - (p_h->base_q8 / 256);
+
+    p_h->base_q8 += (((int32_t) z_mg * 256) - p_h->base_q8) * dt_ms
+                    / B4_LIFT_BASE_TAU_MS;
+
+    acc = acc - (acc * dt_ms) / B4_LIFT_TAU_MS + excess * dt_ms;
     if (acc > B4_LIFT_ACC_LIMIT)
     {
         acc = B4_LIFT_ACC_LIMIT;
@@ -171,58 +206,67 @@ b4_handling_update (B4_HANDLING * p_h, int16_t x_mg, int16_t y_mg,
     {
         // In range.
     }
-    p_h->lift_acc = (int16_t) acc;
+    p_h->lift_acc = acc;
 
     if (acc >= B4_LIFT_TRIGGER)
     {
-        if (p_h->lift_run < B4_LIFT_RUN_SAMPLES)
-        {
-            p_h->lift_run++;
-        }
+        p_h->lift_run_ms = b4_run_add(p_h->lift_run_ms, dt_ms, B4_LIFT_RUN_MS);
     }
     else
     {
-        p_h->lift_run = 0u;
+        p_h->lift_run_ms = 0u;
     }
 
-    if (p_h->lift_run >= B4_LIFT_RUN_SAMPLES)
+    if (p_h->lift_run_ms >= B4_LIFT_RUN_MS)
     {
-        p_h->b_lifted  = 1u;
-        p_h->lift_hold = (uint8_t) B4_LIFT_HOLD_SAMPLES;
+        p_h->b_lifted     = 1u;
+        p_h->lift_hold_ms = (uint16_t) B4_LIFT_HOLD_MS;
     }
-    else if (p_h->lift_hold > 0u)
+    else if (p_h->lift_hold_ms > (uint16_t) dt_ms)
     {
-        p_h->lift_hold--;
+        p_h->lift_hold_ms = (uint16_t) (p_h->lift_hold_ms - dt_ms);
     }
     else
     {
-        p_h->b_lifted = 0u;
+        p_h->lift_hold_ms = 0u;
+        p_h->b_lifted     = 0u;
     }
 
     // ---- Overturn: Z-axis gravity share, with hysteresis. ----
     if (0u == p_h->b_overturned)
     {
-        p_h->flip_run = (z_mg < B4_FLIP_Z_MG) ? (p_h->flip_run + 1u) : 0u;
+        p_h->flip_run_ms = (z_mg < B4_FLIP_Z_MG)
+                           ? b4_run_add(p_h->flip_run_ms, dt_ms, B4_FLIP_SET_MS)
+                           : 0u;
 
-        if (p_h->flip_run >= B4_FLIP_SET_SAMPLES)
+        if (p_h->flip_run_ms >= B4_FLIP_SET_MS)
         {
             p_h->b_overturned = 1u;
-            p_h->flip_run     = 0u;
+            p_h->flip_run_ms  = 0u;
         }
     }
     else
     {
-        p_h->flip_run = (z_mg > B4_FLIP_CLEAR_Z_MG) ? (p_h->flip_run + 1u)
-                                                     : 0u;
+        p_h->flip_run_ms = (z_mg > B4_FLIP_CLEAR_Z_MG)
+                           ? b4_run_add(p_h->flip_run_ms, dt_ms, B4_FLIP_CLEAR_MS)
+                           : 0u;
 
-        if (p_h->flip_run >= B4_FLIP_CLEAR_SAMPLES)
+        if (p_h->flip_run_ms >= B4_FLIP_CLEAR_MS)
         {
             p_h->b_overturned = 0u;
-            p_h->flip_run     = 0u;
+            p_h->flip_run_ms  = 0u;
         }
     }
 
     return;
+}
+
+/** Same, for samples exactly 10 ms apart (unit tests). */
+static inline void
+b4_handling_update (B4_HANDLING * p_h, int16_t x_mg, int16_t y_mg,
+                    int16_t z_mg)
+{
+    b4_handling_update_dt(p_h, x_mg, y_mg, z_mg, 10);
 }
 
 #endif /* BUDDY4_HANDLING_H */

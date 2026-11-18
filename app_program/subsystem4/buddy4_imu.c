@@ -51,6 +51,15 @@
 /* Accelerometer is configured for 100 Hz. */
 #define B4_IMU_SAMPLE_MS 10u
 
+/* 1 = read the 6 accelerometer and 6 magnetometer bytes in one I2C transfer
+ * each. 12 single-register reads made one sample take ~55 ms instead of
+ * 10 ms. Set to 0 to go back to single-register reads if the IMU faults. */
+#define B4_IMU_BURST_READ 1
+
+/* LSM303DLHC accelerometer: set bit 7 of the register address to make it
+ * auto-increment over the following registers. */
+#define ACC_AUTO_INCREMENT 0x80u
+
 /* Consecutive failed reads (10 ms each) before reconnecting. */
 #define B4_IMU_RECONNECT_ERRORS 50u
 
@@ -222,6 +231,52 @@ LOCAL int16_t b4_make_i16(UB low, UB high)
     return (int16_t)((UW)(((UW)high << 8) | (UW)low));
 }
 
+#if B4_IMU_BURST_READ
+/* Read n consecutive registers in one I2C transfer. */
+LOCAL ER b4_read_block(UW address, UW reg, UB *buf, SZ n)
+{
+    T_I2C_EXEC exec;
+    SZ asz;
+    UW radr = reg;      /* Low byte is sent, as in i2c_read_reg(). */
+
+    exec.sadr = address;
+    exec.snd_size = 1;
+    exec.snd_data = (UB *)&radr;
+    exec.rcv_size = n;
+    exec.rcv_data = buf;
+
+    return tk_swri_dev(b4_i2c_device, TDN_I2C_EXEC, &exec,
+                       sizeof(exec), &asz);
+}
+
+LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
+{
+    UB a[6];
+    UB m[6];
+    ER er;
+
+    /* Accelerometer: X, Y, Z, little-endian. */
+    er = b4_read_block(b4_accel_address,
+                       ACC_OUT_X_L_A | ACC_AUTO_INCREMENT, a, 6);
+    if (er < E_OK)
+        return er;
+
+    /* Magnetometer: X, Z, Y, big-endian (pointer auto-increments). */
+    er = b4_read_block(B4_IMU_MAG_ADDR, MAG_OUT_X_H_M, m, 6);
+    if (er < E_OK)
+        return er;
+
+    sample->accel_x = b4_make_i16(a[0], a[1]);
+    sample->accel_y = b4_make_i16(a[2], a[3]);
+    sample->accel_z = b4_make_i16(a[4], a[5]);
+
+    sample->mag_x = (int16_t)((UW)(((UW)m[0] << 8) | m[1]));
+    sample->mag_z = (int16_t)((UW)(((UW)m[2] << 8) | m[3]));
+    sample->mag_y = (int16_t)((UW)(((UW)m[4] << 8) | m[5]));
+
+    return E_OK;
+}
+#else
 LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
 {
     UB xl, xh, yl, yh, zl, zh;
@@ -340,6 +395,7 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
 
     return E_OK;
 }
+#endif
 
 /* --------------------------------------------------------- */
 /* Motion preprocessing                                      */
@@ -567,6 +623,11 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     uint8_t terrain_first_publish = 1u;
     B4_HANDLING handling;
     UINT flag_bits;
+    SYSTIM now_tm;
+    UW last_ms = 0u;
+    int32_t dt_ms = (int32_t)B4_IMU_SAMPLE_MS;
+    int32_t lift_peak = 0;      /* Largest lift_acc since the last print. */
+    int32_t dt_peak = 0;        /* Longest sample interval since then. */
 
     ER er;
 
@@ -601,6 +662,18 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
      */
     while (1)
     {
+        /* Real time since the last sample: the detector works in ms. */
+        (void)tk_get_otm(&now_tm);
+        if (last_ms != 0u)
+        {
+            dt_ms = (int32_t)(now_tm.lo - last_ms);
+        }
+        last_ms = now_tm.lo;
+        if (dt_ms > dt_peak)
+        {
+            dt_peak = dt_ms;
+        }
+
         er = b4_read_raw(&sample);
 
         if (er >= E_OK)
@@ -662,10 +735,16 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * Step 4: Lift / overturn detection (replaces collision
              * detection). Tell the VC at once, before anything else.
              */
-            b4_handling_update(&handling,
-                               calibrated_mg.x_mg,
-                               calibrated_mg.y_mg,
-                               calibrated_mg.z_mg);
+            b4_handling_update_dt(&handling,
+                                  calibrated_mg.x_mg,
+                                  calibrated_mg.y_mg,
+                                  calibrated_mg.z_mg,
+                                  dt_ms);
+
+            if (handling.lift_acc > lift_peak)
+            {
+                lift_peak = handling.lift_acc;
+            }
 
             motion_input.lifted = handling.b_lifted;
             motion_input.overturned = handling.b_overturned;
@@ -776,13 +855,19 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
         {
             print_counter = 0u;
 
+            /* Tuning (S4-M01): B4_LIFT_TRIGGER should be at least 1.5 x
+               the largest peak seen while driving normally. */
+            tm_printf((UB *)"[B4-IMU] lift peak=%d (trigger %d) | "
+                            "longest loop=%d ms\n",
+                      (INT)lift_peak, (INT)B4_LIFT_TRIGGER, (INT)dt_peak);
+
             if (er >= E_OK)
             {
                 tm_printf(
                     (UB *)"[B4-IMU] "
                           "CAL X=%d Y=%d Z=%d mg | "
                           "Motion=%d mg | "
-                          "Lift acc=%d | "
+                          "Lift acc=%d Peak=%d | "
                           "Lifted=%u Overturned=%u | "
                           "Vertical delta=%d mg | "
                           "Event=0x%02x | State=%u\n",
@@ -791,6 +876,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                     calibrated_mg.z_mg,
                     motion_input.motion_level_mg,
                     (INT)handling.lift_acc,
+                    (INT)lift_peak,
                     (UINT)handling.b_lifted,
                     (UINT)handling.b_overturned,
                     motion_input.vertical_delta_mg,
@@ -806,6 +892,8 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                     (UB)event,
                     (UB)b4_event_state(event));
             }
+            lift_peak = 0;
+            dt_peak = 0;
         }
 
         /* Wait before taking the next sample. */

@@ -82,36 +82,43 @@ LOCAL void handling_tests(INT *pass, INT *fail)
 	seen = feed_lift_seen(&h, 20, 0, 0, 1300);
 	TEST_CHECK("B4-H04", seen, "lift is detected within 200 ms");
 
-	/* B4-H05: LIFTED is held while carried, then clears after ~2 s */
+	/* B4-H05: a gentler lift (+0.1 g for 500 ms) also sets LIFTED */
+	b4_handling_init(&h);
+	feed(&h, 50, 0, 0, 1000);
+	seen = feed_lift_seen(&h, 50, 0, 0, 1100);
+	TEST_CHECK("B4-H05", seen,
+		   "gentle lift is detected without a fast upward motion");
+
+	/* B4-H06: LIFTED is held while carried, then clears after ~2 s */
 	feed(&h, 100, 0, 0, 1000);
 	i = h.b_lifted;
 	feed(&h, 200, 0, 0, 1000);
-	TEST_CHECK("B4-H05", i && !h.b_lifted,
+	TEST_CHECK("B4-H06", i && !h.b_lifted,
 		   "LIFTED latches for the hold time, then clears");
 
-	/* B4-H06: upside down for 200 ms sets OVERTURNED */
+	/* B4-H07: upside down for 200 ms sets OVERTURNED */
 	b4_handling_init(&h);
 	feed(&h, 50, 0, 0, 1000);
 	feed(&h, 25, 0, 0, -1000);
-	TEST_CHECK("B4-H06", h.b_overturned, "upside down is OVERTURNED");
+	TEST_CHECK("B4-H07", h.b_overturned, "upside down is OVERTURNED");
 
-	/* B4-H07: on its side (90 deg roll) is also OVERTURNED */
+	/* B4-H08: on its side (90 deg roll) is also OVERTURNED */
 	b4_handling_init(&h);
 	feed(&h, 25, 1000, 0, 0);
-	TEST_CHECK("B4-H07", h.b_overturned, "on its side is OVERTURNED");
+	TEST_CHECK("B4-H08", h.b_overturned, "on its side is OVERTURNED");
 
-	/* B4-H08: back upright for 0.5 s clears OVERTURNED */
+	/* B4-H09: back upright for 0.5 s clears OVERTURNED */
 	feed(&h, 60, 0, 0, 1000);
-	TEST_CHECK("B4-H08", !h.b_overturned, "upright again clears OVERTURNED");
+	TEST_CHECK("B4-H09", !h.b_overturned, "upright again clears OVERTURNED");
 
-	/* B4-H09: a 20 deg hump slope held for 3 s is not OVERTURNED */
+	/* B4-H10: a 20 deg hump slope held for 3 s is not OVERTURNED */
 	b4_handling_init(&h);
 	feed(&h, 300, 0, -342, 940);
-	TEST_CHECK("B4-H09", !h.b_overturned && !h.b_lifted,
+	TEST_CHECK("B4-H10", !h.b_overturned && !h.b_lifted,
 		   "20 deg slope is not overturned or lifted");
 
-	/* B4-H10: integer square root used for |a| */
-	TEST_CHECK("B4-H10",
+	/* B4-H11: integer square root used for |a| */
+	TEST_CHECK("B4-H11",
 		   b4_isqrt_u32(1000000u) == 1000u &&
 		   b4_isqrt_u32(999999u) == 999u &&
 		   b4_accel_magnitude_mg(-32768, -32768, -32768) == 56755,
