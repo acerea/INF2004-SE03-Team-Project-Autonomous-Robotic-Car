@@ -674,6 +674,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     int32_t lift_peak = 0;      /* Largest lift_acc since the last print. */
     int32_t dt_peak = 0;        /* Longest sample interval since then. */
     uint8_t hump_active = 0u;
+    uint16_t hump_confirm_ms = 0u;
     uint16_t hump_angle = 0u;
     uint32_t hump_quiet_ms = 0u;
     float hump_start_distance = 0.0f;
@@ -800,17 +801,31 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                 {
                     if (hump_active == 0u)
                     {
-                        hump_active = 1u;
-                        hump_start_distance = b4_encoder_distance_cm();
-                        hump_angle = angle;
+                        hump_confirm_ms = (uint16_t)((hump_confirm_ms + dt_ms
+                                                     > 50u)
+                                                    ? 50u
+                                                    : hump_confirm_ms + dt_ms);
+                        if (hump_confirm_ms >= 50u)
+                        {
+                            hump_active = 1u;
+                            hump_start_distance = b4_encoder_distance_cm();
+                            hump_angle = angle;
+                        }
                     }
-                    else if (angle > hump_angle)
+                    else
                     {
-                        hump_angle = angle;
+                        if (angle > hump_angle)
+                        {
+                            hump_angle = angle;
+                        }
+                        hump_quiet_ms = 0u;
                     }
-                    hump_quiet_ms = 0u;
                 }
-                else if (hump_active != 0u)
+                else if (hump_active == 0u)
+                {
+                    hump_confirm_ms = 0u;
+                }
+                else
                 {
                     hump_quiet_ms += (uint32_t)dt_ms;
                     if (hump_quiet_ms >= B4_HUMP_END_MS)
@@ -830,18 +845,23 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                                                   + 0.5f);
                         result = b4_estimate_ramp_height(distance_mm,
                                                          hump_angle);
-                        if (result.valid != 0u)
+                        if ((distance_mm >= 10u) && (result.valid != 0u))
                         {
+                            uint8_t height = (result.height_mm > 255u)
+                                           ? 255u
+                                           : (uint8_t)result.height_mm;
                             b4_hump_ok = 1u;
-                            b4_hump_height_mm = (result.height_mm > 255u)
-                                              ? 255u
-                                              : (uint8_t)result.height_mm;
+                            if (height > b4_hump_height_mm)
+                            {
+                                b4_hump_height_mm = height;
+                            }
                             if (b4_hump_count < 15u)
                             {
                                 b4_hump_count++;
                             }
                         }
                         hump_active = 0u;
+                        hump_confirm_ms = 0u;
                         hump_angle = 0u;
                         hump_quiet_ms = 0u;
                     }
