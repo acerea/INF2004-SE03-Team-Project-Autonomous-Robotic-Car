@@ -158,6 +158,8 @@ void motion_pidUpdate(float dt_seconds)
         return;
     }
 
+    float distance_correction = 0.0f;
+
     if (distance_mode) {
         float left_travelled =
             encoder_getLeftDistance() - left_start_distance;
@@ -167,6 +169,11 @@ void motion_pidUpdate(float dt_seconds)
 
         float travelled =
             (left_travelled + right_travelled) / 2.0f;
+
+        /* Slow the leading wheel and boost the trailing wheel. */
+        distance_correction = 2.0f * (left_travelled - right_travelled);
+        if (distance_correction > 5.0f) distance_correction = 5.0f;
+        if (distance_correction < -5.0f) distance_correction = -5.0f;
 
         if (travelled >= target_distance) {
             motion_pidStop();
@@ -200,7 +207,7 @@ void motion_pidUpdate(float dt_seconds)
 
     /* Correct difference between wheel speeds */
     float speed_error = left_speed - right_speed;
-    float correction = STRAIGHT_KP * speed_error;
+    float correction = STRAIGHT_KP * speed_error + distance_correction;
 
     /* Slow the faster wheel and boost the slower wheel */
     left_pwm -= correction;
