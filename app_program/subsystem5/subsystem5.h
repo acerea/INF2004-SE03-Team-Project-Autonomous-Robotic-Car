@@ -24,8 +24,8 @@ IMPORT ID flg_s5_obstacle;
 #define S5_FLAG_AVOID_LEFT  0x08
 #define S5_FLAG_AVOID_RIGHT 0x10
 
-#define S5_STOP_DIST_CM     30.0f
-#define S5_WARN_DIST_CM     45.0f
+#define S5_STOP_DIST_CM     15.0f
+#define S5_WARN_DIST_CM     35.0f
 
 typedef enum {
     S5_DIR_NONE = 0,

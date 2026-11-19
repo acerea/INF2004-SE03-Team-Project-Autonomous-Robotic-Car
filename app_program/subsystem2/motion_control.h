@@ -18,7 +18,4 @@ void motion_stop(void);
  */
 void motion_setWheelPWM(int left_pwm, int right_pwm);
 
-/* Last PWM set on each wheel, -100 to +100 (for telemetry). */
-void motion_getWheelPWM(int *left_pwm, int *right_pwm);
-
 #endif /* MOTION_CONTROL_H */

@@ -1,6 +1,6 @@
 /*
  *	subsystem2.h
- *	Subsystem 2 - Motion Control: task configuration and VC request interface.  Student ID: 2503272.
+ *	Subsystem 2 – Motion Control: task configuration and VC request interface.  Student ID: 2503272.
  *
  *	Public interface of subsystem 2.  Other subsystems include it as
  *	"../subsystem2/subsystem2.h".
@@ -25,12 +25,11 @@
 #define S2_MOTION_TURN_LEFT     3u
 #define S2_MOTION_TURN_RIGHT    4u
 
-/* Agreed speed settings (in cm/s). Max measured at 95 % PWM (S2-S04): slower
- * wheel about 40 cm/s; 30 leaves the PID room to keep the car straight. */
-#define S2_MOTION_MAX_SPEED     30u
+/* Agreed speed settings (in cm/s). The 40 cm/s max speed is just a sample, not measured. */
+#define S2_MOTION_MAX_SPEED     40u
 #define S2_MOTION_DEFAULT_SPEED 10u
 
-/* Request format: command in bits 0-2, argument in bits 3-15. */
+/* Request format: command in bits 0–2, argument in bits 3–15. */
 #define S2_MOTION_REQUEST_BYTES 2u
 #define S2_MOTION_COMMAND_MASK  0x0007u
 #define S2_MOTION_ARGUMENT_MAX  0x1FFFu
@@ -39,13 +38,10 @@
 IMPORT ID mbf_motion_req;
 IMPORT ID flg_motion;
 
-/* Safe public line-steering hook; positive position steers right. */
-IMPORT void s2_setLineCorrection(int line_pos);
-
 /* Motion sets this bit when a distance/turn completes. The VC clears it after reading. */
 #define S2_MOTION_DONE (1u << 0)
 
-/* Caller must validate command and argument before packing. Reserved command numbers: 5-7. */
+/* Caller must validate command and argument before packing. Reserved command numbers: 5–7. */
 static inline uint16_t motion_packRequest(uint8_t command,
                                           uint16_t argument)
 {

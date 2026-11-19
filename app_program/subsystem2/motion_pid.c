@@ -31,7 +31,6 @@ static float right_start_distance = 0.0f;
 static float target_distance = 0.0f;
 static int distance_mode = 0;
 static int motion_complete = 0;
-static int line_correction_pwm = 0;
 
 /* FR5: Preliminary straight-line correction gain */
 #define STRAIGHT_KP 0.1f
@@ -65,7 +64,6 @@ void motion_pidInit(void)
     distance_mode = 0;
     motion_complete = 0;
     turn_mode = 0;
-    line_correction_pwm = 0;
 }
 
 /* Set the target speed for forward movement */
@@ -89,14 +87,6 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
     motion_complete = 0;
 }
 
-void motion_pidSetLineCorrection(int line_pos)
-{
-    if (line_pos > 1000) line_pos = 1000;
-    if (line_pos < -1000) line_pos = -1000;
-
-    /* 0.04 PWM per position unit gives full-scale steering about +/-40 PWM. */
-    line_correction_pwm = line_pos / 25;
-}
 /* Change speed without cancelling an active distance target. */
 void motion_pidChangeSpeed(float speed_cm_s)
 {
@@ -158,8 +148,6 @@ void motion_pidUpdate(float dt_seconds)
         return;
     }
 
-    float distance_correction = 0.0f;
-
     if (distance_mode) {
         float left_travelled =
             encoder_getLeftDistance() - left_start_distance;
@@ -169,11 +157,6 @@ void motion_pidUpdate(float dt_seconds)
 
         float travelled =
             (left_travelled + right_travelled) / 2.0f;
-
-        /* Slow the leading wheel and boost the trailing wheel. */
-        distance_correction = 2.0f * (left_travelled - right_travelled);
-        if (distance_correction > 5.0f) distance_correction = 5.0f;
-        if (distance_correction < -5.0f) distance_correction = -5.0f;
 
         if (travelled >= target_distance) {
             motion_pidStop();
@@ -207,15 +190,11 @@ void motion_pidUpdate(float dt_seconds)
 
     /* Correct difference between wheel speeds */
     float speed_error = left_speed - right_speed;
-    float correction = STRAIGHT_KP * speed_error + distance_correction;
+    float correction = STRAIGHT_KP * speed_error;
 
     /* Slow the faster wheel and boost the slower wheel */
     left_pwm -= correction;
     right_pwm += correction;
-
-    /* Line steering supplements encoder straight-line correction. */
-    left_pwm += (float)line_correction_pwm;
-    right_pwm -= (float)line_correction_pwm;
 
     /* Limit PWM to forward range */
     if (left_pwm < 0.0f) left_pwm = 0.0f;
@@ -237,7 +216,6 @@ void motion_pidStop(void)
     target_speed = 0.0f;
     distance_mode = 0;
     turn_mode = 0;
-    line_correction_pwm = 0;
     motion_stop();
 }
 

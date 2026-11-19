@@ -21,7 +21,7 @@
 #define TEST_SEQ_OLD    (9u)    // Delta 255 from TEST_SEQ_A.
 #define TEST_SEQ_EDGE_X (138u)  // Delta 128: just outside the window.
 #define TEST_SEQ_EDGE_I (137u)  // Delta 127: just inside the window.
-#define TEST_BAD_CMD    (6u)    // Above S1_CMD_PING, so unknown.
+#define TEST_BAD_CMD    (5u)    // Above S1_CMD_MODE, so unknown.
 #define TEST_WIDE_U     (200u)  // Too wide for 7 bits.
 #define TEST_WIDE_S     (-600)  // Too low for 10 signed bits.
 #define TEST_U7_BITS    (7u)

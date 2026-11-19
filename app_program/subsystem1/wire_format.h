@@ -51,11 +51,6 @@ typedef uint8_t proto_type_t;
 #define PROTO_ST_LINK_LOST_BITS (1u)    // 1 = remote link lost.
 #define PROTO_ST_SPEED_BITS     (6u)    // Target speed, 0-63 cm/s.
 
-// Line (type 3, subsystem 3): 18 bits. On state/junction change and 1 s.
-#define PROTO_LN_STATE_BITS     (2u)    // 0 cali, 1 track, 2 barcode, 3 lost.
-#define PROTO_LN_SENSORS_BITS   (3u)    // Black sensors: L=4, C=2, R=1.
-#define PROTO_LN_JUNCTION_BITS  (2u)    // 0 none, 1 left, 2 right, 3 both.
-#define PROTO_LN_POS_BITS       (11u)   // Line position -1000..1000, signed.
 // Motion (type 2, subsystem 2): 46 bits. Every 200 ms while moving, 1 s idle.
 #define PROTO_MO_MODE_BITS      (2u)    // 0 stopped, 1 speed, 2 distance, 3 turn.
 #define PROTO_MO_TARGET_BITS    (6u)    // Target speed, 0-63 cm/s.
@@ -77,13 +72,13 @@ typedef uint8_t proto_type_t;
 #define PROTO_BC_CMD_UTURN      (4u)
 
 // Terrain (type 5, subsystem 4): 18 bits. Send on change and every 1 s.
-#define PROTO_TER_STATE_BITS    (3u)    // 0-7, B4_STATE_xxx (6 = LIFTED).
-#define PROTO_TER_FLIP_BITS     (1u)    // 1 = overturned (was collision).
+#define PROTO_TER_STATE_BITS    (3u)    // 0-7, B4_STATE_xxx.
+#define PROTO_TER_LIFTED_BITS   (1u)    // 1 = car lifted or overturned.
+#define PROTO_TER_COLLIDE_BITS  PROTO_TER_LIFTED_BITS   // Old name, until S4 switches.
 #define PROTO_TER_FAULT_BITS    (1u)    // 1 = IMU fault.
 #define PROTO_TER_HUMP_OK_BITS  (1u)    // 0 = hump not measured yet.
 #define PROTO_TER_HUMP_MM_BITS  (8u)    // Peak hump height, 0-255 mm.
 #define PROTO_TER_HUMPS_BITS    (4u)    // Hump count, 0-15.
-#define PROTO_TER_LIFT_PEAK_BITS (8u)   // Debug: peak lift_acc, x1000 mg.ms.
 
 // Obstacle (type 6, subsystem 5): 11 bits. Send at 5 Hz.
 #define PROTO_OBS_STATE_BITS    (2u)    // 0 clear, 1 slow down, 2 emergency.
