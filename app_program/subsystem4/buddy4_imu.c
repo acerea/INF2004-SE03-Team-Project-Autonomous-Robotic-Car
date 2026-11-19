@@ -56,7 +56,7 @@
 /* 1 = read the 6 accelerometer and 6 magnetometer bytes in one I2C transfer
  * each. 12 single-register reads made one sample take ~55 ms instead of
  * 10 ms. Set to 0 to go back to single-register reads if the IMU faults. */
-#define B4_IMU_BURST_READ 0
+#define B4_IMU_BURST_READ 1
 
 /* LSM303DLHC accelerometer: set bit 7 of the register address to make it
  * auto-increment over the following registers. */
