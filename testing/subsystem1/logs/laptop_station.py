@@ -122,7 +122,8 @@ def decode_fields(f):
         return "terrain", d
     if typ == 6 and len(f) >= 4:
         d.update(state=OBS_STATES[get_bits(f, 14, 2)],
-                 distance=cm_text(get_bits(f, 16, 9), "no echo"))
+                 distance="disconnected" if get_bits(f, 16, 9) == 511
+                 else cm_text(get_bits(f, 16, 9), "no echo"))
         return "obstacle", d
     if typ == 7 and len(f) >= 6:
         d.update(side=SIDES[get_bits(f, 14, 2)],

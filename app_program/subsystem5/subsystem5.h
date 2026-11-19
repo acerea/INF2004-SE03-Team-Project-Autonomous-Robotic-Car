@@ -16,6 +16,11 @@
 
 /* Event Flag ID (defined and created in subsystem5.c) */
 IMPORT ID flg_s5_obstacle;
+/* Last estimated obstacle width in cm (0 = not measured). One writer:
+   s5_scan_task. Read by the VC to size the bypass. */
+IMPORT volatile UW g_s5_width_cm;
+/* Front distance (cm) measured when stopping for the obstacle (0 = none). */
+IMPORT volatile UW g_s5_front_cm;
 
 /* Event flag bits (Interface IF-06) */
 #define S5_FLAG_CLEAR       0x01

@@ -24,7 +24,15 @@
  * turn arguments as degrees and distance arguments as centimetres. */
 #define VC_BYPASS_TURN_DEG          (90u)
 #define VC_BYPASS_LATERAL_CM         (25u)
-#define VC_BYPASS_FORWARD_CM         (45u)
+#define VC_BYPASS_FORWARD_CM         (60u)
+#define VC_CAR_HALF_WIDTH_CM         (8u)    // Half the car body width.
+#define VC_BYPASS_MARGIN_CM          (5u)    // Extra room beside the obstacle.
+#define VC_BYPASS_LATERAL_MIN_CM     (15u)
+#define VC_BYPASS_LATERAL_MAX_CM     (40u)
+#define VC_OBSTACLE_DEPTH_CM         (15u)   // Obstacle front-to-back: measure the demo one.
+#define VC_CAR_HALF_LENGTH_CM        (10u)   // Half the car length.
+#define VC_BYPASS_FORWARD_MIN_CM     (30u)
+#define VC_BYPASS_FORWARD_MAX_CM     (120u)
 #define VC_BYPASS_TIMEOUT_MS         (30000u)
 #define VC_REJOIN_TIMEOUT_MS         (3000u)
 #define VC_REJOIN_STABLE_SAMPLES     (3u)

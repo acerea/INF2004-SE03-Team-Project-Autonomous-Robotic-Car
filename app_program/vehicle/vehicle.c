@@ -101,6 +101,8 @@ static vc_bypass_step_t g_vc_bypass_step;
 static S5_BYPASS_DIR    g_vc_bypass_dir;
 static uint32_t         g_vc_bypass_started;
 static uint8_t          g_vc_rejoin_samples;
+static uint32_t         g_vc_bypass_lateral_cm = VC_BYPASS_LATERAL_CM;
+static uint32_t         g_vc_bypass_forward_cm = VC_BYPASS_FORWARD_CM;
 static bool              g_vc_rejoin_armed;
 
 static void       vc_task(INT stacd, void * exinf);
@@ -506,7 +508,7 @@ vc_dispatch (vc_event_t ev)
               case VC_BYPASS_TURN_OUT:
                 g_vc_bypass_step = VC_BYPASS_LATERAL_OUT;
                 vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
-                                  VC_BYPASS_LATERAL_CM);
+                                  g_vc_bypass_lateral_cm);
               break;
               case VC_BYPASS_LATERAL_OUT:
                 g_vc_bypass_step = VC_BYPASS_FORWARD;
@@ -518,25 +520,27 @@ vc_dispatch (vc_event_t ev)
               case VC_BYPASS_FORWARD:
                 g_vc_bypass_step = VC_BYPASS_TURN_IN;
                 vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
-                                  VC_BYPASS_FORWARD_CM);
+                                  g_vc_bypass_forward_cm);
               break;
               case VC_BYPASS_TURN_IN:
+                /* Turn in towards the line: opposite of the first turn. */
                 g_vc_bypass_step = VC_BYPASS_LATERAL_IN;
                 vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
-                                      ? S2_MOTION_TURN_LEFT
-                                      : S2_MOTION_TURN_RIGHT,
+                                      ? S2_MOTION_TURN_RIGHT
+                                      : S2_MOTION_TURN_LEFT,
                                   VC_BYPASS_TURN_DEG);
               break;
               case VC_BYPASS_LATERAL_IN:
                 g_vc_bypass_step = VC_BYPASS_TURN_ALIGN;
                 vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
-                                  VC_BYPASS_LATERAL_CM);
+                                  g_vc_bypass_lateral_cm);
               break;
               case VC_BYPASS_TURN_ALIGN:
+                /* Line up with the original heading: same as the first turn. */
                 g_vc_bypass_step = VC_BYPASS_WAIT_REJOIN;
                 vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
-                                      ? S2_MOTION_TURN_RIGHT
-                                      : S2_MOTION_TURN_LEFT,
+                                      ? S2_MOTION_TURN_LEFT
+                                      : S2_MOTION_TURN_RIGHT,
                                   VC_BYPASS_TURN_DEG);
               break;
               default:
@@ -613,6 +617,47 @@ vc_dispatch (vc_event_t ev)
             vc_motion(S2_MOTION_STOP, 0u);
             vc_set_state(VC_STATE_BLOCKED);
             return;
+        }
+
+        /* Sideways distance from S5's width estimate: half the obstacle,
+         * half the car and a margin. Fixed distance if S5 has no width. */
+        {
+            uint32_t w = g_s5_width_cm;
+
+            g_vc_bypass_lateral_cm = (0u == w) ? VC_BYPASS_LATERAL_CM
+                : (w / 2u) + VC_CAR_HALF_WIDTH_CM + VC_BYPASS_MARGIN_CM;
+            if (g_vc_bypass_lateral_cm < VC_BYPASS_LATERAL_MIN_CM)
+            {
+                g_vc_bypass_lateral_cm = VC_BYPASS_LATERAL_MIN_CM;
+            }
+            if (g_vc_bypass_lateral_cm > VC_BYPASS_LATERAL_MAX_CM)
+            {
+                g_vc_bypass_lateral_cm = VC_BYPASS_LATERAL_MAX_CM;
+            }
+            tm_printf((UB*)"vc: bypass %s, obstacle width %u cm, sideways %u cm\n",
+                      (S5_DIR_LEFT == g_vc_bypass_dir) ? "left" : "right",
+                      (unsigned int) w, (unsigned int) g_vc_bypass_lateral_cm);
+        }
+
+        /* Forward leg: the gap S5 measured when the car stopped, plus the
+         * obstacle depth, half the car and a margin, so the car is fully
+         * past the obstacle before it turns back in. */
+        {
+            uint32_t gap = g_s5_front_cm;
+
+            g_vc_bypass_forward_cm = (0u == gap) ? VC_BYPASS_FORWARD_CM
+                : gap + VC_OBSTACLE_DEPTH_CM + VC_CAR_HALF_LENGTH_CM
+                  + VC_BYPASS_MARGIN_CM;
+            if (g_vc_bypass_forward_cm < VC_BYPASS_FORWARD_MIN_CM)
+            {
+                g_vc_bypass_forward_cm = VC_BYPASS_FORWARD_MIN_CM;
+            }
+            if (g_vc_bypass_forward_cm > VC_BYPASS_FORWARD_MAX_CM)
+            {
+                g_vc_bypass_forward_cm = VC_BYPASS_FORWARD_MAX_CM;
+            }
+            tm_printf((UB*)"vc: bypass gap %u cm, forward %u cm\n",
+                      (unsigned int) gap, (unsigned int) g_vc_bypass_forward_cm);
         }
 
         (void)tk_wai_flg(flg_motion, S2_MOTION_DONE, TWF_ORW | TWF_BITCLR,

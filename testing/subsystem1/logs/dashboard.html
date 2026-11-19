@@ -153,6 +153,7 @@
       obsState = d.state;
       $("obsSub").textContent = obsState + obsProfile;
       setCard("cObs", OBS_LEVEL[d.state] || "");
+      if (d.distance === "disconnected") { setCard("cObs", "bad"); }
     } else if (kind === "obst_profile") {
       obsProfile = " · width " + d.width + ", go " + d.side;
       $("obsSub").textContent = obsState + obsProfile;

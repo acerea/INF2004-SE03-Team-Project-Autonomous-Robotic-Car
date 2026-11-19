@@ -89,6 +89,7 @@ typedef uint8_t proto_type_t;
 #define PROTO_OBS_STATE_BITS    (2u)    // 0 clear, 1 slow down, 2 emergency.
 #define PROTO_OBS_CM_BITS       (9u)    // Distance 1-400 cm; 0 = no echo.
 #define PROTO_OBS_CM_MAX        (400u)
+#define PROTO_OBS_CM_FAULT      (511u)  // Sensor not responding (disconnected).
 
 // Obstacle profile (type 7, subsystem 5): 27 bits. Send once per sweep.
 #define PROTO_PRO_SIDE_BITS     (2u)    // 0 none, 1 left, 2 right.

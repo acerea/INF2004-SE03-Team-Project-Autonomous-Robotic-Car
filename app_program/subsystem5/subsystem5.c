@@ -29,6 +29,8 @@
 EXPORT ID flg_s5_obstacle;
 
 ID flg_s5_obstacle;
+EXPORT volatile UW g_s5_width_cm = 0;
+EXPORT volatile UW g_s5_front_cm = 0;
 
 /* Forward prototypes */
 static float fast_sqrtf(float val);
@@ -69,7 +71,10 @@ s5_publish_obstacle (UW state, float d_center)
     proto_init(&bits, frame, sizeof(frame));
     proto_begin(&bits, PROTO_TYPE_OBSTACLE);
     proto_put(&bits, state, (UB)PROTO_OBS_STATE_BITS);
-    proto_put(&bits, s5_cm_field(d_center, PROTO_OBS_CM_MAX), (UB)PROTO_OBS_CM_BITS);
+    /* -2 from the driver: the sensor did not answer at all. */
+    proto_put(&bits, (d_center < -1.5f) ? PROTO_OBS_CM_FAULT
+                                        : s5_cm_field(d_center, PROTO_OBS_CM_MAX),
+              (UB)PROTO_OBS_CM_BITS);
     (void) s1_publish(frame, proto_end(&bits), FALSE);
 }
 
@@ -111,6 +116,60 @@ static void s5_set_state_flag(UINT flag)
     tk_set_flg(flg_s5_obstacle, flag);
 }
 
+#define S5_SCAN_NEAR_DEG    20      /* Second, squarer look at each side. */
+#define S5_SIDE_BLOCKED_CM  60.0f   /* Side obstacle nearer than this: blocked. */
+
+/* Look at one side at two angles. Returns the nearest valid distance (cm)
+ * or a negative value if neither angle got an echo; *p_far gets the far
+ * (45 deg) reading for the width estimate. */
+static float s5_scan_side(INT near_deg, INT far_deg, float *p_far)
+{
+    servo_set_angle(near_deg);
+    tk_dly_tsk(150);
+    float d_near = ultrasonic_read_distance_filtered();
+    tk_dly_tsk(60);
+
+    servo_set_angle(far_deg);
+    tk_dly_tsk(150);
+    float d_far = ultrasonic_read_distance_filtered();
+    tk_dly_tsk(60);
+
+    *p_far = d_far;
+    if (d_near > 0.0f && (d_far <= 0.0f || d_near < d_far)) {
+        return d_near;
+    }
+    return d_far;
+}
+
+/* Pick the bypass side. A side with an obstacle within S5_SIDE_BLOCKED_CM is
+ * blocked; go to the other side. Both blocked: the one with more room.
+ * Neither blocked: a side with no echo is open, else the one with more room
+ * (default right). */
+static S5_BYPASS_DIR s5_choose_side(float d_left, float d_right)
+{
+    INT left_blocked  = (d_left  > 0.0f) && (d_left  < S5_SIDE_BLOCKED_CM);
+    INT right_blocked = (d_right > 0.0f) && (d_right < S5_SIDE_BLOCKED_CM);
+
+    if (left_blocked && !right_blocked) return S5_DIR_RIGHT;
+    if (right_blocked && !left_blocked) return S5_DIR_LEFT;
+    if (left_blocked && right_blocked) {
+        return (d_left > d_right) ? S5_DIR_LEFT : S5_DIR_RIGHT;
+    }
+    if (d_left <= 0.0f && d_right > 0.0f) return S5_DIR_LEFT;
+    if (d_right <= 0.0f && d_left > 0.0f) return S5_DIR_RIGHT;
+    if (d_left > 0.0f && d_right > 0.0f) {
+        return (d_left > d_right) ? S5_DIR_LEFT : S5_DIR_RIGHT;
+    }
+    return S5_DIR_RIGHT;
+}
+
+#define S5_RELEASE_MARGIN_CM  5.0f  /* Must read this far past the stop
+                                         distance to release EMERGENCY. */
+#define S5_RELEASE_READINGS   3u    /* ...this many times in a row. */
+
+static UW s5_in_emergency = 0u;     /* Only s5_scan_task uses these. */
+static UW s5_release_count = 0u;
+
 LOCAL void s5_scan_task(INT stacd, void *param)
 {
     (void)stacd;
@@ -124,13 +183,36 @@ LOCAL void s5_scan_task(INT stacd, void *param)
         servo_set_angle(SERVO_ANGLE_CENTER);
         tk_dly_tsk(150); /* Servo settle time */
 
-        /* Read forward distance */
-        float d_center = ultrasonic_read_distance_cm();
+        /* Read forward distance: median of 3 pings, so one bad ping cannot
+           flip the state. */
+        float d_center = ultrasonic_read_distance_filtered();
         tk_dly_tsk(60);  /* Ultrasonic acoustic decay holdoff */
 
         /* 2. Decide the state first, so EMERGENCY is not delayed by the
               sweep below, and publish it every loop (also on no echo). */
         UW state = S5_TLM_CLEAR;
+
+        /* Hysteresis: once stopped for an obstacle, stay in EMERGENCY until
+           two readings in a row are clearly beyond the stop distance. A
+           dropout (no echo) or a reading just past the limit does not count,
+           so the car cannot creep forward into the obstacle. */
+        float d_raw = d_center;     /* What the sensor really read. */
+
+        if (s5_in_emergency) {
+            /* Clearly further away, or no echo at all (open air; not
+               "disconnected", which stays stopped to be safe). */
+            if ((d_center > (S5_STOP_DIST_CM + S5_RELEASE_MARGIN_CM))
+                || ((d_center < 0.0f) && (d_center > -1.5f))) {
+                s5_release_count++;
+            } else {
+                s5_release_count = 0u;
+            }
+            if (s5_release_count < S5_RELEASE_READINGS) {
+                d_center = (d_center > 0.0f && d_center < S5_STOP_DIST_CM)
+                           ? d_center : (S5_STOP_DIST_CM - 0.1f);
+            }
+        }
+
         if (d_center > 0.0f && d_center < S5_STOP_DIST_CM) {
             state = S5_TLM_EMERGENCY;
             s5_set_state_flag(S5_FLAG_EMERGENCY);
@@ -141,37 +223,46 @@ LOCAL void s5_scan_task(INT stacd, void *param)
             s5_set_state_flag(S5_FLAG_CLEAR);
             tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_SIDE_FLAGS); /* No side */
         }
-        s5_publish_obstacle(state, d_center);
+        s5_in_emergency = (state == S5_TLM_EMERGENCY) ? 1u : 0u;
+        if (!s5_in_emergency) {
+            s5_release_count = 0u;
+        }
+        /* Show the real reading (e.g. disconnected), even while held. */
+        s5_publish_obstacle(state, d_raw);
 
-        if (state != S5_TLM_CLEAR) {
-            /* 3. Coarse sweep: Measure Left */
-            servo_set_angle(SERVO_ANGLE_LEFT);
-            tk_dly_tsk(150);
-            float d_left = ultrasonic_read_distance_cm();
-            tk_dly_tsk(60); /* Transducer holdoff before next burst */
-
-            /* 4. Coarse sweep: Measure Right */
-            servo_set_angle(SERVO_ANGLE_RIGHT);
-            tk_dly_tsk(200);
-            float d_right = ultrasonic_read_distance_cm();
-            tk_dly_tsk(60);
+        /* Sweep the sides only when stopped (EMERGENCY): in SLOWDOWN the car
+           is still moving and the sensor must keep looking ahead. */
+        if (state == S5_TLM_EMERGENCY) {
+            /* 3-4. Sweep each side at 20 and 45 deg, median of 3 pings at
+             *      each. A flat box at 45 deg often reflects the sound away
+             *      (no echo); at 20 deg it is hit more squarely, so an
+             *      obstacle on that side is actually seen. */
+            float d_left45 = 0.0f;
+            float d_right45 = 0.0f;
+            float d_left = s5_scan_side(-S5_SCAN_NEAR_DEG, SERVO_ANGLE_LEFT,
+                                        &d_left45);
+            float d_right = s5_scan_side(S5_SCAN_NEAR_DEG, SERVO_ANGLE_RIGHT,
+                                         &d_right45);
 
             /* Return to center and settle */
             servo_set_angle(SERVO_ANGLE_CENTER);
             tk_dly_tsk(150);
 
             /* 5. Choose direction, replace the old side bit, publish */
-            S5_BYPASS_DIR dir = s5_calculate_clearance(d_left, d_right);
+            S5_BYPASS_DIR dir = s5_choose_side(d_left, d_right);
             tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_SIDE_FLAGS);
             tk_set_flg(flg_s5_obstacle, (dir == S5_DIR_LEFT)
                        ? S5_FLAG_AVOID_LEFT : S5_FLAG_AVOID_RIGHT);
 
-            /* Width from the centre reading and the nearer side reading */
-            float d_side = d_right;
-            if (d_left > 0.0f && (d_right <= 0.0f || d_left < d_right)) {
-                d_side = d_left;
+            /* Width from the centre reading and the nearer 45 deg reading
+               (the width formula assumes the 45 deg angle). */
+            float d_side = d_right45;
+            if (d_left45 > 0.0f && (d_right45 <= 0.0f || d_left45 < d_right45)) {
+                d_side = d_left45;
             }
             float width = s5_estimate_width_cm(d_center, d_side, 45.0f);
+            g_s5_width_cm = (width > 0.0f) ? (UW)(width + 0.5f) : 0u;
+            g_s5_front_cm = (d_center > 0.0f) ? (UW)(d_center + 0.5f) : 0u;
             s5_publish_profile(dir, width, d_left, d_right);
         }
 

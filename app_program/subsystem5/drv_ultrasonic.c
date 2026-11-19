@@ -33,7 +33,7 @@ void ultrasonic_init(void)
     gpio_set_pin(ECHO_PIN, GPIO_MODE_IN);
 
     /* 3. Turn on the input buffer on GP3 (bit 6 = IE) */
-    PADS_BANK0_GPIO(ECHO_PIN) = (1 << 6);
+    PADS_BANK0_GPIO(ECHO_PIN) = (1 << 6) | (1 << 2);   /* IE + pull-down */
 
     /* 4. Disable pad isolation on both pins (bit 8 = ISO) */
     PADS_BANK0_GPIO(TRIG_PIN) &= ~(1 << 8);
@@ -57,7 +57,7 @@ float ultrasonic_read_distance_cm(void)
     UW t_start = get_time_us();
     while (gpio_get_val(ECHO_PIN) == 0) {
         if ((get_time_us() - t_start) > 15000) {
-            return -1.0f;
+            return -2.0f;   /* No answer at all: sensor disconnected/unpowered */
         }
     }
 
@@ -92,10 +92,15 @@ float ultrasonic_read_distance_filtered(void)
 
     float r3 = ultrasonic_read_distance_cm();
 
-    /* If all 3 timed out, return -1.0f (clean open air) */
+    /* If all 3 failed: -2 if the sensor never answered, else -1 (open air) */
     if (r1 < 0.0f && r2 < 0.0f && r3 < 0.0f) {
-        return -1.0f;
+        return (r1 < -1.5f && r2 < -1.5f && r3 < -1.5f) ? -2.0f : -1.0f;
     }
+
+    /* Only one valid echo: keep it, so two dropouts cannot hide an obstacle */
+    if (r1 > 0.0f && r2 < 0.0f && r3 < 0.0f) return r1;
+    if (r2 > 0.0f && r1 < 0.0f && r3 < 0.0f) return r2;
+    if (r3 > 0.0f && r1 < 0.0f && r2 < 0.0f) return r3;
 
     /* If 1 sample timed out but other 2 are valid, use the valid average */
     if (r1 < 0.0f && r2 > 0.0f && r3 > 0.0f) return (r2 + r3) / 2.0f;
