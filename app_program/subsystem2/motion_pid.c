@@ -111,6 +111,10 @@ void motion_pidChangeSpeed(float speed_cm_s)
 
     if (distance_mode) {
         target_speed = speed_cm_s;
+    } else if (pid_active && (speed_cm_s == target_speed)) {
+        /* The vehicle polls obstacle state continuously.  Do not reset PID
+         * state every 10 ms when the requested cruise speed is unchanged. */
+        return;
     } else {
         motion_pidSetTargetSpeed(speed_cm_s);
     }

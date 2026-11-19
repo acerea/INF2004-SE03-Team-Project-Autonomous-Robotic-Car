@@ -17,8 +17,8 @@
 
 #define VC_PRI              (10)      // Highest application priority.
 #define VC_TICK_MS          (10u)     // Input polling period.
-#define VC_CRUISE_CM_S      (3u)      // Normal driving speed, 30 mm/s.
-#define VC_SLOW_CM_S        (2u)      // Speed while an obstacle is near.
+#define VC_CRUISE_CM_S      (20u)     // Normal line-following speed, 200 mm/s.
+#define VC_SLOW_CM_S        (10u)     // Speed while an obstacle is near.
 
 /* Conservative, encoder-driven obstacle bypass profile.  S2 interprets
  * turn arguments as degrees and distance arguments as centimetres. */
