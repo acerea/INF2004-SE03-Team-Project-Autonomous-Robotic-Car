@@ -61,6 +61,7 @@ typedef struct
 ER   ir_sense_init(void);
 ER   ir_sense_start(void);
 void ir_lock_steering(bool b_lock);
+void ir_set_lift_override(bool b_lifted);
 void ir_get_telemetry(ir_snapshot_t * p_out);
 
 // Non-blocking consumption of one decoded barcode command.

@@ -276,6 +276,7 @@ vc_poll_imu (void)
     }
 
     g_vc_imu_bits = bits;
+    ir_set_lift_override((0u != (bits & VC_HANDLED_BITS)));
 
     if (0u != (rising & S4_FLG_OVERTURNED))
     {
@@ -431,6 +432,7 @@ vc_dispatch (vc_event_t ev)
         {
             tm_printf((UB*)"vc: robot overturned, motors stopped\n");
         }
+        ir_set_lift_override(true);
         vc_set_state(VC_STATE_FAULT);
         return;
     }
@@ -442,6 +444,7 @@ vc_dispatch (vc_event_t ev)
         tm_printf((UB*)"vc: robot lifted, end of run, motors stopped\n");
         if ((VC_STATE_FAULT != g_vc_state) && (VC_STATE_IDLE != g_vc_state))
         {
+            ir_set_lift_override(true);
             vc_set_state(VC_STATE_STOPPED);
         }
         return;
@@ -568,6 +571,7 @@ vc_dispatch (vc_event_t ev)
         }
         else if (VC_EV_RESET == ev)
         {
+            ir_set_lift_override(false);
             vc_motion(S2_MOTION_STOP, 0u);
             vc_set_state(VC_STATE_IDLE);
         }
@@ -580,6 +584,7 @@ vc_dispatch (vc_event_t ev)
       case VC_STATE_FAULT:
         if (VC_EV_RESET == ev)
         {
+            ir_set_lift_override(false);
             vc_motion(S2_MOTION_STOP, 0u);
             vc_set_state(VC_STATE_IDLE);
         }

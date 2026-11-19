@@ -105,6 +105,7 @@ static uint8_t        g_last_pub_junc = 0xFFu;
 static uint8_t        g_last_pub_sensors = 0xFFu;
 static int16_t        g_last_pub_pos = -32768;
 static volatile bool  g_b_steer_locked = false;
+static volatile bool  g_b_lift_override = false;
 
 EXPORT ID mbf_s3_nav;                   // IF-15.
 
@@ -256,6 +257,16 @@ ir_barcode_begin (uint32_t now)
 static void
 ir_handle_track (uint32_t now)
 {
+    if (g_b_lift_override)
+    {
+        g_next.line_pos = 0;
+        g_next.sensors = 0u;
+        g_next.junction = IR_JUNC_NONE;
+        g_next.lost_timeout = 1u;
+        ir_set_state(IR_LINE_LOST, now);
+        return;
+    }
+
     uint16_t dark[3];
     uint8_t  bits = ir_read_sensors(dark);
     uint8_t  junc = IR_JUNC_NONE;
@@ -416,6 +427,17 @@ ir_barcode_finish (uint32_t now)
 static void
 ir_handle_barcode (uint32_t now)
 {
+    if (g_b_lift_override)
+    {
+        g_next.line_pos = 0;
+        g_next.sensors = 0u;
+        g_next.junction = IR_JUNC_NONE;
+        g_next.lost_timeout = 1u;
+        ir_set_state(IR_LINE_LOST, now);
+        g_ctx.barcode_run = 0u;
+        return;
+    }
+
     uint8_t  bits = ir_read_sensors(NULL);
     bool     b_black = (IR_SENS_SIDES == (bits & IR_SENS_SIDES));
     uint32_t span = now - g_ctx.edge_ms;
@@ -492,6 +514,16 @@ ir_handle_barcode (uint32_t now)
 static void
 ir_handle_lost (uint32_t now)
 {
+    if (g_b_lift_override)
+    {
+        g_next.line_pos = 0;
+        g_next.sensors = 0u;
+        g_next.junction = IR_JUNC_NONE;
+        g_next.lost_timeout = 1u;
+        ir_set_state(IR_LINE_LOST, now);
+        return;
+    }
+
     uint8_t bits = ir_read_sensors(NULL);
 
     g_next.line_pos = 0;
@@ -559,6 +591,13 @@ ir_publish_line (uint32_t now)
     proto_put(&bits, g_next.junction, PROTO_LN_JUNCTION_BITS);
     proto_put_s(&bits, g_next.line_pos, PROTO_LN_POS_BITS);
     (void) s1_publish(frame, proto_end(&bits), false);
+
+    tm_printf((UB*)"ir: state=%u sensors=%u junction=%u line_pos=%d lost=%u\n",
+              (unsigned int)g_next.state,
+              (unsigned int)g_next.sensors,
+              (unsigned int)g_next.junction,
+              (int)g_next.line_pos,
+              (unsigned int)g_next.lost_timeout);
 
     g_last_pub_state   = (uint8_t) g_next.state;
     g_last_pub_junc    = (uint8_t) g_next.junction;
@@ -668,6 +707,12 @@ ir_lock_steering (bool b_lock)
     g_b_steer_locked = b_lock;
 
     return;
+}
+
+void
+ir_set_lift_override (bool b_lifted)
+{
+    g_b_lift_override = b_lifted;
 }
 
 bool
