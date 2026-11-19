@@ -32,6 +32,7 @@ static float target_distance = 0.0f;
 static int distance_mode = 0;
 static int motion_complete = 0;
 static int line_correction_pwm = 0;
+static int line_error_filtered = 0;
 
 /* FR5: Preliminary straight-line correction gain */
 #define STRAIGHT_KP 0.1f
@@ -66,6 +67,7 @@ void motion_pidInit(void)
     motion_complete = 0;
     turn_mode = 0;
     line_correction_pwm = 0;
+    line_error_filtered = 0;
 }
 
 /* Set the target speed for forward movement */
@@ -91,11 +93,19 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
 
 void motion_pidSetLineCorrection(int line_pos)
 {
+    int correction;
+
     if (line_pos > 1000) line_pos = 1000;
     if (line_pos < -1000) line_pos = -1000;
 
-    /* 0.04 PWM per position unit gives full-scale steering about +/-40 PWM. */
-    line_correction_pwm = line_pos / 25;
+    /* Smooth the IR position so small sensor edges do not jerk the wheels.
+     * 0.12 PWM per position unit gives about +/-100 PWM at full offset,
+     * while leaving enough steering authority for curves. */
+    line_error_filtered = (line_error_filtered * 3 + line_pos) / 4;
+    correction = (line_error_filtered * 12) / 100;
+    if (correction > 100) correction = 100;
+    if (correction < -100) correction = -100;
+    line_correction_pwm = correction;
 }
 /* Change speed without cancelling an active distance target. */
 void motion_pidChangeSpeed(float speed_cm_s)
@@ -217,7 +227,8 @@ void motion_pidUpdate(float dt_seconds)
     left_pwm -= correction;
     right_pwm += correction;
 
-    /* Line steering supplements encoder straight-line correction. */
+    /* Positive line_pos means the line is right; turn right by slowing
+     * the right wheel and keeping the left wheel faster. */
     left_pwm += (float)line_correction_pwm;
     right_pwm -= (float)line_correction_pwm;
 
@@ -242,6 +253,7 @@ void motion_pidStop(void)
     distance_mode = 0;
     turn_mode = 0;
     line_correction_pwm = 0;
+    line_error_filtered = 0;
     motion_stop();
 }
 

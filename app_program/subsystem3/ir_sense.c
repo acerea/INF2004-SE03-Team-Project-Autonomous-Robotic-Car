@@ -102,6 +102,8 @@ static ID             g_adc_dd = -1;
 static bool           g_b_ready = false;
 static uint8_t        g_last_pub_state = 0xFFu;
 static uint8_t        g_last_pub_junc = 0xFFu;
+static uint8_t        g_last_pub_sensors = 0xFFu;
+static int16_t        g_last_pub_pos = -32768;
 static volatile bool  g_b_steer_locked = false;
 
 EXPORT ID mbf_s3_nav;                   // IF-15.
@@ -543,6 +545,8 @@ ir_publish_line (uint32_t now)
 
     if ((g_next.state == g_last_pub_state)
         && (g_next.junction == g_last_pub_junc)
+        && (g_next.sensors == g_last_pub_sensors)
+        && (g_next.line_pos == g_last_pub_pos)
         && ((now - g_ctx.last_pub_ms) < IR_LINE_PUB_MS))
     {
         return;
@@ -556,8 +560,10 @@ ir_publish_line (uint32_t now)
     proto_put_s(&bits, g_next.line_pos, PROTO_LN_POS_BITS);
     (void) s1_publish(frame, proto_end(&bits), false);
 
-    g_last_pub_state  = (uint8_t) g_next.state;
-    g_last_pub_junc   = (uint8_t) g_next.junction;
+    g_last_pub_state   = (uint8_t) g_next.state;
+    g_last_pub_junc    = (uint8_t) g_next.junction;
+    g_last_pub_sensors = (uint8_t) g_next.sensors;
+    g_last_pub_pos     = (int16_t) g_next.line_pos;
     g_ctx.last_pub_ms = now;
 
     return;
