@@ -170,6 +170,18 @@ EXPORT void subsystem3_test(void)
 	TEST_CHECK("S3-U17", sizeof(ir_snapshot_t) == 8u,
 		   "snapshot is bit-packed into 8 bytes");
 
+	/* S3-U18: unframed patterns are rejected */
+	pats[0] = 0x109u; pats[1] = 0x049u; pats[2] = 0x148u;
+	TEST_CHECK("S3-U18",
+		   ir_c39_decode_word(pats, 3u, word, sizeof(word)) == 0u,
+		   "unframed barcode pattern is rejected");
+
+	/* S3-U19: a bad interior character rejects the whole barcode */
+	pats[0] = IR_C39_STAR; pats[1] = 0u; pats[2] = IR_C39_STAR;
+	TEST_CHECK("S3-U19",
+		   ir_c39_decode_word(pats, 3u, word, sizeof(word)) == 0u,
+		   "invalid interior pattern rejects the word");
+
 	TEST_SUMMARY("subsystem3");
 }
 

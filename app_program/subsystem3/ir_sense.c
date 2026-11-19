@@ -58,6 +58,7 @@
 #define IR_QUIET_NARROWS        (4u)        // Quiet zone > 4 narrow widths
                                             // (wide <= 3, quiet >= 10).
 #define IR_JUNC_SAMPLES         (3u)        // Junction must hold 30 ms.
+#define IR_BARCODE_CONFIRM_SAMPLES (3u)     // Barcode pad must hold 30 ms.
 #define IR_JUNC_HOLD_MS         (300u)      // Report a junction this long.
 #define IR_SENS_SIDES           (IR_SENS_LEFT | IR_SENS_RIGHT)
 #define IR_SENS_ALL             (IR_SENS_LEFT | IR_SENS_CENTRE | IR_SENS_RIGHT)
@@ -85,6 +86,7 @@ typedef struct
     uint8_t  b_black : 1;               // Centre sensor black (barcode).
     uint8_t  b_gap   : 1;               // In an inter-character gap.
     uint8_t  junc_run: 2;               // 0..3 junction samples.
+    uint8_t  barcode_run: 2;            // All-black confirmation samples.
     uint8_t  sensors : 3;               // Last IR_SENS_xxx bits.
     uint8_t  junc    : 2;               // Junction being reported.
     uint8_t  b_armed : 1;               // Sides saw white since last pad.
@@ -262,12 +264,25 @@ ir_handle_track (uint32_t now)
         g_ctx.b_armed = 1u;             // Off any bar or pad.
     }
 
-    // All three black: a barcode bar spans the track.
+    // All three black must persist briefly before treating it as a barcode.
+    // This distinguishes a barcode start from a short line/junction crossing.
     if ((IR_SENS_ALL == bits) && (0u != g_ctx.b_armed)
         && (!g_b_steer_locked))
     {
-        ir_barcode_begin(now);
-        return;
+        if (g_ctx.barcode_run < IR_BARCODE_CONFIRM_SAMPLES)
+        {
+            g_ctx.barcode_run++;
+        }
+        if (g_ctx.barcode_run >= IR_BARCODE_CONFIRM_SAMPLES)
+        {
+            ir_barcode_begin(now);
+            g_ctx.barcode_run = 0u;
+            return;
+        }
+    }
+    else
+    {
+        g_ctx.barcode_run = 0u;
     }
 
     if (0u == bits)
@@ -277,6 +292,8 @@ ir_handle_track (uint32_t now)
         return;
     }
 
+    g_next.lost_timeout = 0u;
+    g_next.line_pos = 0;
     if (ir_line_position(dark[0], dark[1], dark[2], &pos))
     {
         g_next.line_pos = (signed int) pos;      // |pos| <= 1000: fits 11 bits.
@@ -359,11 +376,19 @@ ir_barcode_finish (uint32_t now)
     ir_nav_cmd_t cmd;
     uint8_t      packed;
 
+    g_next.nav_cmd = IR_NAV_NONE;
+    g_next.letter  = IR_LETTER_BAD;
+
     len    = ir_c39_decode_word(g_ctx.pats, g_ctx.chars, word, sizeof(word));
     cmd    = (len > 0u) ? ir_nav_command(word) : IR_NAV_NONE;
     letter = (len > 0u) ? ir_letter_code(word[0]) : IR_LETTER_BAD;
 
-    if (0u != g_ctx.chars)
+    if ((g_ctx.chars >= 3u)
+        && (((IR_C39_STAR == g_ctx.pats[0])
+             && (IR_C39_STAR == g_ctx.pats[g_ctx.chars - 1u]))
+            || ((ir_c39_reverse(IR_C39_STAR) == g_ctx.pats[0])
+                && (ir_c39_reverse(IR_C39_STAR)
+                    == g_ctx.pats[g_ctx.chars - 1u]))))
     {
         packed = s3_nav_pack(letter, cmd);
 
@@ -467,10 +492,30 @@ ir_handle_lost (uint32_t now)
 {
     uint8_t bits = ir_read_sensors(NULL);
 
+    g_next.line_pos = 0;
+    g_next.junction = IR_JUNC_NONE;
+
     if ((IR_SENS_ALL == bits) && (!g_b_steer_locked))
     {
-        g_next.lost_timeout = 0u;       // A barcode with no line before it.
-        ir_barcode_begin(now);
+        g_next.lost_timeout = 0u;
+        if (g_ctx.barcode_run < IR_BARCODE_CONFIRM_SAMPLES)
+        {
+            g_ctx.barcode_run++;
+        }
+        if (g_ctx.barcode_run >= IR_BARCODE_CONFIRM_SAMPLES)
+        {
+            ir_barcode_begin(now);
+            g_ctx.barcode_run = 0u;
+        }
+    }
+    else
+    {
+        g_ctx.barcode_run = 0u;
+    }
+
+    if (IR_SENS_ALL == bits)
+    {
+        return;
     }
     else if (0u != bits)
     {

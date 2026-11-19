@@ -245,34 +245,24 @@ ir_c39_decode_word (uint16_t const * p_pats, uint8_t n_pats, char * p_out,
         return (0u);
     }
 
-    // Direction: a forward read starts with '*'; a backward read starts
-    // with '*' reversed (which looks like 'P'). Without start/stop
-    // characters, pick the direction in which more characters decode.
-    if (IR_C39_STAR == p_pats[0])
+    // Direction: require both start and stop patterns. Unframed patterns
+    // can be a normal junction or a partial barcode and must be rejected.
+    if ((n_pats >= 3u) && (IR_C39_STAR == p_pats[0])
+        && (IR_C39_STAR == p_pats[n_pats - 1u]))
     {
         b_reverse = false;
     }
-    else if (ir_c39_reverse(IR_C39_STAR) == p_pats[0])
+    else if ((n_pats >= 3u)
+             && (ir_c39_reverse(IR_C39_STAR) == p_pats[0])
+             && (ir_c39_reverse(IR_C39_STAR)
+                 == p_pats[n_pats - 1u]))
     {
         b_reverse = true;
     }
     else
     {
-        uint8_t fwd_ok = 0u;
-        uint8_t rev_ok = 0u;
-
-        for (idx = 0u; idx < n_pats; idx++)
-        {
-            if (IR_C39_BAD != ir_c39_lookup(p_pats[idx]))
-            {
-                fwd_ok++;
-            }
-            if (IR_C39_BAD != ir_c39_lookup(ir_c39_reverse(p_pats[idx])))
-            {
-                rev_ok++;
-            }
-        }
-        b_reverse = (rev_ok > fwd_ok);
+        p_out[0] = '\0';
+        return (0u);
     }
 
     for (idx = 0u; idx < n_pats; idx++)
@@ -281,9 +271,27 @@ ir_c39_decode_word (uint16_t const * p_pats, uint8_t n_pats, char * p_out,
                                  : p_pats[idx];
         char     letter = ir_c39_lookup(pat);
 
-        // '*' is framing only; keep everything else, '?' included, so a
-        // bad read never matches a command.
-        if (('*' != letter) && (len < (out_cap - 1u)))
+        // Frame characters are excluded. Every interior character must
+        // decode to a real Code 39 letter; '?' patterns reject the whole word.
+        if (IR_C39_BAD == letter)
+        {
+            p_out[0] = '\0';
+            return (0u);
+        }
+        if ((0u == idx) || (idx == (n_pats - 1u)))
+        {
+            if ('*' != letter)
+            {
+                p_out[0] = '\0';
+                return (0u);
+            }
+        }
+        else if (('*' == letter) || (len >= (out_cap - 1u)))
+        {
+            p_out[0] = '\0';
+            return (0u);
+        }
+        else
         {
             p_out[len] = letter;
             len++;
