@@ -105,7 +105,7 @@ s1_cmd_check (uint8_t const * p_raw, uint32_t len, s1_seq_state_t * p_seq,
     uint32_t arg = proto_get(&bits, S1_ARG_BITS);
 
     bool b_valid = (S1_CMD_FRAME_BYTES == len) && (false == bits.b_error)
-                   && (PROTO_VERSION == ver) && (cmd <= S1_CMD_MODE);
+                   && (PROTO_VERSION == ver) && (cmd <= S1_CMD_PING);
 
     uint32_t delta = (seq - (uint32_t) p_seq->last_seq) & SEQ_MASK;
     bool     b_new = (false == p_seq->b_have_seq)
@@ -388,7 +388,7 @@ forward_command (comms_ctx_t * p_ctx, uint8_t packed)
     }
     else
     {
-        // START and MODE need nothing extra here.
+        // START, MODE and PING need nothing extra here.
     }
 
     // NOTE: sizeof(packed) is 1, so the cast to INT is safe.

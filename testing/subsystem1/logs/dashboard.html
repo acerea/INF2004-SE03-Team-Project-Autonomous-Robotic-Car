@@ -41,6 +41,17 @@
   li { padding: 4px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; }
   li:last-child { border-bottom: 0; }
   li time { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .hist-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+               justify-content: space-between; margin-bottom: 8px; }
+  .hist-head h2 { margin: 0; }
+  .tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; }
+  button, select { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 8px;
+                   border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .scroll { max-height: 360px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { position: sticky; top: 0; background: var(--card); color: var(--muted); font-weight: 600; }
+  td.f { white-space: normal; font-family: ui-monospace, Consolas, monospace; }
 </style>
 </head>
 <body>
@@ -56,7 +67,21 @@
   <section class="card" id="cMo"><h2>Wheels (measured)</h2><p class="big" id="mo">—</p><div class="sub" id="moSub">left / right cm/s</div></section>
   <section class="card" id="cObs"><h2>Obstacle</h2><p class="big" id="obs">—</p><div class="sub" id="obsSub"></div></section>
   <section class="card" id="cBc"><h2>Last barcode</h2><p class="big" id="bc">—</p><div class="sub" id="bcSub"></div></section>
+  <section class="card" id="cLine"><h2>Line status</h2><p class="big" id="line">—</p><div class="sub" id="lineSub">no line telemetry yet</div></section>
   <section class="card" id="cTer"><h2>Lifted / terrain</h2><p class="big" id="ter">—</p><div class="sub" id="terSub"></div></section>
+  <section class="card wide">
+    <div class="hist-head">
+      <h2>All frames (history)</h2>
+      <div class="tools">
+        <select id="histKind"><option value="">all kinds</option></select>
+        <label><input type="checkbox" id="histPause"> pause view</label>
+        <span id="histCount">0 frames</span>
+        <button id="histCsv">Download CSV</button>
+        <button id="histClear">Clear</button>
+      </div>
+    </div>
+    <div class="scroll"><table><thead><tr><th>PC time</th><th>kind</th><th>seq</th><th>fields</th></tr></thead><tbody id="histBody"></tbody></table></div>
+  </section>
   <section class="card wide"><h2>Recent events</h2><ul id="log"><li><time>—</time>waiting for data</li></ul></section>
 </main>
 
@@ -90,6 +115,7 @@
   var STATE_LEVEL = { FOLLOWING: "ok", TURNING: "ok", BYPASSING: "ok",
                       IDLE: "", BLOCKED: "warn", STOPPED: "warn", FAULT: "bad" };
   var OBS_LEVEL = { CLEAR: "ok", SLOWDOWN: "warn", EMERGENCY: "bad" };
+  var LINE_LEVEL = { CALI: "warn", TRACK: "ok", BARCODE: "ok", LINE_LOST: "bad" };
 
   function handle(kind, d) {
     if (kind === "hb") {
@@ -135,11 +161,18 @@
       $("bcSub").textContent = "turn " + d.command + " · " + d.time;
       setCard("cBc", d.letter === "unreadable" ? "warn" : "ok");
       if (d.seq !== lastLetterSeq) { log("barcode " + d.letter + " → " + d.command + upText()); lastLetterSeq = d.seq; }
+    } else if (kind === "line") {
+      $("line").textContent = d.state;
+      $("lineSub").textContent = "sensors " + d.sensors + " · junction " + d.junction +
+        " · position " + (d.line_pos >= 0 ? "+" : "") + d.line_pos;
+      setCard("cLine", LINE_LEVEL[d.state] || "warn");
     } else if (kind === "terrain") {
-      $("ter").textContent = d.lifted ? "LIFTED" : "on ground";
+      var lifted = d.motion === "LIFTED";
+      $("ter").textContent = lifted ? "LIFTED" : (d.overturned ? "OVERTURNED" : "on ground");
       $("terSub").textContent = d.motion + (d.imu_fault ? " · IMU FAULT" : "") +
-        (d.hump_mm !== undefined ? " · hump " + d.hump_mm + " mm ×" + d.hump_count : "");
-      setCard("cTer", d.lifted || d.imu_fault ? "bad" : "ok");
+        (d.hump_mm !== undefined ? " · hump " + d.hump_mm + " mm ×" + d.hump_count : "") +
+        (d.lift_peak !== undefined ? " · lift peak " + d.lift_peak : "");
+      setCard("cTer", lifted || d.overturned || d.imu_fault ? "bad" : "ok");
     }
   }
 
@@ -152,6 +185,72 @@
     }
   }, 1000);
 
+  // History: every frame is kept (up to HIST_MAX) for the table and the CSV.
+  var HIST_MAX = 50000, HIST_SHOWN = 400;
+  var hist = [], kinds = {};
+  var SKIP = { car: 1, ver: 1, time: 1, raw: 1, seq: 1 };
+
+  function fieldText(d) {
+    var parts = [];
+    for (var k in d) { if (!SKIP[k]) { parts.push(k + "=" + d[k]); } }
+    return parts.join("  ");
+  }
+  function pcTime(t) {
+    var d = new Date(t), ms = String(d.getMilliseconds()).padStart(3, "0");
+    return d.toLocaleTimeString([], { hour12: false }) + "." + ms;
+  }
+  function addRow(r, top) {
+    var tr = document.createElement("tr");
+    [pcTime(r.t), r.kind, r.d.seq, fieldText(r.d)].forEach(function (v, i) {
+      var td = document.createElement("td"); td.textContent = v;
+      if (i === 3) { td.className = "f"; }
+      tr.appendChild(td);
+    });
+    var body = $("histBody");
+    if (top) { body.insertBefore(tr, body.firstChild); } else { body.appendChild(tr); }
+    while (body.children.length > HIST_SHOWN) { body.removeChild(body.lastChild); }
+  }
+  function redraw() {
+    var f = $("histKind").value, body = $("histBody"), n = 0;
+    body.innerHTML = "";
+    for (var i = hist.length - 1; i >= 0 && n < HIST_SHOWN; i--) {
+      if (!f || hist[i].kind === f) { addRow(hist[i], false); n++; }
+    }
+  }
+  function record(kind, d) {
+    var r = { t: Date.now(), kind: kind, d: d };
+    hist.push(r);
+    if (hist.length > HIST_MAX) { hist.shift(); }
+    if (!kinds[kind]) {
+      kinds[kind] = 1;
+      var o = document.createElement("option"); o.value = kind; o.textContent = kind;
+      $("histKind").appendChild(o);
+    }
+    $("histCount").textContent = hist.length + " frames";
+    var f = $("histKind").value;
+    if (!$("histPause").checked && (!f || f === kind)) { addRow(r, true); }
+  }
+  function csvCell(v) {
+    var s = (v === undefined || v === null) ? "" : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  $("histKind").addEventListener("change", redraw);
+  $("histPause").addEventListener("change", function () { if (!this.checked) { redraw(); } });
+  $("histClear").addEventListener("click", function () { hist = []; $("histCount").textContent = "0 frames"; redraw(); });
+  $("histCsv").addEventListener("click", function () {
+    var lines = ["pc_time,car_time,kind,seq,fields,raw"];
+    hist.forEach(function (r) {
+      lines.push([new Date(r.t).toISOString(), r.d.time, r.kind, r.d.seq, fieldText(r.d), r.d.raw].map(csvCell).join(","));
+    });
+    var blob = new Blob([lines.join("\r\n")], { type: "text/csv" });
+    var a = document.createElement("a");
+    var now = new Date(), pad = function (n) { return String(n).padStart(2, "0"); };
+    a.href = URL.createObjectURL(blob);
+    a.download = "picocar_" + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) +
+                 "_" + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds()) + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+
   function setBroker(text, color) { $("broker").textContent = text; $("brokerDot").style.background = color; }
 
   if (window.mqtt) {
@@ -163,7 +262,10 @@
     client.on("reconnect", function () { setBroker("reconnecting to broker…", "var(--warn)"); });
     client.on("offline", function () { setBroker("broker offline (is port 9001 on?)", "var(--bad)"); });
     client.on("message", function (topic, payload) {
-      try { handle(topic.split("/").pop(), JSON.parse(payload.toString())); }
+      try {
+        var kind = topic.split("/").pop(), d = JSON.parse(payload.toString());
+        record(kind, d); handle(kind, d);
+      }
       catch (e) { console.warn("bad message on", topic, e); }
     });
   } else {

@@ -11,6 +11,10 @@
 #define M2B 11
 
 /* M1 uses PWM slice 4, M2 uses PWM slice 5. */
+/* Last signed PWM set on each wheel, for telemetry only. */
+static volatile int last_left_pwm = 0;
+static volatile int last_right_pwm = 0;
+
 #define PWM_DIV_REG(slice) \
     (*(volatile unsigned int *)(0x40050004u + (slice) * 0x14u))
 
@@ -60,6 +64,8 @@ static void motor_leftm1(int speed)
         speed = -100;
     }
 
+    last_left_pwm = speed;
+
     if (speed > 0) {
         motor_pwm(M1A, 0);
         motor_pwm(M1B, speed);
@@ -80,6 +86,8 @@ static void motor_rightm2(int speed)
         speed = -100;
     }
 
+    last_right_pwm = speed;
+
     if (speed > 0) {
         motor_pwm(M2B, 0);
         motor_pwm(M2A, speed);
@@ -89,13 +97,48 @@ static void motor_rightm2(int speed)
     }
 }
 
+/* Soft start: a wheel's PWM may rise by at most MOTION_RAMP_STEP per call
+ * (called every 20 ms), so 0 -> 70 % takes about 0.3 s. This limits the
+ * current spike when the motors start, which otherwise browns out the Pico
+ * on a 5 V 2 A power bank. Slowing down and stopping take effect at once.
+ */
+#define MOTION_RAMP_STEP 5
+
+static int motion_ramp(int target, int current)
+{
+    int magnitude;
+
+    if (target == 0) {
+        return 0;
+    }
+
+    /* Reversing starts again from zero. */
+    if ((target > 0 && current < 0) || (target < 0 && current > 0)) {
+        current = 0;
+    }
+
+    magnitude = (current < 0) ? -current : current;
+
+    if (((target < 0) ? -target : target) <= magnitude) {
+        return target;
+    }
+
+    magnitude += MOTION_RAMP_STEP;
+
+    if (target > 0) {
+        return (magnitude < target) ? magnitude : target;
+    }
+
+    return (magnitude < -target) ? -magnitude : target;
+}
+
 /* Public movement commands */
 
 /* Set signed wheel PWM independently: -100 to +100. */
 void motion_setWheelPWM(int left_pwm, int right_pwm)
 {
-    motor_leftm1(left_pwm);
-    motor_rightm2(right_pwm);
+    motor_leftm1(motion_ramp(left_pwm, last_left_pwm));
+    motor_rightm2(motion_ramp(right_pwm, last_right_pwm));
 }
 
 /* Move both wheels forward */
@@ -124,6 +167,13 @@ void motion_turnRight(int speed)
 {
     motor_leftm1(speed);
     motor_rightm2(-speed);
+}
+
+/* Read the last PWM set on each wheel (-100 to +100). */
+void motion_getWheelPWM(int *left_pwm, int *right_pwm)
+{
+    *left_pwm = last_left_pwm;
+    *right_pwm = last_right_pwm;
 }
 
 /* Stop both motors */

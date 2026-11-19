@@ -53,6 +53,7 @@
 #define S1_CMD_ESTOP        (2u)
 #define S1_CMD_RESET        (3u)
 #define S1_CMD_MODE         (4u)
+#define S1_CMD_PING         (5u)   // Keep-alive from the laptop station.
 #define S1_CMD_BITS         PROTO_CMD_BITS
 #define S1_ARG_BITS         PROTO_ARG_BITS
 

@@ -14,6 +14,8 @@ Install once:  pip install paho-mqtt
 Run:           python laptop_station.py
 """
 import json
+import os
+import threading
 import time
 import paho.mqtt.client as mqtt
 
@@ -27,14 +29,15 @@ LINK = ["INIT", "WIFI_CONNECTING", "MQTT_CONNECTING", "CONNECTED",
 TYPES = ["HEARTBEAT", "STATE", "MOTION", "LINE", "BARCODE", "TERRAIN",
          "OBSTACLE", "OBST_PROFILE"]
 B4_STATES = ["UNKNOWN", "STATIONARY", "MOVING", "TURNING", "CLIMBING",
-             "DESCENDING", "IMPACT", "FAULT"]
+             "DESCENDING", "LIFTED", "FAULT"]
 OBS_STATES = ["CLEAR", "SLOWDOWN", "EMERGENCY", "?"]
 SIDES = ["NONE", "LEFT", "RIGHT", "?"]
 VC_STATES = ["IDLE", "FOLLOWING", "TURNING", "BYPASSING", "BLOCKED",
              "STOPPED", "FAULT", "?"]
 MO_MODES = ["STOP", "SPEED", "DISTANCE", "TURN"]
 BC_CMDS = ["NONE", "LEFT", "RIGHT", "STRAIGHT", "U-TURN", "?", "?", "?"]
-CMDS = {"start": 0, "stop": 1, "estop": 2, "reset": 3, "mode": 4}
+CMDS = {"start": 0, "stop": 1, "estop": 2, "reset": 3, "mode": 4, "ping": 5}
+PING_S = 0.5    # keep-alive period; the car stops after 2 s without commands
 
 
 def get_bits(buf, pos, n):
@@ -88,6 +91,14 @@ def decode_fields(f):
                  obstacle=OBS_STATES[get_bits(f, 17, 2)],
                  link_lost=get_bits(f, 19, 1), speed_cm_s=get_bits(f, 20, 6))
         return "state", d
+    if typ == 3 and len(f) >= 4:
+        sens = get_bits(f, 16, 3)
+        d.update(state=["CALI", "TRACK", "BARCODE", "LINE_LOST"][get_bits(f, 14, 2)],
+                 sensors="".join(c if sens & b else "." for c, b in
+                                 (("L", 4), ("C", 2), ("R", 1))),
+                 junction=["NONE", "LEFT", "RIGHT", "BOTH"][get_bits(f, 19, 2)],
+                 line_pos=get_bits(f, 21, 11) - 1024)
+        return "line", d
     if typ == 2 and len(f) >= 8:
         d.update(mode=MO_MODES[get_bits(f, 14, 2)], target_cm_s=get_bits(f, 16, 6),
                  left_cm_s=get_signed(f, 22, 11) / 10, right_cm_s=get_signed(f, 33, 11) / 10,
@@ -101,11 +112,13 @@ def decode_fields(f):
     if typ == 5 and len(f) >= 4:
         valid = get_bits(f, 19, 1)
         d.update(motion=B4_STATES[get_bits(f, 14, 3)],
-                 lifted=get_bits(f, 17, 1), imu_fault=get_bits(f, 18, 1))
+                 overturned=get_bits(f, 17, 1), imu_fault=get_bits(f, 18, 1))
         if valid:
             d.update(hump_mm=get_bits(f, 20, 8), hump_count=get_bits(f, 28, 4))
         else:
             d["hump"] = "not measured"
+        if len(f) >= 5:     # 5-byte terrain: lift detector peak (tuning)
+            d["lift_peak"] = get_bits(f, 32, 8) * 1000
         return "terrain", d
     if typ == 6 and len(f) >= 4:
         d.update(state=OBS_STATES[get_bits(f, 14, 2)],
@@ -155,7 +168,44 @@ client.on_message = on_message
 client.connect(BROKER, 1883, 60)
 client.loop_start()
 
-cmd_seq = 0
+# Continue the command sequence across restarts: the car rejects numbers it
+# has already seen (replay protection), so starting again at 0 would make it
+# ignore START until RESET. Kept outside the repo.
+SEQ_FILE = os.path.join(os.path.expanduser("~"), ".picocar_cmd_seq")
+try:
+    with open(SEQ_FILE) as fh:
+        cmd_seq = (int(fh.read().strip()) + 1) & 0xFF
+except (OSError, ValueError):
+    cmd_seq = 0
+seq_lock = threading.Lock()
+
+
+def send_cmd(name, arg=0, quiet=False):
+    """Send one command; the sequence number is shared with the pinger."""
+    global cmd_seq
+    with seq_lock:
+        frame = encode_cmd(cmd_seq, CMDS[name], arg & 0xF)
+        client.publish(f"{CAR}/cmd", frame, qos=1)
+        if not quiet:
+            print(f"[station] sent {name} seq={cmd_seq} bytes={frame.hex()}")
+        try:
+            with open(SEQ_FILE, "w") as fh:
+                fh.write(str(cmd_seq))
+        except OSError:
+            pass
+        cmd_seq = (cmd_seq + 1) & 0xFF
+
+
+def pinger():
+    """Keep-alive: if this program stops, the car stops 2 s later."""
+    while True:
+        time.sleep(PING_S)
+        send_cmd("ping", quiet=True)
+
+
+threading.Thread(target=pinger, daemon=True).start()
+print("[station] keep-alive on: closing this window stops the car within 2 s")
+
 try:
     while True:
         line = input().strip().lower().split()
@@ -165,9 +215,6 @@ try:
             print("commands: start | stop | estop | reset | mode N")
             continue
         arg = int(line[1]) if len(line) > 1 and line[1].isdigit() else 0
-        frame = encode_cmd(cmd_seq, CMDS[line[0]], arg & 0xF)
-        client.publish(f"{CAR}/cmd", frame, qos=1)
-        print(f"[station] sent {line[0]} seq={cmd_seq} bytes={frame.hex()}")
-        cmd_seq = (cmd_seq + 1) & 0xFF
+        send_cmd(line[0], arg)
 except KeyboardInterrupt:
     pass

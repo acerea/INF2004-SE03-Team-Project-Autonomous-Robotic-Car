@@ -26,4 +26,8 @@ void motion_pidTurnRight(float angle_degrees);
 /* Change forward speed while preserving an active distance target. */
 void motion_pidChangeSpeed(float speed_cm_s);
 
+/* Apply line-following correction in addition to encoder/PID correction.
+ * Positive line_pos means the line is to the right. */
+void motion_pidSetLineCorrection(int line_pos);
+
 #endif /* MOTION_PID_H */
