@@ -390,9 +390,15 @@ vc_poll_line_following (void)
     ir_snapshot_t snap;
 
     ir_get_telemetry(&snap);
-    if (IR_TRACK == snap.state)
+    if ((IR_TRACK == snap.state)
+        || ((IR_LINE_LOST == snap.state) && (0u == snap.lost_timeout)))
     {
         s2_setLineCorrection(snap.line_pos);
+    }
+    else if (IR_LINE_LOST == snap.state)
+    {
+        s2_setLineCorrection(0);
+        vc_motion(S2_MOTION_STOP, 0u);
     }
     else
     {

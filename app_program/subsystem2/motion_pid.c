@@ -99,12 +99,12 @@ void motion_pidSetLineCorrection(int line_pos)
     if (line_pos < -1000) line_pos = -1000;
 
     /* Smooth the IR position so small sensor edges do not jerk the wheels.
-     * 0.12 PWM per position unit gives about +/-100 PWM at full offset,
-     * while leaving enough steering authority for curves. */
+     * 0.08 PWM per position unit gives about +/-80 PWM at full offset,
+     * enough to react but small enough to avoid oscillation. */
     line_error_filtered = (line_error_filtered * 3 + line_pos) / 4;
-    correction = (line_error_filtered * 12) / 100;
-    if (correction > 100) correction = 100;
-    if (correction < -100) correction = -100;
+    correction = (line_error_filtered * 8) / 100;
+    if (correction > 80) correction = 80;
+    if (correction < -80) correction = -80;
     line_correction_pwm = correction;
 }
 /* Change speed without cancelling an active distance target. */

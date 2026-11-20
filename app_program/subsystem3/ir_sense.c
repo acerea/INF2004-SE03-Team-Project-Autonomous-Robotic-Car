@@ -80,6 +80,7 @@ typedef struct
     uint16_t widths[IR_C39_ELEMENTS];   // Element widths, ms.
     uint16_t pats[IR_MAX_CHARS];        // 9-bit character patterns.
     uint16_t min_elem_ms;               // Narrowest element so far.
+    int16_t  last_line_pos;             // Last real line position for reacquisition.
     uint8_t  cal_count;                 // 0..50.
     uint8_t  elem    : 4;               // 0..9 elements of the character.
     uint8_t  chars   : 4;               // 0..10 characters read.
@@ -301,6 +302,7 @@ ir_handle_track (uint32_t now)
     if (0u == bits)
     {
         g_next.lost_timeout = 0u;
+        g_next.line_pos = g_ctx.last_line_pos;
         ir_set_state(IR_LINE_LOST, now);
         return;
     }
@@ -310,6 +312,7 @@ ir_handle_track (uint32_t now)
     if (ir_line_position(dark[0], dark[1], dark[2], &pos))
     {
         g_next.line_pos = (signed int) pos;      // |pos| <= 1000: fits 11 bits.
+        g_ctx.last_line_pos = pos;
     }
 
     // A side branch: centre and one side black, held for 30 ms.
@@ -526,7 +529,7 @@ ir_handle_lost (uint32_t now)
 
     uint8_t bits = ir_read_sensors(NULL);
 
-    g_next.line_pos = 0;
+    g_next.line_pos = g_ctx.last_line_pos;
     g_next.junction = IR_JUNC_NONE;
 
     if ((IR_SENS_ALL == bits) && (!g_b_steer_locked))
@@ -673,6 +676,7 @@ ir_sense_init (void)
 
     ir_cal_set(&g_ctx.cal, 0u, 0u);     // Defaults until calibrated.
     g_ctx.b_armed       = 1u;
+    g_ctx.last_line_pos = 0;
     g_next.state        = IR_CALI;
     g_next.line_pos     = 0;
     g_next.letter       = IR_LETTER_BAD;
