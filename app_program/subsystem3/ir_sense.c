@@ -43,10 +43,16 @@
 #include "ir_algo.h"
 #include "../subsystem1/subsystem1.h"
 
-// ADC channels (TEAM.md: GP26 left, GP27 centre, GP28 right).
-#define ADC_LEFT                (0)
+// ADC channels, as the car is actually wired (TEAM.md section 2):
+//   GP26 = ADC0 = RIGHT line sensor
+//   GP27 = ADC1 = middle (centre) line sensor
+//   GP28 = ADC2 = LEFT sensor (the barcode sensor)
+// All three must be on the boards' analog AO outputs, not DO: the code
+// measures darkness, and DO only gives on/off. The old mapping (ADC0 =
+// left) reversed the steering on this car.
+#define ADC_LEFT                (2)
 #define ADC_CENTRE              (1)
-#define ADC_RIGHT               (2)
+#define ADC_RIGHT               (0)
 
 #define IR_TRACK_MS             (10u)       // Line tracking period.
 #define IR_BARCODE_MS           (2u)        // Barcode sampling period.
@@ -63,6 +69,7 @@
 #define IR_SENS_SIDES           (IR_SENS_LEFT | IR_SENS_RIGHT)
 #define IR_SENS_ALL             (IR_SENS_LEFT | IR_SENS_CENTRE | IR_SENS_RIGHT)
 #define IR_LINE_PUB_MS          (1000u)     // LINE frame at least every 1 s.
+#define IR_POS_PUB_MS           (100u)      // Line position alone: max 10 Hz.
 #define IR_MAX_CHARS            (10u)       // '*' + 8 letters + '*'.
 #define IR_WORD_MAX             (IR_MAX_CHARS + 1u)
 
@@ -70,16 +77,22 @@
 // the bits their range needs (change requirement 1).
 typedef struct
 {
-    ir_cal_t cal;                       // Calibrated white / black.
-    uint16_t cal_lo;                    // Calibration min / max.
-    uint16_t cal_hi;
+    ir_cal_t cal[3];                    // White / black per sensor: L, C, R.
+    ir_cal_t cal_saved[3];              // Levels before a sweep (cancel).
+    uint16_t sw_lo[3];                  // Sweep min / max per sensor.
+    uint16_t sw_hi[3];
+    uint16_t cal_lo;                    // Static calibration min / max
+    uint16_t cal_hi;                    // (all sensors together).
+    bool     b_sweeping;                // Sweep calibration running.
     uint32_t state_ms;                  // Time the state was entered.
     uint32_t edge_ms;                   // Last barcode transition.
     uint32_t last_pub_ms;               // Last LINE frame.
     uint32_t junc_ms;                   // Time the junction was seen.
+    uint32_t bar_first_ms;              // First all-black sample of a pad.
     uint16_t widths[IR_C39_ELEMENTS];   // Element widths, ms.
     uint16_t pats[IR_MAX_CHARS];        // 9-bit character patterns.
     uint16_t min_elem_ms;               // Narrowest element so far.
+    int16_t  last_line_pos;             // Last real line position for reacquisition.
     uint8_t  cal_count;                 // 0..50.
     uint8_t  elem    : 4;               // 0..9 elements of the character.
     uint8_t  chars   : 4;               // 0..10 characters read.
@@ -106,10 +119,23 @@ static uint8_t        g_last_pub_sensors = 0xFFu;
 static int16_t        g_last_pub_pos = -32768;
 static volatile bool  g_b_steer_locked = false;
 static volatile bool  g_b_lift_override = false;
+static volatile bool  g_b_recal_request = false;
+
+// DEBUG: breadcrumb of the IR task's position, read by the VC when the IR
+// task stops updating. stage | (ADC channel << 8).
+//   1 loop top        2 handler          3 before tk_srea_dev (ADC read)
+//   4 after ADC read  5 before mutex     6 after mutex
+//   7 publish line    8 in tk_dly_tsk    9 sweep requests
+static volatile uint32_t g_ir_stage = 0u;
+#define IR_STAGE(s)   (g_ir_stage = (s))
+static volatile bool  g_b_sweep_begin = false;
+static volatile bool  g_b_sweep_end = false;
+static volatile bool  g_b_sweep_cancel = false;
 
 EXPORT ID mbf_s3_nav;                   // IF-15.
 
 static void ir_handle_cali(uint32_t now);
+static void s3_publish_ircal(uint32_t kind, uint32_t ok_mask);
 static void ir_handle_track(uint32_t now);
 static void ir_handle_barcode(uint32_t now);
 static void ir_handle_lost(uint32_t now);
@@ -138,10 +164,28 @@ ir_read_adc (INT channel)
     SZ  asize = 0;
     ER  err;
 
+    static uint8_t s_err_prints = 0u;       // DEBUG: first errors only.
+    static uint8_t s_ok_seen = 0u;          // DEBUG: bit per channel.
+
+    IR_STAGE(3u | ((uint32_t) channel << 8));
     err = tk_srea_dev(g_adc_dd, channel, &value, 1, &asize);
+    IR_STAGE(4u | ((uint32_t) channel << 8));
     if ((err < E_OK) || (asize < 1))
     {
+        if (s_err_prints < 6u)
+        {
+            s_err_prints++;
+            tm_printf((UB*)"ir: DEBUG ADC ch%d read failed err=%d size=%d CS=0x%08x\n",
+                      (int) channel, (int) err, (int) asize,
+                      (unsigned int) (*(volatile UW *) 0x4004C000u));
+        }
         value = 0u;     // Reads as white: a dead sensor looks like no line.
+    }
+    else if (0u == (s_ok_seen & (1u << channel)))
+    {
+        s_ok_seen |= (uint8_t) (1u << channel);
+        tm_printf((UB*)"ir: DEBUG ADC ch%d first reading %u\n",
+                  (int) channel, (unsigned int) (value & IR_ADC_MAX));
     }
 
     return ((uint16_t) (value & IR_ADC_MAX));
@@ -166,24 +210,24 @@ ir_read_sensors (uint16_t p_dark[3])
     uint8_t  old = g_ctx.sensors;
     uint8_t  bits = 0u;
 
-    if (ir_is_black(raw_l, 0u != (old & IR_SENS_LEFT), &g_ctx.cal))
+    if (ir_is_black(raw_l, 0u != (old & IR_SENS_LEFT), &g_ctx.cal[0]))
     {
         bits |= IR_SENS_LEFT;
     }
-    if (ir_is_black(raw_c, 0u != (old & IR_SENS_CENTRE), &g_ctx.cal))
+    if (ir_is_black(raw_c, 0u != (old & IR_SENS_CENTRE), &g_ctx.cal[1]))
     {
         bits |= IR_SENS_CENTRE;
     }
-    if (ir_is_black(raw_r, 0u != (old & IR_SENS_RIGHT), &g_ctx.cal))
+    if (ir_is_black(raw_r, 0u != (old & IR_SENS_RIGHT), &g_ctx.cal[2]))
     {
         bits |= IR_SENS_RIGHT;
     }
 
     if (NULL != p_dark)
     {
-        p_dark[0] = ir_darkness(raw_l, &g_ctx.cal);
-        p_dark[1] = ir_darkness(raw_c, &g_ctx.cal);
-        p_dark[2] = ir_darkness(raw_r, &g_ctx.cal);
+        p_dark[0] = ir_darkness(raw_l, &g_ctx.cal[0]);
+        p_dark[1] = ir_darkness(raw_c, &g_ctx.cal[1]);
+        p_dark[2] = ir_darkness(raw_r, &g_ctx.cal[2]);
     }
 
     g_ctx.sensors  = bits & 0x07u;
@@ -200,6 +244,23 @@ ir_handle_cali (uint32_t now)
     raw[0] = ir_read_adc(ADC_LEFT);
     raw[1] = ir_read_adc(ADC_CENTRE);
     raw[2] = ir_read_adc(ADC_RIGHT);
+
+    // Sweep: each sensor keeps its own range; the VC ends the sweep.
+    if (g_ctx.b_sweeping)
+    {
+        for (idx = 0u; idx < 3u; idx++)
+        {
+            if (raw[idx] < g_ctx.sw_lo[idx])
+            {
+                g_ctx.sw_lo[idx] = raw[idx];
+            }
+            if (raw[idx] > g_ctx.sw_hi[idx])
+            {
+                g_ctx.sw_hi[idx] = raw[idx];
+            }
+        }
+        return;
+    }
 
     if (0u == g_ctx.cal_count)
     {
@@ -222,28 +283,39 @@ ir_handle_cali (uint32_t now)
     g_ctx.cal_count++;
     if (g_ctx.cal_count >= IR_CAL_SAMPLES)
     {
-        ir_cal_set(&g_ctx.cal, g_ctx.cal_lo, g_ctx.cal_hi);
+        // Standing still on the line, each sensor sees only one colour,
+        // so the static calibration uses one range for all three.
+        ir_cal_set(&g_ctx.cal[0], g_ctx.cal_lo, g_ctx.cal_hi);
+        g_ctx.cal[1] = g_ctx.cal[0];
+        g_ctx.cal[2] = g_ctx.cal[0];
 
-        if ((g_ctx.cal.white != g_ctx.cal_lo)
-            || (g_ctx.cal.black != g_ctx.cal_hi))
+        if ((g_ctx.cal[0].white != g_ctx.cal_lo)
+            || (g_ctx.cal[0].black != g_ctx.cal_hi))
         {
             tm_printf((UB*)"ir: low contrast (%u..%u), default levels\n",
                       (unsigned int) g_ctx.cal_lo,
                       (unsigned int) g_ctx.cal_hi);
         }
         tm_printf((UB*)"ir: calibrated white=%u black=%u\n",
-                  (unsigned int) g_ctx.cal.white,
-                  (unsigned int) g_ctx.cal.black);
+                  (unsigned int) g_ctx.cal[0].white,
+                  (unsigned int) g_ctx.cal[0].black);
+        s3_publish_ircal(0u, ((g_ctx.cal[0].white == g_ctx.cal_lo)
+                              && (g_ctx.cal[0].black == g_ctx.cal_hi))
+                             ? 7u : 0u);
         ir_set_state(IR_TRACK, now);
     }
 
     return;
 }
 
+// start_ms is the first all-black sample, not the confirming one: the
+// confirmation (IR_BARCODE_CONFIRM_SAMPLES ticks) used to be cut off the
+// first bar, which made min_elem_ms (and the quiet-zone limit) too small
+// and could end the barcode at its first wide space.
 static void
-ir_barcode_begin (uint32_t now)
+ir_barcode_begin (uint32_t now, uint32_t start_ms)
 {
-    g_ctx.edge_ms     = now;
+    g_ctx.edge_ms     = start_ms;
     g_ctx.elem        = 0u;
     g_ctx.chars       = 0u;
     g_ctx.b_black     = 1u;
@@ -282,13 +354,17 @@ ir_handle_track (uint32_t now)
     if ((IR_SENS_ALL == bits) && (0u != g_ctx.b_armed)
         && (!g_b_steer_locked))
     {
+        if (0u == g_ctx.barcode_run)
+        {
+            g_ctx.bar_first_ms = now;
+        }
         if (g_ctx.barcode_run < IR_BARCODE_CONFIRM_SAMPLES)
         {
             g_ctx.barcode_run++;
         }
         if (g_ctx.barcode_run >= IR_BARCODE_CONFIRM_SAMPLES)
         {
-            ir_barcode_begin(now);
+            ir_barcode_begin(now, g_ctx.bar_first_ms);
             g_ctx.barcode_run = 0u;
             return;
         }
@@ -301,6 +377,7 @@ ir_handle_track (uint32_t now)
     if (0u == bits)
     {
         g_next.lost_timeout = 0u;
+        g_next.line_pos = g_ctx.last_line_pos;
         ir_set_state(IR_LINE_LOST, now);
         return;
     }
@@ -310,6 +387,7 @@ ir_handle_track (uint32_t now)
     if (ir_line_position(dark[0], dark[1], dark[2], &pos))
     {
         g_next.line_pos = (signed int) pos;      // |pos| <= 1000: fits 11 bits.
+        g_ctx.last_line_pos = pos;
     }
 
     // A side branch: centre and one side black, held for 30 ms.
@@ -375,6 +453,30 @@ s3_publish_barcode (char letter, uint32_t command)
     proto_begin(&bits, PROTO_TYPE_BARCODE);
     proto_put(&bits, code, PROTO_BC_LETTER_BITS);
     proto_put(&bits, command, PROTO_BC_CMD_BITS);
+    (void) s1_publish(frame, proto_end(&bits), false);
+
+    return;
+}
+
+// IRCAL frame (type 8): the calibration result, so it can be checked on
+// the dashboard / station log without the serial port. ok_mask bit 0 = L,
+// bit 1 = C, bit 2 = R: 1 if that sensor got new levels.
+static void
+s3_publish_ircal (uint32_t kind, uint32_t ok_mask)
+{
+    uint8_t      frame[PROTO_MAX_FRAME_BYTES];
+    proto_bits_t bits;
+    uint8_t      idx;
+
+    proto_init(&bits, frame, sizeof(frame));
+    proto_begin(&bits, PROTO_TYPE_IRCAL);
+    proto_put(&bits, kind, PROTO_IRC_KIND_BITS);
+    for (idx = 0u; idx < 3u; idx++)
+    {
+        proto_put_sat(&bits, g_ctx.cal[idx].white, PROTO_IRC_LEVEL_BITS);
+        proto_put_sat(&bits, g_ctx.cal[idx].black, PROTO_IRC_LEVEL_BITS);
+        proto_put(&bits, (ok_mask >> idx) & 1u, PROTO_IRC_OK_BITS);
+    }
     (void) s1_publish(frame, proto_end(&bits), false);
 
     return;
@@ -456,11 +558,14 @@ ir_handle_barcode (uint32_t now)
         else
         {
             g_ctx.widths[g_ctx.elem] = width;
-            g_ctx.elem++;
-            if (width < g_ctx.min_elem_ms)
+            // The very first bar is still only known to within one 10 ms
+            // track tick, so it does not set the narrow-width estimate.
+            if (((0u != g_ctx.chars) || (0u != g_ctx.elem))
+                && (width < g_ctx.min_elem_ms))
             {
                 g_ctx.min_elem_ms = width;
             }
+            g_ctx.elem++;
 
             if (g_ctx.elem >= IR_C39_ELEMENTS)
             {
@@ -526,19 +631,23 @@ ir_handle_lost (uint32_t now)
 
     uint8_t bits = ir_read_sensors(NULL);
 
-    g_next.line_pos = 0;
+    g_next.line_pos = g_ctx.last_line_pos;
     g_next.junction = IR_JUNC_NONE;
 
     if ((IR_SENS_ALL == bits) && (!g_b_steer_locked))
     {
         g_next.lost_timeout = 0u;
+        if (0u == g_ctx.barcode_run)
+        {
+            g_ctx.bar_first_ms = now;
+        }
         if (g_ctx.barcode_run < IR_BARCODE_CONFIRM_SAMPLES)
         {
             g_ctx.barcode_run++;
         }
         if (g_ctx.barcode_run >= IR_BARCODE_CONFIRM_SAMPLES)
         {
-            ir_barcode_begin(now);
+            ir_barcode_begin(now, g_ctx.bar_first_ms);
             g_ctx.barcode_run = 0u;
         }
     }
@@ -574,12 +683,17 @@ ir_publish_line (uint32_t now)
 {
     uint8_t      frame[PROTO_MAX_FRAME_BYTES];
     proto_bits_t bits;
+    uint32_t     age = now - g_ctx.last_pub_ms;
+    bool         b_event = (g_next.state != g_last_pub_state)
+                           || (g_next.junction != g_last_pub_junc)
+                           || (g_next.sensors != g_last_pub_sensors);
 
-    if ((g_next.state == g_last_pub_state)
-        && (g_next.junction == g_last_pub_junc)
-        && (g_next.sensors == g_last_pub_sensors)
-        && (g_next.line_pos == g_last_pub_pos)
-        && ((now - g_ctx.last_pub_ms) < IR_LINE_PUB_MS))
+    // Publish at once on a state / sensor / junction change. A line_pos
+    // that only wobbles goes out at most every IR_POS_PUB_MS, and the
+    // frame is refreshed every IR_LINE_PUB_MS so the panel stays live.
+    if (!b_event
+        && !((g_next.line_pos != g_last_pub_pos) && (age >= IR_POS_PUB_MS))
+        && (age < IR_LINE_PUB_MS))
     {
         return;
     }
@@ -592,18 +706,102 @@ ir_publish_line (uint32_t now)
     proto_put_s(&bits, g_next.line_pos, PROTO_LN_POS_BITS);
     (void) s1_publish(frame, proto_end(&bits), false);
 
-    tm_printf((UB*)"ir: state=%u sensors=%u junction=%u line_pos=%d lost=%u\n",
-              (unsigned int)g_next.state,
-              (unsigned int)g_next.sensors,
-              (unsigned int)g_next.junction,
-              (int)g_next.line_pos,
-              (unsigned int)g_next.lost_timeout);
+    // Console: only real changes, never the line_pos wobble.
+    if (b_event)
+    {
+        tm_printf((UB*)"ir: state=%u sensors=%u junction=%u line_pos=%d lost=%u\n",
+                  (unsigned int)g_next.state,
+                  (unsigned int)g_next.sensors,
+                  (unsigned int)g_next.junction,
+                  (int)g_next.line_pos,
+                  (unsigned int)g_next.lost_timeout);
+    }
 
     g_last_pub_state   = (uint8_t) g_next.state;
     g_last_pub_junc    = (uint8_t) g_next.junction;
     g_last_pub_sensors = (uint8_t) g_next.sensors;
     g_last_pub_pos     = (int16_t) g_next.line_pos;
     g_ctx.last_pub_ms = now;
+
+    return;
+}
+
+// Sweep calibration requests from the VC (other core): flags, acted on here.
+static void
+ir_sweep_requests (uint32_t now)
+{
+    static char const names[3] = {'L', 'C', 'R'};
+    uint8_t idx;
+
+    if (g_b_sweep_begin)
+    {
+        g_b_sweep_begin = false;
+        for (idx = 0u; idx < 3u; idx++)
+        {
+            g_ctx.cal_saved[idx] = g_ctx.cal[idx];
+            g_ctx.sw_lo[idx]     = IR_ADC_MAX;
+            g_ctx.sw_hi[idx]     = 0u;
+        }
+        g_ctx.b_sweeping  = true;
+        g_ctx.barcode_run = 0u;
+        g_ctx.b_armed     = 1u;
+        tm_printf((UB*)"ir: sweep calibration started\n");
+        ir_set_state(IR_CALI, now);
+        ir_publish_line(now);
+    }
+
+    if (g_b_sweep_cancel)
+    {
+        g_b_sweep_cancel = false;
+        g_b_sweep_end    = false;
+        if (g_ctx.b_sweeping)
+        {
+            for (idx = 0u; idx < 3u; idx++)
+            {
+                g_ctx.cal[idx] = g_ctx.cal_saved[idx];
+            }
+            g_ctx.b_sweeping = false;
+            tm_printf((UB*)"ir: sweep calibration cancelled, old levels kept\n");
+            s3_publish_ircal(2u, 0u);
+            ir_set_state(IR_TRACK, now);
+        }
+    }
+
+    if (g_b_sweep_end)
+    {
+        g_b_sweep_end = false;
+        if (g_ctx.b_sweeping)
+        {
+            uint32_t ok_mask = 0u;
+
+            for (idx = 0u; idx < 3u; idx++)
+            {
+                uint16_t lo = g_ctx.sw_lo[idx];
+                uint16_t hi = g_ctx.sw_hi[idx];
+
+                if ((hi > lo) && ((uint32_t) (hi - lo) >= IR_MIN_CONTRAST))
+                {
+                    g_ctx.cal[idx].white = lo;
+                    g_ctx.cal[idx].black = hi;
+                    ok_mask |= (1u << idx);
+                    tm_printf((UB*)"ir: %c white=%u black=%u\n",
+                              names[idx], (unsigned int) lo, (unsigned int) hi);
+                }
+                else
+                {
+                    // Never saw both colours: keep what it had.
+                    tm_printf((UB*)"ir: %c low contrast (%u..%u), kept white=%u black=%u\n",
+                              names[idx], (unsigned int) lo, (unsigned int) hi,
+                              (unsigned int) g_ctx.cal[idx].white,
+                              (unsigned int) g_ctx.cal[idx].black);
+                }
+            }
+            g_ctx.b_sweeping = false;
+            tm_printf((UB*)"ir: sweep calibration done\n");
+            s3_publish_ircal(1u, ok_mask);
+            ir_set_state(IR_TRACK, now);
+        }
+    }
 
     return;
 }
@@ -615,30 +813,75 @@ ir_sensor_task (INT stacd, void * exinf)
     (void) exinf;
 
     tm_printf((UB*)"ir: started, calibrating (keep the robot on the line)\n");
+    tm_printf((UB*)"ir: DEBUG first ADC read, CS=0x%08x\n",
+              (unsigned int) (*(volatile UW *) 0x4004C000u));
 
     for (;;)
     {
         uint32_t now = ir_now_ms();
-        uint8_t  state = (uint8_t) (g_next.state & IR_MASK);
+        uint8_t  state;
 
+        IR_STAGE(1u);
+        if (g_b_recal_request)
+        {
+            g_b_recal_request = false;
+            g_ctx.cal_count   = 0u;
+            g_ctx.barcode_run = 0u;
+            g_ctx.b_armed     = 1u;
+            tm_printf((UB*)"ir: recalibrating (keep the robot on the line)\n");
+            ir_set_state(IR_CALI, now);
+            ir_publish_line(now);       // Dashboard sees CALI at once.
+        }
+        IR_STAGE(9u);
+        ir_sweep_requests(now);
+        state = (uint8_t) (g_next.state & IR_MASK);
+
+        IR_STAGE(2u);
         g_handlers[state](now);
 
         // Publish the tick's result to readers in one locked copy.
         g_next.timestamp_ms = now;
-        if (E_OK == tk_loc_mtx(g_ir_mutex, TMO_FEVR))
+        IR_STAGE(5u);
         {
-            g_snap = g_next;
-            (void) tk_unl_mtx(g_ir_mutex);
-        }
+            ER mer = tk_loc_mtx(g_ir_mutex, TMO_FEVR);
 
-        if (IR_CALI != g_next.state)
+            IR_STAGE(6u);
+            if (E_OK == mer)
+            {
+                g_snap = g_next;
+                (void) tk_unl_mtx(g_ir_mutex);
+            }
+            else
+            {
+                static uint8_t s_mtx_prints = 0u;
+
+                if (s_mtx_prints < 3u)
+                {
+                    s_mtx_prints++;
+                    tm_printf((UB*)"ir: DEBUG tk_loc_mtx failed %d\n", (int) mer);
+                }
+            }
+        }
+        IR_STAGE(7u);
+
+        // Not while reading a barcode: a print or publish on every sensor
+        // edge in the 2 ms loop stretched the very widths being measured.
+        // The first TRACK tick after the barcode publishes the change.
+        if ((IR_CALI != g_next.state) && (IR_BARCODE != g_next.state))
         {
             ir_publish_line(now);
         }
 
+        IR_STAGE(8u);
         (void) tk_dly_tsk((IR_BARCODE == g_next.state) ? IR_BARCODE_MS
                                                         : IR_TRACK_MS);
     }
+}
+
+uint32_t
+ir_debug_stage (void)
+{
+    return (g_ir_stage);
 }
 
 ER
@@ -671,8 +914,11 @@ ir_sense_init (void)
         return (g_adc_dd);
     }
 
-    ir_cal_set(&g_ctx.cal, 0u, 0u);     // Defaults until calibrated.
+    ir_cal_set(&g_ctx.cal[0], 0u, 0u);  // Defaults until calibrated.
+    g_ctx.cal[1] = g_ctx.cal[0];
+    g_ctx.cal[2] = g_ctx.cal[0];
     g_ctx.b_armed       = 1u;
+    g_ctx.last_line_pos = 0;
     g_next.state        = IR_CALI;
     g_next.line_pos     = 0;
     g_next.letter       = IR_LETTER_BAD;
@@ -713,6 +959,32 @@ void
 ir_set_lift_override (bool b_lifted)
 {
     g_b_lift_override = b_lifted;
+}
+
+void
+ir_request_calibration (void)
+{
+    g_b_recal_request = true;
+}
+
+void
+ir_cal_sweep_begin (void)
+{
+    g_b_sweep_cancel = false;
+    g_b_sweep_end    = false;
+    g_b_sweep_begin  = true;
+}
+
+void
+ir_cal_sweep_end (void)
+{
+    g_b_sweep_end = true;
+}
+
+void
+ir_cal_sweep_cancel (void)
+{
+    g_b_sweep_cancel = true;
 }
 
 bool

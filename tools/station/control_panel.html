@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SE03 ground station</title>
+<!--
+  Control panel for picocar. Needs:
+    1. Mosquitto with a WebSocket listener (default ws://localhost:9001)
+    2. tools/station/station.py running (it decodes the car's frames into
+       <car>/view/<kind> and forwards <car>/ui/cmd to the car)
+  mqtt.js is loaded from unpkg, so the laptop needs internet the first time
+  (the browser caches it afterwards).
+-->
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<style>
+  :root {
+    --bg: #0e1116; --panel: #161b22; --edge: #2a313c; --ink: #d7dde6;
+    --dim: #7d8794; --amber: #f2a93b; --teal: #2ec4b6; --red: #ef4f4f;
+    --green: #4cc364; --violet: #a78bfa;
+    --mono: "JetBrains Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.45 var(--mono); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+         padding: 10px 18px; border-bottom: 1px solid var(--edge); background: #0a0d12; }
+  .bar b { color: var(--amber); letter-spacing: .12em; }
+  .bar label { color: var(--dim); font-size: 12px; }
+  .bar input { background: var(--panel); border: 1px solid var(--edge); color: var(--ink);
+               font: 12px var(--mono); padding: 3px 6px; width: 170px; }
+  .led { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); }
+  .led i { width: 10px; height: 10px; background: #3a414c; display: inline-block;
+           clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  .led.on i { background: var(--green); } .led.warn i { background: var(--amber); }
+  .led.off i { background: var(--red); }
+  main { display: grid; grid-template-columns: 330px 1fr; gap: 0; min-height: calc(100vh - 48px); }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } .tiles { grid-template-columns: repeat(2, 1fr); } }
+  aside { border-right: 1px solid var(--edge); padding: 16px; display: flex; flex-direction: column; gap: 18px; }
+  section.right { padding: 16px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  h3 { margin: 0 0 8px; font-size: 11px; color: var(--dim); letter-spacing: .18em; font-weight: 500; }
+  h3::before { content: "// "; color: var(--edge); }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  button { font: 600 13px var(--mono); letter-spacing: .08em; padding: 11px 8px;
+           background: transparent; color: var(--ink); border: 1px solid var(--edge); cursor: pointer; }
+  button:hover:not(:disabled) { background: #1d2430; }
+  button:disabled { opacity: .35; cursor: not-allowed; }
+  .go { border-color: var(--green); color: var(--green); }
+  .halt { border-color: var(--amber); color: var(--amber); }
+  .kill { grid-column: 1 / -1; border: 2px solid var(--red); color: #fff; background: #3a1414; padding: 14px; }
+  .kill:hover:not(:disabled) { background: #5a1a1a !important; }
+  .speed { border: 1px solid var(--edge); padding: 12px; }
+  .speed .val { font-size: 30px; color: var(--teal); }
+  .speed .val small { font-size: 13px; color: var(--dim); }
+  .speed .row { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
+  .speed input[type=range] { flex: 1; accent-color: var(--teal); }
+  .speed button { padding: 6px 10px; }
+  .note { font-size: 12px; color: var(--dim); }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+           background: var(--edge); border: 1px solid var(--edge); }
+  .tile { background: var(--panel); padding: 10px 12px; min-height: 86px; }
+  .tile .k { font-size: 11px; color: var(--dim); letter-spacing: .14em; }
+  .tile .v { font-size: 20px; margin-top: 4px; }
+  .tile .s { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .c-ok { color: var(--green); } .c-warn { color: var(--amber); } .c-bad { color: var(--red); }
+  .c-info { color: var(--teal); } .c-dim { color: var(--dim); }
+  .eyes { display: flex; gap: 6px; margin-top: 6px; }
+  .eyes span { width: 26px; height: 14px; border: 1px solid var(--edge); font-size: 10px;
+               color: var(--dim); text-align: center; line-height: 12px; }
+  .eyes span.blk { background: var(--ink); color: var(--bg); }
+  .pos { position: relative; height: 4px; background: var(--edge); margin-top: 6px; }
+  .pos i { position: absolute; top: -3px; width: 2px; height: 10px; background: var(--amber); left: 50%; }
+  .log { border: 1px solid var(--edge); display: flex; flex-direction: column; min-height: 320px; flex: 1; }
+  .log .head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px;
+               border-bottom: 1px solid var(--edge); }
+  .chip { font: 11px var(--mono); padding: 3px 8px; letter-spacing: .06em; }
+  .chip.sel { border-color: var(--amber); color: var(--amber); }
+  .log .head .sp { flex: 1; }
+  .lines { overflow: auto; max-height: 55vh; padding: 4px 0; font-size: 12.5px; }
+  .ln { display: grid; grid-template-columns: 92px 70px 1fr; gap: 10px; padding: 2px 10px; }
+  .ln:hover { background: #1a2029; }
+  .ln .t { color: var(--dim); } .ln .g { color: var(--violet); }
+</style>
+</head>
+<body>
+<div class="bar">
+  <b>SE03 // GROUND STATION</b>
+  <label>car <input id="car" value="picocar-01"></label>
+  <label>broker <input id="url" value="ws://localhost:9001"></label>
+  <button id="reconnect" class="chip">CONNECT</button>
+  <span class="led" id="ledBroker"><i></i>broker</span>
+  <span class="led" id="ledStation"><i></i>station.py</span>
+  <span class="led" id="ledCar"><i></i>car</span>
+</div>
+
+<main>
+  <aside>
+    <div>
+      <h3>DRIVE</h3>
+      <div class="btns">
+        <button class="go" id="bStart">START</button>
+        <button class="halt" id="bStop">STOP</button>
+        <button id="bReset">RESET</button>
+        <button id="bCal">CALIBRATE IR</button>
+        <button class="kill" id="bEstop">EMERGENCY STOP</button>
+      </div>
+      <p class="note">Calibrate while stopped, with the middle sensor over the
+        line and room to turn. The car turns left, right and back on the spot
+        (a few seconds) so every sensor sees black and white. In FAULT it only
+        calibrates standing still.</p>
+    </div>
+
+    <div class="speed">
+      <h3>CRUISE SPEED</h3>
+      <div class="val"><span id="spWant">30</span> <small>mm/s requested</small></div>
+      <div class="note">car reports: <span id="spCar">--</span></div>
+      <div class="row">
+        <button id="spDown">-10</button>
+        <input type="range" id="spRange" min="10" max="150" step="10" value="30">
+        <button id="spUp">+10</button>
+      </div>
+      <div class="row">
+        <button class="go" id="spApply" style="flex:1">APPLY</button>
+        <button id="spDefault">DEFAULT 30</button>
+      </div>
+      <p class="note">10-150 mm/s in 10 mm/s steps (sent to the car as
+        cm/s in a MODE command). The car stops for anything within 15 cm;
+        there is no slow-down band any more.</p>
+    </div>
+  </aside>
+
+  <section class="right">
+    <div class="tiles">
+      <div class="tile"><div class="k">MISSION</div><div class="v" id="tMission">--</div><div class="s" id="tMissionS">waiting for STATE</div></div>
+      <div class="tile"><div class="k">TARGET SPEED</div><div class="v" id="tSpeed">--</div><div class="s" id="tSpeedS"></div></div>
+      <div class="tile"><div class="k">WHEELS</div><div class="v" id="tWheels">--</div><div class="s" id="tWheelsS"></div></div>
+      <div class="tile"><div class="k">LINE</div><div class="v" id="tLine">--</div>
+        <div class="eyes"><span id="eL">L</span><span id="eC">C</span><span id="eR">R</span></div>
+        <div class="pos"><i id="posMark"></i></div></div>
+      <div class="tile"><div class="k">OBSTACLE</div><div class="v" id="tObs">--</div><div class="s" id="tObsS"></div></div>
+      <div class="tile"><div class="k">IMU</div><div class="v" id="tImu">--</div><div class="s" id="tImuS"></div></div>
+      <div class="tile"><div class="k">LAST BARCODE</div><div class="v" id="tBar">--</div><div class="s" id="tBarS"></div></div>
+      <div class="tile"><div class="k">LINK</div><div class="v" id="tLink">--</div><div class="s" id="tLinkS"></div></div>
+    </div>
+
+    <div class="log">
+      <div class="head">
+        <h3 style="margin:0 8px 0 0">EVENTS</h3>
+        <span id="chips"></span>
+        <span class="sp"></span>
+        <button class="chip" id="logSave">SAVE .LOG</button>
+        <button class="chip" id="logClear">CLEAR</button>
+      </div>
+      <div class="lines" id="lines"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var GROUPS = ["all", "cmd", "mission", "obstacle", "line", "barcode", "imu", "link"];
+  var GROUP_COLOR = { cmd: "c-info", mission: "", obstacle: "c-warn", line: "",
+                      barcode: "c-ok", imu: "c-bad", link: "c-dim" };
+  var DRIVING = { FOLLOWING: 1, TURNING: 1, BYPASSING: 1, BLOCKED: 1, CALIBRATING: 1 };
+  var events = [], filter = "all", client = null;
+  var last = {};                 // previous value per field, for change events
+  var seen = { station: 0, car: 0 };
+  var carCruise = 0, speedTouched = false, vcState = "";
+
+  /* ---------- settings ---------- */
+  try {
+    if (localStorage.se03car) { $("car").value = localStorage.se03car; }
+    if (localStorage.se03url) { $("url").value = localStorage.se03url; }
+  } catch (e) { /* storage blocked: defaults */ }
+  function car() { return $("car").value.trim() || "picocar-01"; }
+
+  /* ---------- event log ---------- */
+  function hhmmss(t) {
+    var d = t ? new Date(t * 1000) : new Date();
+    return d.toTimeString().slice(0, 8) + "." + String(d.getMilliseconds()).padStart(3, "0").slice(0, 1);
+  }
+  function log(group, text, t) {
+    events.push({ t: hhmmss(t), g: group, x: text });
+    if (events.length > 2000) { events.shift(); }
+    if (filter === "all" || filter === group) { drawLine(events[events.length - 1], true); }
+  }
+  function drawLine(e, top) {
+    var row = document.createElement("div");
+    row.className = "ln";
+    row.innerHTML = '<span class="t"></span><span class="g"></span><span></span>';
+    row.children[0].textContent = e.t;
+    row.children[1].textContent = e.g;
+    row.children[2].textContent = e.x;
+    if (GROUP_COLOR[e.g]) { row.children[2].className = GROUP_COLOR[e.g]; }
+    var box = $("lines");
+    if (top) { box.insertBefore(row, box.firstChild); } else { box.appendChild(row); }
+  }
+  function redraw() {
+    $("lines").innerHTML = "";
+    for (var i = events.length - 1; i >= 0; i--) {
+      if (filter === "all" || events[i].g === filter) { drawLine(events[i], false); }
+    }
+  }
+  GROUPS.forEach(function (g) {
+    var b = document.createElement("button");
+    b.className = "chip" + (g === filter ? " sel" : "");
+    b.textContent = g.toUpperCase();
+    b.onclick = function () {
+      filter = g;
+      Array.prototype.forEach.call($("chips").children, function (c) { c.classList.remove("sel"); });
+      b.classList.add("sel");
+      redraw();
+    };
+    $("chips").appendChild(b);
+  });
+  $("logClear").onclick = function () { events = []; redraw(); };
+  $("logSave").onclick = function () {
+    var txt = events.map(function (e) { return e.t + "  " + e.g + "  " + e.x; }).join("\n");
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([txt], { type: "text/plain" }));
+    a.download = car() + "_" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".log";
+    a.click();
+  };
+  function changed(key, value) {
+    var was = last[key];
+    last[key] = value;
+    return was !== value ? { was: was } : null;
+  }
+
+  /* ---------- tiles ---------- */
+  function setTile(id, text, cls, sub) {
+    $(id).textContent = text;
+    $(id).className = "v " + (cls || "");
+    if (sub !== undefined && $(id + "S")) { $(id + "S").textContent = sub; }
+  }
+  var MISSION_CLS = { IDLE: "c-dim", FOLLOWING: "c-ok", TURNING: "c-info", BYPASSING: "c-info",
+                      BLOCKED: "c-warn", STOPPED: "c-warn", FAULT: "c-bad",
+                      CALIBRATING: "c-info" };
+  var OBS_CLS = { CLEAR: "c-ok", SLOWDOWN: "c-warn", EMERGENCY: "c-bad" };
+
+  function onState(d) {
+    vcState = d.state;
+    setTile("tMission", d.state, MISSION_CLS[d.state], d.link_lost ? "remote link LOST" : "remote link ok");
+    setTile("tSpeed", (d.speed_cm_s * 10) + " mm/s", d.speed_cm_s ? "c-ok" : "c-dim", "obstacle level " + d.obstacle);
+    carCruise = d.cruise_cm_s * 10;
+    $("spCar").textContent = carCruise ? carCruise + " mm/s" : "(not in this firmware)";
+    if (carCruise && !speedTouched) { showWant(carCruise); }
+    var c = changed("vc", d.state);
+    if (c) { log("mission", (c.was ? c.was + " -> " : "") + d.state, d.t); }
+    c = changed("cruise", carCruise);
+    if (c && c.was !== undefined && carCruise) { log("mission", "cruise speed now " + carCruise + " mm/s", d.t); }
+    c = changed("linklost", d.link_lost);
+    if (c && c.was !== undefined) { log("link", d.link_lost ? "car reports remote link LOST" : "remote link back", d.t); }
+    $("bCal").disabled = !!DRIVING[d.state];
+  }
+  function onMotion(d) {
+    setTile("tWheels", d.left_cm_s * 10 + " / " + d.right_cm_s * 10, "", "mm/s L/R  pwm " + d.left_pwm + "/" + d.right_pwm + "  " + d.mode);
+  }
+  function onLine(d) {
+    setTile("tLine", d.state, d.state === "TRACK" ? "c-ok" : d.state === "LINE_LOST" ? "c-bad" : "c-warn");
+    $("eL").className = d.sensors & 4 ? "blk" : "";
+    $("eC").className = d.sensors & 2 ? "blk" : "";
+    $("eR").className = d.sensors & 1 ? "blk" : "";
+    $("posMark").style.left = (50 + d.line_pos / 20) + "%";
+    var c = changed("line", d.state);
+    if (c) {
+      if (d.state === "CALI") { log("line", "IR calibrating", d.t); }
+      else if (c.was === "CALI") { log("line", "IR calibration done, now " + d.state, d.t); }
+      else if (d.state === "LINE_LOST" || c.was === "LINE_LOST") { log("line", (c.was || "?") + " -> " + d.state, d.t); }
+    }
+    c = changed("junc", d.junction);
+    if (c && d.junction !== "NONE") { log("line", "junction " + d.junction, d.t); }
+  }
+  function onObstacle(d) {
+    var dist = d.fault ? "SENSOR FAULT" : d.cm ? d.cm + " cm" : "no echo";
+    setTile("tObs", d.state, OBS_CLS[d.state], dist);
+    var c = changed("obs", d.state);
+    if (c) { log("obstacle", d.state + " (" + dist + ")", d.t); }
+    c = changed("obsfault", d.fault);
+    if (c && d.fault) { log("obstacle", "ultrasonic not answering", d.t); }
+  }
+  function onProfile(d) {
+    log("obstacle", "sweep: go " + d.side + ", width " + d.width_cm + " cm, left " +
+        (d.left_cm || "open") + ", right " + (d.right_cm || "open"), d.t);
+  }
+  function onBarcode(d) {
+    setTile("tBar", d.letter, "c-ok", d.command);
+    log("barcode", "read '" + d.letter + "' -> " + d.command, d.t);
+  }
+  function onTerrain(d) {
+    var txt = d.imu_fault ? "IMU FAULT" : d.overturned ? "OVERTURNED" : d.motion;
+    setTile("tImu", txt, d.imu_fault || d.overturned || d.motion === "LIFTED" ? "c-bad" : "c-ok", "");
+    var c = changed("imu", txt);
+    if (c && c.was !== undefined) { log("imu", txt, d.t); }
+  }
+  function onHb(d) {
+    seen.car = Date.now();
+    setTile("tLink", d.link, d.link === "CONNECTED" ? "c-ok" : "c-warn",
+            "up " + d.uptime_s + " s, cmd ok " + (d.cmd_ok || 0) + " bad " + (d.cmd_bad || 0));
+    if (d.last_will) { log("link", "car OFFLINE (last will)", d.t); seen.car = 0; }
+    var c = changed("link", d.link);
+    if (c) { log("link", "car link " + d.link, d.t); }
+    c = changed("bad", d.cmd_bad);
+    if (c && c.was !== undefined && d.cmd_bad !== undefined) { log("cmd", "car REJECTED a command (cmd_bad " + d.cmd_bad + ")", d.t); }
+  }
+  function onAck(d) {
+    if (!d.ok) { log("cmd", "station refused: " + (d.error || "?"), d.t); return; }
+    log("cmd", "sent " + d.cmd.toUpperCase() + (d.mm_s ? " " + d.mm_s + " mm/s" : "") + "  (seq " + d.seq + ")", d.t);
+  }
+  function onIrcal(d) {
+    var parts = ["L", "C", "R"].map(function (k) {
+      var s = d[k];
+      return k + " " + s.white + "/" + s.black + (s.new ? "" : " (kept)");
+    });
+    var weak = ["L", "C", "R"].filter(function (k) { return !d[k].new; });
+    log("line", "IR calibration " + d.kind + ": " + parts.join("  ") +
+        (weak.length && d.kind !== "sweep cancelled"
+          ? "  <- low contrast on " + weak.join(",") : ""), d.t);
+  }
+  function onEvent(d) {
+    var g = /link/.test(d.text) ? "link" : /line/.test(d.text) ? "line"
+          : /bypass|obstacle/.test(d.text) ? "obstacle"
+          : /lifted|overturned|IMU/.test(d.text) ? "imu" : "mission";
+    log(g, "car: " + d.text, d.t);
+  }
+  var HANDLERS = { ircal: onIrcal, event: onEvent, state: onState, motion: onMotion, line: onLine, obstacle: onObstacle,
+                   obst_profile: onProfile, barcode: onBarcode, terrain: onTerrain, hb: onHb };
+
+  /* ---------- MQTT ---------- */
+  function led(id, cls) { $(id).className = "led " + cls; }
+  function connect() {
+    try { localStorage.se03car = car(); localStorage.se03url = $("url").value; } catch (e) {}
+    if (client) { client.end(true); }
+    last = {};
+    if (!window.mqtt) { led("ledBroker", "off"); log("link", "mqtt.js did not load (no internet?)"); return; }
+    led("ledBroker", "warn");
+    client = mqtt.connect($("url").value, { reconnectPeriod: 2000 });
+    client.on("connect", function () {
+      led("ledBroker", "on");
+      log("link", "broker connected");
+      client.subscribe(car() + "/view/#");
+      client.subscribe(car() + "/ui/ack");
+      client.subscribe(car() + "/ui/alive");
+    });
+    client.on("close", function () { led("ledBroker", "off"); });
+    client.on("message", function (topic, payload) {
+      var d;
+      seen.station = Date.now();
+      if (topic.slice(-9) === "/ui/alive") { return; }
+      try { d = JSON.parse(payload.toString()); } catch (e) { return; }
+      if (topic.slice(-7) === "/ui/ack") { onAck(d); return; }
+      var h = HANDLERS[topic.split("/").pop()];
+      if (h) { h(d); }
+    });
+  }
+  function send(obj) {
+    if (!client || !client.connected) { log("cmd", "not connected to the broker: not sent"); return; }
+    if (Date.now() - seen.station > 4000) { log("cmd", "warning: no data from station.py, is it running?"); }
+    client.publish(car() + "/ui/cmd", JSON.stringify(obj));
+  }
+  $("reconnect").onclick = connect;
+
+  setInterval(function () {     // freshness LEDs
+    var now = Date.now();
+    led("ledStation", now - seen.station < 4000 ? "on" : seen.station ? "off" : "");
+    led("ledCar", now - seen.car < 5000 ? "on" : seen.car ? "off" : "");
+  }, 1000);
+
+  /* ---------- controls ---------- */
+  $("bStart").onclick = function () { send({ cmd: "start" }); };
+  $("bStop").onclick = function () { send({ cmd: "stop" }); };
+  $("bEstop").onclick = function () { send({ cmd: "estop" }); };
+  $("bReset").onclick = function () { send({ cmd: "reset" }); };
+  $("bCal").onclick = function () {
+    if (DRIVING[vcState]) { log("cmd", "calibrate refused here: car is " + vcState); return; }
+    send({ cmd: "calibrate" });
+  };
+  document.addEventListener("keydown", function (e) {   // space = STOP, Esc = E-STOP
+    if (e.target.tagName === "INPUT") { return; }
+    if (e.key === " ") { e.preventDefault(); send({ cmd: "stop" }); }
+    if (e.key === "Escape") { send({ cmd: "estop" }); }
+  });
+
+  function showWant(v) {
+    v = Math.max(10, Math.min(150, Math.round(v / 10) * 10));
+    $("spRange").value = v;
+    $("spWant").textContent = v;
+    return v;
+  }
+  $("spRange").oninput = function () { speedTouched = true; showWant(+this.value); };
+  $("spDown").onclick = function () { speedTouched = true; showWant(+$("spRange").value - 10); };
+  $("spUp").onclick = function () { speedTouched = true; showWant(+$("spRange").value + 10); };
+  $("spDefault").onclick = function () { speedTouched = true; showWant(30); };
+  $("spApply").onclick = function () {
+    send({ cmd: "speed", mm_s: showWant(+$("spRange").value) });
+    speedTouched = false;
+  };
+
+  log("link", "panel loaded. Keys: SPACE = stop, ESC = emergency stop");
+  connect();
+})();
+</script>
+</body>
+</html>

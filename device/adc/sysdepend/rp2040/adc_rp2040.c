@@ -75,39 +75,40 @@ void adc_inthdr( UINT intno)
  */
 LOCAL UW adc_convert( INT ch, INT size, UW *buf )
 {
-	ER	err;
 	UINT	intsts;
-	UINT	flgptn;
+	UW	spin;
+	UW	result;
 
 	if(ch<0 || ch>(ADC_CH_NUM-1)) return E_PAR;
 	if(size != 1) return E_PAR;
 
-	while((in_w(ADC_CS)&ADC_CS_READY)==0);
+	/* SE03 fix (2026-11-24): read by POLLING instead of sleeping on the
+	 * conversion-done interrupt. The interrupt was sometimes lost (often
+	 * while the Wi-Fi radio was busy), which left the IR task asleep for
+	 * a second or more: line data froze. One conversion takes about 2 us,
+	 * so waiting for it costs nothing. Every wait is bounded: E_IO instead
+	 * of hanging. The ADC interrupt and FIFO are no longer used. */
+	if((in_w(ADC_CS)&ADC_CS_EN)==0) set_w(ADC_CS, ADC_CS_EN);
+	for(spin = 0; (in_w(ADC_CS)&ADC_CS_READY)==0; spin++) {
+		if(spin > 200000) return E_IO;		/* ~ms: ADC stuck busy */
+	}
 
 	ADC_LOCK(intsts);
-	(void)tk_clr_flg(ll_devcb.done_flgid, 0);
-	ll_devcb.buf = buf;
-	ll_devcb.asz = 0;
-	ll_devcb.active = TRUE;
-
-	out_w(ADC_INTE,1);					// Interrupt Enable
+	out_w(ADC_INTE, 0);				/* no interrupt */
+	out_w(ADC_FCS, 0);				/* no FIFO: use RESULT */
 	out_w(ADC_CS, ch<<ADC_CS_AINSEL_POS|ADC_CS_EN);
 	set_w(ADC_CS, ADC_CS_STRAT_ONCE);
-	ADC_UNLOCK(intsts);
-
-	err = tk_wai_flg(ll_devcb.done_flgid, 1,
-			 TWF_ORW | TWF_BITCLR, &flgptn, DEVCNF_ADC_TMOSCAN);
-
-	ADC_LOCK(intsts);
-	if(err < E_OK && ll_devcb.active) {
-		out_w(ADC_INTE, 0);
-		ll_devcb.active = FALSE;
-		ll_devcb.buf = NULL;
+	for(spin = 0; (in_w(ADC_CS)&ADC_CS_READY)==0; spin++) {
+		if(spin > 20000) {			/* far above 2 us */
+			ADC_UNLOCK(intsts);
+			return E_IO;
+		}
 	}
-	if(err == E_OK) err = (ll_devcb.asz == 1)? 1: E_IO;
+	result = in_w(ADC_BASE + 0x04) & 0x0FFF;	/* ADC RESULT register */
 	ADC_UNLOCK(intsts);
 
-	return err;
+	*buf = result;
+	return 1;
 }
 
 

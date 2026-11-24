@@ -60,10 +60,14 @@ EXPORT ER subsystem4_start(void)
 	ID tid;
 
 	/* Keep the existing monitor task. */
+#if APP_TEST
+	/* Leftover example task: it only prints "monitor: ..." every 2 s.
+	   Started in test builds only (the example tests may use it). */
 	tid = app_start_task(monitor_task, S4_PRI_MONITOR, 0, "monitor_task");
 	if (tid < E_OK) {
 		return tid;
 	}
+#endif
 
 	/* GY-511 is owned by this one sampling task on I2C0. */
 	tid = app_start_task(b4_imu_task, S4_PRI_IMU, 0, "b4_imu_task");

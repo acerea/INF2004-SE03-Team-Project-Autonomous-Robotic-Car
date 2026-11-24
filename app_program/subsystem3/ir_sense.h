@@ -62,6 +62,22 @@ ER   ir_sense_init(void);
 ER   ir_sense_start(void);
 void ir_lock_steering(bool b_lock);
 void ir_set_lift_override(bool b_lifted);
+
+// Ask ir_sensor_task to run the start-up calibration again (robot on the
+// line, not moving). Any task; acted on at the task's next tick.
+void ir_request_calibration(void);
+
+// Sweep calibration, driven by the VC while it turns the robot left and
+// right over the line: begin -> every sensor records its own darkest and
+// lightest reading -> end (keep the new levels) or cancel (keep the old).
+// A sensor that saw too little contrast keeps its previous levels.
+void ir_cal_sweep_begin(void);
+void ir_cal_sweep_end(void);
+void ir_cal_sweep_cancel(void);
+
+// DEBUG: where ir_sensor_task is in its loop (see IR_STAGE_xxx in
+// ir_sense.c), and the ADC channel it last asked for.
+uint32_t ir_debug_stage(void);
 void ir_get_telemetry(ir_snapshot_t * p_out);
 
 // Non-blocking consumption of one decoded barcode command.

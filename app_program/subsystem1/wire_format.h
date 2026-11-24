@@ -45,11 +45,12 @@ typedef uint8_t proto_type_t;
 #define PROTO_TYPE_OBST_PROFILE (7u)
 
 
-// Vehicle state (type 1, Vehicle Controller): 12 bits. On change and 1 s.
+// Vehicle state (type 1, Vehicle Controller): 16 bits. On change and 1 s.
 #define PROTO_ST_STATE_BITS     (3u)    // 0-7, VC_STATE_xxx.
 #define PROTO_ST_OBSTACLE_BITS  (2u)    // 0 clear, 1 slow down, 2 emergency.
 #define PROTO_ST_LINK_LOST_BITS (1u)    // 1 = remote link lost.
 #define PROTO_ST_SPEED_BITS     (6u)    // Target speed, 0-63 cm/s.
+#define PROTO_ST_CRUISE_BITS    (4u)    // Cruise speed set by MODE, 1-15 cm/s.
 
 // Line (type 3, subsystem 3): 18 bits. On state/junction change and 1 s.
 #define PROTO_LN_STATE_BITS     (2u)    // 0 cali, 1 track, 2 barcode, 3 lost.
@@ -97,6 +98,19 @@ typedef uint8_t proto_type_t;
 #define PROTO_PRO_WIDTH_MAX     (100u)
 #define PROTO_PRO_LEFT_BITS     (9u)    // Left clearance, 0-400 cm.
 #define PROTO_PRO_RIGHT_BITS    (9u)    // Right clearance, 0-400 cm.
+
+// IR calibration result (type 8, subsystem 3): 91 bits. Once per calibration.
+// kind, then for L, C, R: white, black (12-bit ADC) and ok (1 = new levels).
+#define PROTO_TYPE_IRCAL        (8u)
+#define PROTO_IRC_KIND_BITS     (2u)    // 0 standing, 1 sweep, 2 sweep cancelled.
+#define PROTO_IRC_LEVEL_BITS    (12u)
+#define PROTO_IRC_OK_BITS       (1u)
+
+// Vehicle event (type 9, Vehicle Controller): 38 bits. The reasons the VC
+// prints on the console, so they can be followed without the serial port.
+#define PROTO_TYPE_EVENT        (9u)
+#define PROTO_EV_CODE_BITS      (8u)    // VC_EVT_xxx (vehicle.c).
+#define PROTO_EV_ARG_BITS       (16u)
 
 typedef struct
 {

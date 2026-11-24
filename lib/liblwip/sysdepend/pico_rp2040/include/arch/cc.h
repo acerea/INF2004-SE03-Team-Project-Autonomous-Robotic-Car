@@ -1,3 +1,4 @@
+int atoi(const char *nptr);
 /*
  *	cc.h
  *	lwIP compiler/platform abstraction for micro T-Kernel (RP2040, NO_SYS=1)

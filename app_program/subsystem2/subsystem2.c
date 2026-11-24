@@ -179,11 +179,13 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
 
 static void motion_receiveRequests(void)
 {
-    uint16_t requests[MOTION_REQUESTS_PER_CYCLE];
-    UINT count = 0;
-    int stop_received = 0;
-
-    /* Read without blocking. A finite limit prevents starving PID. */
+    /* Read without blocking. A finite limit prevents starving PID.
+     *
+     * Requests are applied strictly in the order the VC sent them. A STOP
+     * still cancels everything queued before it, but a request sent AFTER
+     * the STOP (e.g. STOP then SET_SPEED when a bypass finishes) must not
+     * be thrown away: the VC only resends a request when it changes, so a
+     * dropped one left the car standing still in FOLLOWING. */
     for (UINT i = 0; i < MOTION_REQUESTS_PER_CYCLE; i++) {
         uint8_t bytes[S2_MOTION_REQUEST_BYTES];
 
@@ -199,25 +201,9 @@ static void motion_receiveRequests(void)
 
         uint16_t request = motion_decodeRequest(bytes);
 
-        requests[count++] = request;
-
-        if (motion_unpackCommand(request) == S2_MOTION_STOP) {
-            stop_received = 1;
-
-            /* Apply STOP immediately when encountered. */
-            motion_handleRequest(S2_MOTION_STOP, 0u);
-        }
-    }
-
-    /* STOP overrides other requests read in this batch. */
-    if (stop_received) {
-        return;
-    }
-
-    for (UINT i = 0; i < count; i++) {
         motion_handleRequest(
-            motion_unpackCommand(requests[i]),
-            motion_unpackArgument(requests[i])
+            motion_unpackCommand(request),
+            motion_unpackArgument(request)
         );
     }
 }

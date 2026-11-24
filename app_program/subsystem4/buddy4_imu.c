@@ -66,7 +66,7 @@
 #define B4_IMU_RECONNECT_ERRORS 50u
 
 /* Print diagnostic information approximately once per second. */
-#define B4_IMU_PRINT_SAMPLES 100u
+#define B4_IMU_PRINT_SAMPLES 500u    /* ~5 s (was 100, ~1 s) */
 
 /*
  * The sensor is mounted with its Z-axis pointing upwards.

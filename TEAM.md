@@ -72,9 +72,9 @@ fixed.
 | GP20 | | |
 | GP21 | | |
 | GP22 | | |
-| GP26 | S3 | Left IR sensor (ADC0) |
-| GP27 | S3 | Centre IR sensor (ADC1) |
-| GP28 | S3 | Right IR sensor (ADC2) |
+| GP26 | S3 | Right IR line sensor, AO (ADC0) |
+| GP27 | S3 | Middle IR line sensor, AO (ADC1) |
+| GP28 | S3 | Left IR / barcode sensor, AO (ADC2) |
 
 ## 3. Peripherals
 

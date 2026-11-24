@@ -29,8 +29,10 @@ IMPORT volatile UW g_s5_front_cm;
 #define S5_FLAG_AVOID_LEFT  0x08
 #define S5_FLAG_AVOID_RIGHT 0x10
 
-#define S5_STOP_DIST_CM     30.0f
-#define S5_WARN_DIST_CM     45.0f
+/* Only react to something within 15 cm (was 30 stop / 45 slow down).
+ * WARN = STOP, so there is no slow-down band: clear, or stop at 15 cm. */
+#define S5_STOP_DIST_CM     15.0f
+#define S5_WARN_DIST_CM     15.0f
 
 typedef enum {
     S5_DIR_NONE = 0,

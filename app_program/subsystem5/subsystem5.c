@@ -27,20 +27,12 @@
 #define S5_STATE_MASK (S5_FLAG_CLEAR | S5_FLAG_SLOWDOWN | S5_FLAG_EMERGENCY)
 
 EXPORT ID flg_s5_obstacle;
-
-ID flg_s5_obstacle;
 EXPORT volatile UW g_s5_width_cm = 0;
 EXPORT volatile UW g_s5_front_cm = 0;
 
 /* Forward prototypes */
 static float fast_sqrtf(float val);
 
-/* Helper to clear old state flags and set the new state atomically */
-static void s5_set_state(UINT new_flag)
-{
-    tk_clr_flg(flg_s5_obstacle, ~S5_STATE_MASK);
-    tk_set_flg(flg_s5_obstacle, new_flag);
-}
 /* ====================================================================
  * Telemetry Publishing Helpers (Buddy 5 -> Subsystem 1 MQTT)
  * ==================================================================== */
@@ -109,11 +101,63 @@ s5_publish_profile (S5_BYPASS_DIR dir, float width_cm, float d_left,
 #define S5_TLM_SLOWDOWN     1u
 #define S5_TLM_EMERGENCY    2u
 
-/* Replace the old state bit with a new one (only one state bit is set). */
+/* Replace the old state bit with a new one (only one state bit is set).
+ * Only on a change, and the new bit is set BEFORE the old one is cleared:
+ * clearing first left a moment with no state bit at all, which the VC on
+ * the other core reads as CLEAR (and so drove on). With both bits set for
+ * a moment it sees the worse of the two. */
+static UINT s5_state_bit = S5_FLAG_CLEAR;   /* = iflgptn at creation */
+
 static void s5_set_state_flag(UINT flag)
 {
-    tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_STATE_FLAGS);
+    if (flag == s5_state_bit) {
+        return;
+    }
     tk_set_flg(flg_s5_obstacle, flag);
+    tk_clr_flg(flg_s5_obstacle, ~(UINT)(S5_STATE_FLAGS & ~flag));
+    s5_state_bit = flag;
+}
+
+/* Forget the last sweep. Called whenever the car is not stopped for an
+ * obstacle, so a new EMERGENCY never starts with the old obstacle's side,
+ * width or gap (the VC waits in BLOCKED until the new sweep sets them). */
+static void s5_clear_side(void)
+{
+    tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_SIDE_FLAGS);
+    g_s5_width_cm = 0u;
+    g_s5_front_cm = 0u;
+}
+
+/* Point the servo and wait for it to settle, but only if it has to move:
+ * the old loop waited 150 ms every time, even when already centred. */
+static INT s5_servo_angle = 1000;           /* unknown at start-up */
+
+#define S5_PAN_STEP_DEG   5       /* Servo moves this much per step... */
+#define S5_PAN_STEP_MS    25      /* ...then waits this long (~200 deg/s). */
+#define S5_PAN_SETTLE_MS  80      /* Final settle before a reading. */
+
+/* Pan gently: step from the current angle to the target instead of
+ * snapping, so the sensor head does not jerk the car about. */
+static void s5_point(INT angle)
+{
+    if (angle == s5_servo_angle) {
+        return;
+    }
+    if (1000 == s5_servo_angle) {               /* First use: position unknown. */
+        servo_set_angle(angle);
+        s5_servo_angle = angle;
+        tk_dly_tsk(150);
+        return;
+    }
+    while (s5_servo_angle != angle) {
+        INT diff = angle - s5_servo_angle;
+        if (diff > S5_PAN_STEP_DEG)        diff = S5_PAN_STEP_DEG;
+        else if (diff < -S5_PAN_STEP_DEG)  diff = -S5_PAN_STEP_DEG;
+        s5_servo_angle += diff;
+        servo_set_angle(s5_servo_angle);
+        tk_dly_tsk(S5_PAN_STEP_MS);
+    }
+    tk_dly_tsk(S5_PAN_SETTLE_MS);
 }
 
 #define S5_SCAN_NEAR_DEG    20      /* Second, squarer look at each side. */
@@ -124,13 +168,11 @@ static void s5_set_state_flag(UINT flag)
  * (45 deg) reading for the width estimate. */
 static float s5_scan_side(INT near_deg, INT far_deg, float *p_far)
 {
-    servo_set_angle(near_deg);
-    tk_dly_tsk(150);
+    s5_point(near_deg);
     float d_near = ultrasonic_read_distance_filtered();
     tk_dly_tsk(60);
 
-    servo_set_angle(far_deg);
-    tk_dly_tsk(150);
+    s5_point(far_deg);
     float d_far = ultrasonic_read_distance_filtered();
     tk_dly_tsk(60);
 
@@ -169,6 +211,7 @@ static S5_BYPASS_DIR s5_choose_side(float d_left, float d_right)
 
 static UW s5_in_emergency = 0u;     /* Only s5_scan_task uses these. */
 static UW s5_release_count = 0u;
+static UW s5_fault_reported = 0u;
 
 LOCAL void s5_scan_task(INT stacd, void *param)
 {
@@ -180,8 +223,7 @@ LOCAL void s5_scan_task(INT stacd, void *param)
 
     while (1) {
         /* 1. Normal forward observation */
-        servo_set_angle(SERVO_ANGLE_CENTER);
-        tk_dly_tsk(150); /* Servo settle time */
+        s5_point(SERVO_ANGLE_CENTER);
 
         /* Read forward distance: median of 3 pings, so one bad ping cannot
            flip the state. */
@@ -193,10 +235,28 @@ LOCAL void s5_scan_task(INT stacd, void *param)
         UW state = S5_TLM_CLEAR;
 
         /* Hysteresis: once stopped for an obstacle, stay in EMERGENCY until
-           two readings in a row are clearly beyond the stop distance. A
+           S5_RELEASE_READINGS readings in a row are clearly beyond the stop distance. A
            dropout (no echo) or a reading just past the limit does not count,
            so the car cannot creep forward into the obstacle. */
         float d_raw = d_center;     /* What the sensor really read. */
+
+        /* Sensor not answering at all (-2): this used to fall through to
+           CLEAR, so the car drove on blind. Stop instead, with no side
+           bits, so the VC waits in BLOCKED and never bypasses blind. */
+        if (d_center < -1.5f) {
+            s5_set_state_flag(S5_FLAG_EMERGENCY);
+            s5_clear_side();
+            s5_in_emergency = 1u;
+            s5_release_count = 0u;
+            s5_publish_obstacle(S5_TLM_EMERGENCY, d_raw);
+            if (!s5_fault_reported) {
+                tm_printf((UB*)"s5: ultrasonic not answering, holding EMERGENCY\n");
+                s5_fault_reported = 1u;
+            }
+            tk_dly_tsk(100);
+            continue;
+        }
+        s5_fault_reported = 0u;
 
         if (s5_in_emergency) {
             /* Clearly further away, or no echo at all (open air; not
@@ -219,9 +279,10 @@ LOCAL void s5_scan_task(INT stacd, void *param)
         } else if (d_center > 0.0f && d_center < S5_WARN_DIST_CM) {
             state = S5_TLM_SLOWDOWN;
             s5_set_state_flag(S5_FLAG_SLOWDOWN);
+            s5_clear_side();
         } else {
             s5_set_state_flag(S5_FLAG_CLEAR);
-            tk_clr_flg(flg_s5_obstacle, ~(UINT)S5_SIDE_FLAGS); /* No side */
+            s5_clear_side();
         }
         s5_in_emergency = (state == S5_TLM_EMERGENCY) ? 1u : 0u;
         if (!s5_in_emergency) {
@@ -245,8 +306,7 @@ LOCAL void s5_scan_task(INT stacd, void *param)
                                          &d_right45);
 
             /* Return to center and settle */
-            servo_set_angle(SERVO_ANGLE_CENTER);
-            tk_dly_tsk(150);
+            s5_point(SERVO_ANGLE_CENTER);
 
             /* 5. Choose direction, replace the old side bit, publish */
             S5_BYPASS_DIR dir = s5_choose_side(d_left, d_right);
@@ -277,7 +337,7 @@ EXPORT ER subsystem5_init(void)
     servo_init();
 
     /* 2. Create the event flag */
-    T_CFLG cflg;
+    T_CFLG cflg = {0};
     cflg.flgatr = TA_TFIFO | TA_WMUL;
     cflg.iflgptn = S5_FLAG_CLEAR;
 
