@@ -64,7 +64,7 @@
 #define IR_QUIET_NARROWS        (4u)        // Quiet zone > 4 narrow widths
                                             // (wide <= 3, quiet >= 10).
 #define IR_JUNC_SAMPLES         (3u)        // Junction must hold 30 ms.
-#define IR_BARCODE_CONFIRM_SAMPLES (8u)     // Barcode pad must hold 80 ms.
+#define IR_BARCODE_CONFIRM_SAMPLES (3u)     // Barcode pad must hold 30 ms.
 #define IR_JUNC_HOLD_MS         (300u)      // Report a junction this long.
 #define IR_SENS_SIDES           (IR_SENS_LEFT | IR_SENS_RIGHT)
 #define IR_SENS_ALL             (IR_SENS_LEFT | IR_SENS_CENTRE | IR_SENS_RIGHT)
@@ -99,7 +99,7 @@ typedef struct
     uint8_t  b_black : 1;               // Centre sensor black (barcode).
     uint8_t  b_gap   : 1;               // In an inter-character gap.
     uint8_t  junc_run: 2;               // 0..3 junction samples.
-    uint8_t  barcode_run;               // All-black confirmation samples.
+    uint8_t  barcode_run: 2;            // All-black confirmation samples.
     uint8_t  sensors : 3;               // Last IR_SENS_xxx bits.
     uint8_t  junc    : 2;               // Junction being reported.
     uint8_t  b_armed : 1;               // Sides saw white since last pad.
@@ -384,24 +384,10 @@ ir_handle_track (uint32_t now)
 
     g_next.lost_timeout = 0u;
     g_next.line_pos = 0;
-    if (IR_SENS_ALL == bits)
-    {
-        // A crossing or junction covers all sensors. It is not evidence that
-        // the line is exactly centred, so keep the last real left/right side.
-        g_next.line_pos = g_ctx.last_line_pos;
-    }
-    else if (ir_line_position(dark[0], dark[1], dark[2], &pos))
+    if (ir_line_position(dark[0], dark[1], dark[2], &pos))
     {
         g_next.line_pos = (signed int) pos;      // |pos| <= 1000: fits 11 bits.
-        if (pos != 0)
-        {
-            g_ctx.last_line_pos = pos;
-        }
-    }
-    else if (0u != (bits & IR_SENS_CENTRE))
-    {
-        // Preserve the last real side instead of replacing it with zero.
-        g_next.line_pos = g_ctx.last_line_pos;
+        g_ctx.last_line_pos = pos;
     }
 
     // A side branch: centre and one side black, held for 30 ms.
@@ -554,37 +540,7 @@ ir_handle_barcode (uint32_t now)
         return;
     }
 
-    uint16_t dark[3];
-    uint8_t  bits = ir_read_sensors(dark);
-
-    /*
-     * A normal guide line can cover the centre sensor and either side sensor
-     * while barcode mode is being left.  It must return to TRACK immediately;
-     * otherwise the barcode-side detector reclassifies the guide line and the
-     * vehicle reports LINE_LOST or holds straight.
-     */
-    if ((IR_SENS_ALL != bits)
-        && (0u != (bits & IR_SENS_CENTRE)))
-    {
-        int16_t pos = 0;
-
-        g_next.lost_timeout = 0u;
-        g_next.junction = IR_JUNC_NONE;
-        if (ir_line_position(dark[0], dark[1], dark[2], &pos))
-        {
-            g_next.line_pos = pos;
-            if (pos != 0)
-            {
-                g_ctx.last_line_pos = pos;
-            }
-        }
-        g_ctx.elem = 0u;
-        g_ctx.chars = 0u;
-        g_ctx.barcode_run = 0u;
-        ir_set_state(IR_TRACK, now);
-        return;
-    }
-
+    uint8_t  bits = ir_read_sensors(NULL);
     bool     b_black = (IR_SENS_SIDES == (bits & IR_SENS_SIDES));
     uint32_t span = now - g_ctx.edge_ms;
     uint32_t quiet;
@@ -678,15 +634,30 @@ ir_handle_lost (uint32_t now)
     g_next.line_pos = g_ctx.last_line_pos;
     g_next.junction = IR_JUNC_NONE;
 
+    if ((IR_SENS_ALL == bits) && (!g_b_steer_locked))
+    {
+        g_next.lost_timeout = 0u;
+        if (0u == g_ctx.barcode_run)
+        {
+            g_ctx.bar_first_ms = now;
+        }
+        if (g_ctx.barcode_run < IR_BARCODE_CONFIRM_SAMPLES)
+        {
+            g_ctx.barcode_run++;
+        }
+        if (g_ctx.barcode_run >= IR_BARCODE_CONFIRM_SAMPLES)
+        {
+            ir_barcode_begin(now, g_ctx.bar_first_ms);
+            g_ctx.barcode_run = 0u;
+        }
+    }
+    else
+    {
+        g_ctx.barcode_run = 0u;
+    }
+
     if (IR_SENS_ALL == bits)
     {
-        // During line search, all three sensors over the guide line is a
-        // junction/recovery pattern, not a barcode start.
-        g_next.lost_timeout = 0u;
-        g_next.junction = IR_JUNC_BOTH;
-        g_next.line_pos = g_ctx.last_line_pos;
-        g_ctx.barcode_run = 0u;
-        ir_set_state(IR_TRACK, now);
         return;
     }
     else if (0u != bits)

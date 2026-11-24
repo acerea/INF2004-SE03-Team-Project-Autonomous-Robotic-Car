@@ -3,8 +3,8 @@
  * @brief Subsystem 3: IR line sensing and barcode reading, public API.
  *
  * @par
- * One task (ir_sensor_task) owns the ADC (GP26 right, GP27 centre, GP28
- * left/barcode sensor). It calibrates, estimates the line position, detects line loss
+ * One task (ir_sensor_task) owns the ADC (GP26 left, GP27 centre, GP28
+ * right). It calibrates, estimates the line position, detects line loss
  * and junctions, reads Code 39 barcodes, and reports:
  *   - a snapshot any task may read with ir_get_telemetry() (IF-14),
  *   - one byte per decoded barcode in mbf_s3_nav (IF-15, for the VC),
