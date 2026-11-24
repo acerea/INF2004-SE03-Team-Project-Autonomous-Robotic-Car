@@ -129,6 +129,10 @@ static volatile bool  g_b_recal_request = false;
 static volatile uint32_t g_ir_stage = 0u;
 #define IR_STAGE(s)   (g_ir_stage = (s))
 static volatile bool  g_b_sweep_begin = false;
+// DEBUG: last raw ADC readings (L, C, R) for the periodic RAW print.
+static uint16_t       g_dbg_raw[3] = {0u, 0u, 0u};
+static uint32_t       g_dbg_ms = 0u;
+#define IR_DBG_RAW_MS           (500u)      // RAW print period.
 static volatile bool  g_b_sweep_end = false;
 static volatile bool  g_b_sweep_cancel = false;
 
@@ -245,6 +249,9 @@ ir_read_line_sensors (uint16_t p_dark[2])
     uint8_t old = g_ctx.sensors;
     uint8_t bits = 0u;
 
+    g_dbg_raw[1] = raw_c;
+    g_dbg_raw[2] = raw_r;
+
     if (ir_is_black(raw_c, 0u != (old & IR_SENS_CENTRE), &g_ctx.cal[1]))
     {
         bits |= IR_SENS_CENTRE;
@@ -273,6 +280,7 @@ ir_read_barcode_sensor (void)
     uint16_t raw_l = ir_read_adc(ADC_LEFT);
     uint8_t bits = 0u;
 
+    g_dbg_raw[0] = raw_l;
     if (ir_is_black(raw_l, 0u, &g_ctx.cal[0]))
     {
         bits |= IR_SENS_LEFT;
@@ -916,6 +924,25 @@ ir_sensor_task (INT stacd, void * exinf)
 
         IR_STAGE(2u);
         g_handlers[state](now);
+
+        // DEBUG: raw sensor readings twice a second, never while a
+        // barcode is being timed. Barcode sensor (L) is black when its
+        // dark value >= 600 and white when <= 400.
+        if ((IR_BARCODE != (g_next.state & IR_MASK))
+            && ((now - g_dbg_ms) >= IR_DBG_RAW_MS))
+        {
+            g_dbg_ms = now;
+            tm_printf((UB*)"ir: RAW L=%u C=%u R=%u | cal white=%u black=%u"
+                           " | L dark=%u (%s)\n",
+                      (unsigned int) g_dbg_raw[0],
+                      (unsigned int) g_dbg_raw[1],
+                      (unsigned int) g_dbg_raw[2],
+                      (unsigned int) g_ctx.cal[0].white,
+                      (unsigned int) g_ctx.cal[0].black,
+                      (unsigned int) ir_darkness(g_dbg_raw[0], &g_ctx.cal[0]),
+                      ir_is_black(g_dbg_raw[0], false, &g_ctx.cal[0])
+                          ? "BLACK" : "white");
+        }
 
         // Publish the tick's result to readers in one locked copy.
         g_next.timestamp_ms = now;
