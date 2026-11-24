@@ -540,26 +540,10 @@ vc_poll_line_following (void)
     }
     else if (IR_LINE_LOST == snap.state)
     {
-        // Lost for longer than the IR timeout: search in small nudges,
-        // first towards the side the line was last seen, then the other
-        // way. Only if both fail, stop and HOLD (without the hold the
-        // obstacle dispatch would restart the motors every tick).
-        s2_setLineCorrection(0);
-        if (!g_vc_line_hold)
-        {
-            g_vc_lost_since  = 0u;
-            g_vc_search_step = 1u;
-            vc_event(VC_EVT_LINE_SEARCH, (snap.line_pos >= 0) ? 1u : 0u);
-            tm_printf((UB*)"vc: line lost, searching %s\n",
-                      (snap.line_pos >= 0) ? "right" : "left");
-            vc_motion(S2_MOTION_STOP, 0u);
-            vc_nudge_start(&g_vc_search_nudge, (snap.line_pos >= 0),
-                           VC_SEARCH_DEG);
-        }
-        else
-        {
-            vc_motion(S2_MOTION_STOP, 0u);
-        }
+        // Never stop for the first reacquisition attempt.  IR snapshots
+        // retain the last real line position, so continue at a gentle
+        // differential until the centre/right sensors see the line again.
+        s2_setLineCorrection(snap.line_pos);
     }
     else
     {

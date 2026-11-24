@@ -102,7 +102,7 @@ static void motor_rightm2(int speed)
  * current spike when the motors start, which otherwise browns out the Pico
  * on a 5 V 2 A power bank. Slowing down and stopping take effect at once.
  */
-#define MOTION_RAMP_STEP 5
+#define MOTION_RAMP_STEP 10
 
 static int motion_ramp(int target, int current)
 {

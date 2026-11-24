@@ -17,7 +17,7 @@
 
 #define VC_PRI              (10)      // Highest application priority.
 #define VC_TICK_MS          (10u)     // Input polling period.
-#define VC_CRUISE_CM_S      (3u)      // Default cruise: 30 mm/s (MODE changes it).
+#define VC_CRUISE_CM_S      (10u)     // Default cruise: 100 mm/s (MODE changes it).
 #define VC_SLOW_CM_S        (5u)      // Speed while an obstacle is near.
 
 /* Conservative, encoder-driven obstacle bypass profile.  S2 interprets
@@ -75,7 +75,7 @@ typedef uint8_t vc_state_t;
 
 /* Line lost while following: drive straight this long before searching
  * (counted from when the VC itself lost it, not from before START). */
-#define VC_LOST_STRAIGHT_MS     (1200u)
+#define VC_LOST_STRAIGHT_MS     (250u)
 
 IMPORT ER vehicle_init(void);
 IMPORT ER vehicle_start(void);
