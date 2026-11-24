@@ -37,25 +37,11 @@
 #define ACC_WHO_AM_I_A 0x0Fu
 #define ACC_WHO_AM_I_VAL 0x33u
 
-/* LSM303DLHC magnetometer registers. */
-#define MAG_CRA_REG_M 0x00u
-#define MAG_CRB_REG_M 0x01u
-#define MAG_MR_REG_M 0x02u
-#define MAG_OUT_X_H_M 0x03u
-#define MAG_IRA_REG_M 0x0Au
-#define MAG_IRB_REG_M 0x0Bu
-#define MAG_IRC_REG_M 0x0Cu
-
-#define MAG_ID_A ((UB)'H')
-#define MAG_ID_B ((UB)'4')
-#define MAG_ID_C ((UB)'3')
-
 /* Accelerometer is configured for 100 Hz. */
 #define B4_IMU_SAMPLE_MS 10u
 
-/* 1 = read the 6 accelerometer and 6 magnetometer bytes in one I2C transfer
- * each. 12 single-register reads made one sample take ~55 ms instead of
- * 10 ms. Set to 0 to go back to single-register reads if the IMU faults. */
+/* 1 = read the 6 accelerometer bytes in one I2C transfer.
+ * Set to 0 to use six individual accelerometer-register reads. */
 #define B4_IMU_BURST_READ 1
 
 /* LSM303DLHC accelerometer: set bit 7 of the register address to make it
@@ -64,6 +50,7 @@
 
 /* Consecutive failed reads (10 ms each) before reconnecting. */
 #define B4_IMU_RECONNECT_ERRORS 50u
+#define B4_IMU_FAULT_CONFIRM_ERRORS 5u
 
 /* Print diagnostic information approximately once per second. */
 #define B4_IMU_PRINT_SAMPLES 500u    /* ~5 s (was 100, ~1 s) */
@@ -140,38 +127,6 @@ LOCAL ER b4_read_accel_id(void)
     return (er < E_OK) ? er : E_IO;
 }
 
-LOCAL ER b4_check_mag_id(void)
-{
-    UB a = 0u;
-    UB b = 0u;
-    UB c = 0u;
-    ER er;
-
-    er = b4_read_reg(B4_IMU_MAG_ADDR, MAG_IRA_REG_M, &a);
-    if (er < E_OK)
-        return er;
-
-    er = b4_read_reg(B4_IMU_MAG_ADDR, MAG_IRB_REG_M, &b);
-    if (er < E_OK)
-        return er;
-
-    er = b4_read_reg(B4_IMU_MAG_ADDR, MAG_IRC_REG_M, &c);
-    if (er < E_OK)
-        return er;
-
-    if (a != MAG_ID_A || b != MAG_ID_B || c != MAG_ID_C)
-    {
-        tm_printf(
-            (UB *)"[B4-IMU] magnetometer ID mismatch: "
-                  "%02x %02x %02x\n",
-            a, b, c);
-
-        return E_IO;
-    }
-
-    return E_OK;
-}
-
 /* --------------------------------------------------------- */
 /* Sensor configuration                                      */
 /* --------------------------------------------------------- */
@@ -202,31 +157,12 @@ LOCAL ER b4_configure_sensor(void)
         return er;
 
     /*
-     * Magnetometer:
-     * 15 Hz, +/-1.3 gauss, continuous-conversion mode.
+     * Magnetometer is intentionally not required.  Lift, overturn and
+     * terrain handling use the accelerometer only.  Skipping the three
+     * magnetometer writes prevents an absent/busy magnetometer from
+     * turning a healthy accelerometer into a permanent IMU fault.
      */
-    er = b4_write_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_CRA_REG_M,
-        0x14u);
-
-    if (er < E_OK)
-        return er;
-
-    er = b4_write_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_CRB_REG_M,
-        0x20u);
-
-    if (er < E_OK)
-        return er;
-
-    er = b4_write_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_MR_REG_M,
-        0x00u);
-
-    return er;
+    return E_OK;
 }
 
 /* --------------------------------------------------------- */
@@ -259,7 +195,6 @@ LOCAL ER b4_read_block(UW address, UW reg, UB *buf, SZ n)
 LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
 {
     UB a[6];
-    UB m[6];
     ER er;
 
     /* Accelerometer: X, Y, Z, little-endian. */
@@ -268,18 +203,12 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
     if (er < E_OK)
         return er;
 
-    /* Magnetometer: X, Z, Y, big-endian (pointer auto-increments). */
-    er = b4_read_block(B4_IMU_MAG_ADDR, MAG_OUT_X_H_M, m, 6);
-    if (er < E_OK)
-        return er;
-
     sample->accel_x = b4_make_i16(a[0], a[1]);
     sample->accel_y = b4_make_i16(a[2], a[3]);
     sample->accel_z = b4_make_i16(a[4], a[5]);
-
-    sample->mag_x = (int16_t)((UW)(((UW)m[0] << 8) | m[1]));
-    sample->mag_z = (int16_t)((UW)(((UW)m[2] << 8) | m[3]));
-    sample->mag_y = (int16_t)((UW)(((UW)m[4] << 8) | m[5]));
+    sample->mag_x = 0;
+    sample->mag_y = 0;
+    sample->mag_z = 0;
 
     return E_OK;
 }
@@ -287,7 +216,6 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
 LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
 {
     UB xl, xh, yl, yh, zl, zh;
-    UB xh_m, xl_m, zh_m, zl_m, yh_m, yl_m;
     ER er;
 
     /* Accelerometer output is little-endian: X, Y, Z. */
@@ -343,62 +271,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
     sample->accel_x = b4_make_i16(xl, xh);
     sample->accel_y = b4_make_i16(yl, yh);
     sample->accel_z = b4_make_i16(zl, zh);
-
-    /* Magnetometer order is X, Z, Y and values are big-endian. */
-
-    er = b4_read_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_OUT_X_H_M,
-        &xh_m);
-
-    if (er < E_OK)
-        return er;
-
-    er = b4_read_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_OUT_X_H_M + 1u,
-        &xl_m);
-
-    if (er < E_OK)
-        return er;
-
-    er = b4_read_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_OUT_X_H_M + 2u,
-        &zh_m);
-
-    if (er < E_OK)
-        return er;
-
-    er = b4_read_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_OUT_X_H_M + 3u,
-        &zl_m);
-
-    if (er < E_OK)
-        return er;
-
-    er = b4_read_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_OUT_X_H_M + 4u,
-        &yh_m);
-
-    if (er < E_OK)
-        return er;
-
-    er = b4_read_reg(
-        B4_IMU_MAG_ADDR,
-        MAG_OUT_X_H_M + 5u,
-        &yl_m);
-
-    if (er < E_OK)
-        return er;
-
-    sample->mag_x = (int16_t)((UW)(((UW)xh_m << 8) | xl_m));
-
-    sample->mag_z = (int16_t)((UW)(((UW)zh_m << 8) | zl_m));
-
-    sample->mag_y = (int16_t)((UW)(((UW)yh_m << 8) | yl_m));
+    sample->mag_x = 0;
+    sample->mag_y = 0;
+    sample->mag_z = 0;
 
     return E_OK;
 }
@@ -627,10 +502,6 @@ LOCAL void b4_imu_connect(void)
         {
             tm_printf((UB *)"[B4-IMU] accelerometer not detected: %d "
                             "(check SDA=GP4, SCL=GP5, 3V3, GND)\n", er);
-        }
-        else if ((er = b4_check_mag_id()) < E_OK)
-        {
-            tm_printf((UB *)"[B4-IMU] magnetometer not detected: %d\n", er);
         }
         else if ((er = b4_configure_sensor()) < E_OK)
         {
@@ -900,16 +771,22 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
         {
             /*
              * Sensor communication failed.
-             * Report an IMU fault instead of classifying
-             * invalid sensor data.
+             * A one-off I2C glitch is not an IMU fault.  Only publish
+             * fault after several consecutive failed samples.
              */
+            if (read_errors < 255u)
+            {
+                read_errors++;
+            }
+
             motion_input.motion_level_mg = 0;
             motion_input.vertical_delta_mg = 0;
             motion_input.accel_x_mg = 0;
             motion_input.accel_y_mg = 0;
             motion_input.accel_z_mg = 0;
             motion_input.yaw_rate_mdps = 0;
-            motion_input.imu_fault = 1u;
+            motion_input.imu_fault =
+                (read_errors >= B4_IMU_FAULT_CONFIRM_ERRORS) ? 1u : 0u;
             motion_input.lifted = 0u;
             motion_input.overturned = 0u;
 
@@ -918,11 +795,19 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * stopped), forget the integrator, and report the fault.
              */
             b4_handling_reset_integrator(&handling);
-            b4_set_flag_bits((b4_flag_bits & (S4_FLG_LIFTED |
-                                              S4_FLG_OVERTURNED)) |
-                             S4_FLG_IMU_FAULT);
-
-            event = b4_classify_motion(motion_input);
+            if (motion_input.imu_fault != 0u)
+            {
+                b4_set_flag_bits((b4_flag_bits & (S4_FLG_LIFTED |
+                                                  S4_FLG_OVERTURNED)) |
+                                 S4_FLG_IMU_FAULT);
+                event = b4_classify_motion(motion_input);
+            }
+            else
+            {
+                b4_set_flag_bits(b4_flag_bits &
+                                 (S4_FLG_LIFTED | S4_FLG_OVERTURNED));
+                event = previous_event;
+            }
 
             /*
              * Reset previous-sample tracking.
@@ -937,11 +822,6 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * and connect again. E_ID (-18) means the device descriptor
              * itself is no longer valid, so it must be reopened.
              */
-            if (read_errors < 255u)
-            {
-                read_errors++;
-            }
-
             if (read_errors >= B4_IMU_RECONNECT_ERRORS)
             {
                 tm_printf((UB *)"[B4-IMU] %u read errors (last %d, "
