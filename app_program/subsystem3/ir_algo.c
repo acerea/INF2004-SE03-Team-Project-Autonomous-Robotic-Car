@@ -142,6 +142,26 @@ ir_line_position (uint16_t dark_l, uint16_t dark_c, uint16_t dark_r,
     return (b_found);
 }
 
+bool
+ir_line_position_lr (uint16_t dark_c, uint16_t dark_r,
+                     int16_t * p_pos)
+{
+    uint32_t sum = (uint32_t) dark_c + dark_r;
+    bool b_found = false;
+
+    if ((p_pos != NULL) && (sum >= IR_LOST_DARK_SUM))
+    {
+        // C/R pair: right is positive, left/centre is negative.  Use
+        // +/-500 so a real left/right curve has steering authority without
+        // allowing the dedicated barcode sensor to affect line position.
+        int32_t num = ((int32_t) dark_r - (int32_t) dark_c) * 500;
+        *p_pos = (int16_t) (num / (int32_t) sum);
+        b_found = true;
+    }
+
+    return (b_found);
+}
+
 uint16_t
 ir_c39_pattern (uint16_t const p_widths[IR_C39_ELEMENTS])
 {

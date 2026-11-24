@@ -79,6 +79,14 @@ EXPORT void subsystem3_test(void)
 	ok = ok && ir_line_position(0u, 1000u, 1000u, &pos) && (pos == 500);
 	TEST_CHECK("S3-U05", ok, "line position estimate -1000..1000");
 
+	/* S3-U20: the dedicated barcode sensor is excluded from line position.
+	   Centre/right pair: centre = negative, right = positive. */
+	ok = ir_line_position_lr(1000u, 0u, &pos) && pos == -500;
+	ok = ok && ir_line_position_lr(0u, 1000u, &pos) && pos == 500;
+	ok = ok && ir_line_position_lr(1000u, 1000u, &pos) && pos == 0;
+	TEST_CHECK("S3-U20", ok,
+		   "C/R line position excludes the barcode sensor");
+
 	/* S3-U06: all white is "no line" */
 	TEST_CHECK("S3-U06", !ir_line_position(50u, 100u, 50u, &pos),
 		   "all-white reading reports line lost");

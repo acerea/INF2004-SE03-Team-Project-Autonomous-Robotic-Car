@@ -49,6 +49,7 @@ static int line_error_filtered = 0;
 /* Line steering strength (see motion_pidSetLineCorrection). */
 #define LINE_GAIN_PCT 2      /* was 3: oversteered on curves at 30 mm/s */
 #define LINE_MAX_PWM  15     /* was 30: base PWM at 30 mm/s is only ~14 */
+#define LINE_TARGET_GAIN 0.35f /* Wheel-target steering: less abrupt than raw PWM */
 
 /* FR6: Encoder-based turning */
 #define WHEEL_TRACK_CM 9.9f
@@ -261,12 +262,20 @@ void motion_pidUpdate(float dt_seconds)
     float right_speed =
         encoder_calculateRightSpeed(right_change, dt_seconds);
 
+    float steer = target_speed * LINE_TARGET_GAIN
+                  * ((float)line_error_filtered / 1000.0f);
+    float left_target = target_speed + steer;
+    float right_target = target_speed - steer;
+
+    if (left_target < 0.0f) left_target = 0.0f;
+    if (right_target < 0.0f) right_target = 0.0f;
+
     float left_pwm =
-        speed_pid_update(&left_pid, target_speed,
+        speed_pid_update(&left_pid, left_target,
                          left_speed, dt_seconds);
 
     float right_pwm =
-        speed_pid_update(&right_pid, target_speed,
+        speed_pid_update(&right_pid, right_target,
                          right_speed, dt_seconds);
 
     /* Correct difference between wheel speeds */
@@ -277,10 +286,9 @@ void motion_pidUpdate(float dt_seconds)
     left_pwm -= correction;
     right_pwm += correction;
 
-    /* Positive line_pos means the line is right; turn right by slowing
-     * the right wheel and keeping the left wheel faster. */
-    left_pwm += (float)line_correction_pwm;
-    right_pwm -= (float)line_correction_pwm;
+    /* line_correction_pwm is retained for compatibility; wheel targets
+     * above provide the actual smooth steering response. */
+    (void)line_correction_pwm;
 
     /* Limit PWM to forward range */
     if (left_pwm < 0.0f) left_pwm = 0.0f;

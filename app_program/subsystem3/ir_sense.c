@@ -235,6 +235,52 @@ ir_read_sensors (uint16_t p_dark[3])
     return (bits);
 }
 
+// Line-following uses the centre and right IR sensors only.  ADC_LEFT is
+// the barcode sensor and must not contribute to line_pos or steering.
+static uint8_t
+ir_read_line_sensors (uint16_t p_dark[2])
+{
+    uint16_t raw_c = ir_read_adc(ADC_CENTRE);
+    uint16_t raw_r = ir_read_adc(ADC_RIGHT);
+    uint8_t old = g_ctx.sensors;
+    uint8_t bits = 0u;
+
+    if (ir_is_black(raw_c, 0u != (old & IR_SENS_CENTRE), &g_ctx.cal[1]))
+    {
+        bits |= IR_SENS_CENTRE;
+    }
+    if (ir_is_black(raw_r, 0u != (old & IR_SENS_RIGHT), &g_ctx.cal[2]))
+    {
+        bits |= IR_SENS_RIGHT;
+    }
+
+    if (NULL != p_dark)
+    {
+        p_dark[0] = ir_darkness(raw_c, &g_ctx.cal[1]);
+        p_dark[1] = ir_darkness(raw_r, &g_ctx.cal[2]);
+    }
+
+    g_ctx.sensors = (g_ctx.sensors & ~((uint8_t)(IR_SENS_CENTRE | IR_SENS_RIGHT)))
+                    | bits;
+    return (bits);
+}
+
+// Barcode sampling reads only the dedicated left/barcode sensor.
+// It does not update the line snapshot or line correction.
+static uint8_t
+ir_read_barcode_sensor (void)
+{
+    uint16_t raw_l = ir_read_adc(ADC_LEFT);
+    uint8_t bits = 0u;
+
+    if (ir_is_black(raw_l, 0u, &g_ctx.cal[0]))
+    {
+        bits |= IR_SENS_LEFT;
+    }
+
+    return (bits);
+}
+
 static void
 ir_handle_cali (uint32_t now)
 {
@@ -339,19 +385,23 @@ ir_handle_track (uint32_t now)
         return;
     }
 
-    uint16_t dark[3];
-    uint8_t  bits = ir_read_sensors(dark);
+    uint16_t dark[2];
+    uint8_t  line_bits = ir_read_line_sensors(dark);
+    uint8_t  barcode = ir_read_barcode_sensor();
     uint8_t  junc = IR_JUNC_NONE;
     int16_t  pos = 0;
 
-    if (IR_SENS_SIDES != (bits & IR_SENS_SIDES))
+    g_next.sensors = line_bits;
+
+    if (0u == (barcode & IR_SENS_LEFT))
     {
         g_ctx.b_armed = 1u;             // Off any bar or pad.
     }
 
     // All three black must persist briefly before treating it as a barcode.
     // This distinguishes a barcode start from a short line/junction crossing.
-    if ((IR_SENS_ALL == bits) && (0u != g_ctx.b_armed)
+    if ((0u != (barcode & IR_SENS_LEFT))
+        && (0u != g_ctx.b_armed)
         && (!g_b_steer_locked))
     {
         if (0u == g_ctx.barcode_run)
@@ -374,7 +424,7 @@ ir_handle_track (uint32_t now)
         g_ctx.barcode_run = 0u;
     }
 
-    if (0u == bits)
+    if (0u == line_bits)
     {
         g_next.lost_timeout = 0u;
         g_next.line_pos = g_ctx.last_line_pos;
@@ -384,18 +434,14 @@ ir_handle_track (uint32_t now)
 
     g_next.lost_timeout = 0u;
     g_next.line_pos = 0;
-    if (ir_line_position(dark[0], dark[1], dark[2], &pos))
+    if (ir_line_position_lr(dark[0], dark[1], &pos))
     {
         g_next.line_pos = (signed int) pos;      // |pos| <= 1000: fits 11 bits.
         g_ctx.last_line_pos = pos;
     }
 
-    // A side branch: centre and one side black, held for 30 ms.
-    if (bits == (IR_SENS_LEFT | IR_SENS_CENTRE))
-    {
-        junc = IR_JUNC_LEFT;
-    }
-    else if (bits == (IR_SENS_RIGHT | IR_SENS_CENTRE))
+    // Junction/branch reporting uses only the line-sensor pair.
+    if (line_bits == (IR_SENS_RIGHT | IR_SENS_CENTRE))
     {
         junc = IR_JUNC_RIGHT;
     }
@@ -540,8 +586,8 @@ ir_handle_barcode (uint32_t now)
         return;
     }
 
-    uint8_t  bits = ir_read_sensors(NULL);
-    bool     b_black = (IR_SENS_SIDES == (bits & IR_SENS_SIDES));
+    uint8_t  bits = ir_read_barcode_sensor();
+    bool     b_black = (0u != (bits & IR_SENS_LEFT));
     uint32_t span = now - g_ctx.edge_ms;
     uint32_t quiet;
 
@@ -629,12 +675,17 @@ ir_handle_lost (uint32_t now)
         return;
     }
 
-    uint8_t bits = ir_read_sensors(NULL);
+    uint16_t line_dark[2];
+    uint8_t line_bits = ir_read_line_sensors(line_dark);
+    uint8_t barcode = ir_read_barcode_sensor();
+    uint8_t bits = line_bits;
 
+    g_next.sensors = line_bits;
     g_next.line_pos = g_ctx.last_line_pos;
     g_next.junction = IR_JUNC_NONE;
 
-    if ((IR_SENS_ALL == bits) && (!g_b_steer_locked))
+    if ((0u != (barcode & IR_SENS_LEFT))
+        && (!g_b_steer_locked))
     {
         g_next.lost_timeout = 0u;
         if (0u == g_ctx.barcode_run)
@@ -656,11 +707,7 @@ ir_handle_lost (uint32_t now)
         g_ctx.barcode_run = 0u;
     }
 
-    if (IR_SENS_ALL == bits)
-    {
-        return;
-    }
-    else if (0u != bits)
+    if (0u != bits)
     {
         g_next.lost_timeout = 0u;
         ir_set_state(IR_TRACK, now);

@@ -69,6 +69,8 @@ bool         ir_is_black(uint16_t raw, bool b_was_black,
                          ir_cal_t const * p_cal);
 bool         ir_line_position(uint16_t dark_l, uint16_t dark_c,
                               uint16_t dark_r, int16_t * p_pos);
+bool         ir_line_position_lr (uint16_t dark_c, uint16_t dark_r,
+                                              int16_t * p_pos);
 
 uint16_t     ir_c39_pattern(uint16_t const p_widths[IR_C39_ELEMENTS]);
 uint16_t     ir_c39_reverse(uint16_t pattern);
