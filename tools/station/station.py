@@ -135,6 +135,9 @@ def decode(f, car):
     if typ == 5 and len(f) >= 4:
         d.update(motion=B4_STATES[get_bits(f, 14, 3)],
                  overturned=get_bits(f, 17, 1), imu_fault=get_bits(f, 18, 1))
+        if len(f) >= 5:
+            d.update(hump_ok=get_bits(f, 19, 1), hump_mm=get_bits(f, 20, 8),
+                     hump_count=get_bits(f, 28, 4), lift_peak=get_bits(f, 32, 8))
         return "terrain", d
     if typ == 6 and len(f) >= 4:
         cm = get_bits(f, 16, 9)

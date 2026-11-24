@@ -291,9 +291,12 @@
   }
   function onTerrain(d) {
     var txt = d.imu_fault ? "IMU FAULT" : d.overturned ? "OVERTURNED" : d.motion;
-    setTile("tImu", txt, d.imu_fault || d.overturned || d.motion === "LIFTED" ? "c-bad" : "c-ok", "");
+    var hump = d.hump_ok ? "hump " + d.hump_mm + " mm (x" + d.hump_count + ")" : "hump: not measured";
+    setTile("tImu", txt, d.imu_fault || d.overturned || d.motion === "LIFTED" ? "c-bad" : "c-ok", hump);
     var c = changed("imu", txt);
     if (c && c.was !== undefined) { log("imu", txt, d.t); }
+    c = changed("hump", d.hump_count);
+    if (c && c.was !== undefined && d.hump_ok) { log("imu", "hump #" + d.hump_count + " measured, peak height " + d.hump_mm + " mm", d.t); }
   }
   function onHb(d) {
     seen.car = Date.now();
