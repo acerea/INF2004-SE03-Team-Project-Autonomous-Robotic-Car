@@ -523,11 +523,9 @@ vc_poll_line_following (void)
              && ((0u == g_vc_lost_since)
                  || ((vc_now_ms() - g_vc_lost_since) < VC_LOST_STRAIGHT_MS)))
     {
-        // Just lost it (a gap, a sensor between two others, a wobble):
-        // keep going STRAIGHT for a while. Steering hard towards the last
-        // position swung the car past the line. The timer is the VC's own,
-        // started here while driving, so a "lost" left over from before
-        // START does not start a search at once.
+        // Keep using the last real line position briefly so a sensor gap or
+        // wobble does not reset steering and make the car hesitate or swing.
+        // The timer is the VC's own, started while driving.
         if (0u == g_vc_lost_since)
         {
             g_vc_lost_since = vc_now_ms();
@@ -536,7 +534,7 @@ vc_poll_line_following (void)
                 g_vc_lost_since = 1u;
             }
         }
-        s2_setLineCorrection(0);
+        s2_setLineCorrection(snap.line_pos);
     }
     else if (IR_LINE_LOST == snap.state)
     {
