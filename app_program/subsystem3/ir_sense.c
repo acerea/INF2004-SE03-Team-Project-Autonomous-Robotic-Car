@@ -567,6 +567,37 @@ ir_barcode_finish (uint32_t now)
         tm_printf((UB*)"ir: barcode \"%s\" cmd=%u\n", word,
                   (unsigned int) cmd);
     }
+    else if (0u != g_ctx.chars)
+    {
+        // DEBUG: a read that did not decode. Show it on the dashboard as
+        // '?' so failed reads are visible without the serial port.
+        s3_publish_barcode('?', (uint32_t) IR_NAV_NONE);
+    }
+    else
+    {
+        // Nothing complete was read (noise or a single bar).
+    }
+
+    // DEBUG: every read attempt, decoded or not. Printed after reading,
+    // so it cannot disturb the 2 ms bar timing.
+    {
+        uint8_t idx;
+
+        tm_printf((UB*)"ir: barcode read %u ms, chars=%u elem=%u "
+                       "narrow=%u ms -> %s\n",
+                  (unsigned int) (now - g_ctx.state_ms),
+                  (unsigned int) g_ctx.chars,
+                  (unsigned int) g_ctx.elem,
+                  (unsigned int) g_ctx.min_elem_ms,
+                  (len > 0u) ? word : "FAIL");
+        for (idx = 0u; idx < g_ctx.chars; idx++)
+        {
+            tm_printf((UB*)"ir:   char %u pattern 0x%03x '%c'\n",
+                      (unsigned int) idx,
+                      (unsigned int) g_ctx.pats[idx],
+                      ir_c39_lookup(g_ctx.pats[idx]));
+        }
+    }
 
     ir_set_state(IR_TRACK, now);
     return;
