@@ -50,7 +50,6 @@ static int line_error_filtered = 0;
 #define LINE_GAIN_PCT 2      /* was 3: oversteered on curves at 30 mm/s */
 #define LINE_MAX_PWM  15     /* was 30: base PWM at 30 mm/s is only ~14 */
 #define LINE_TARGET_GAIN 0.35f /* Wheel-target steering: less abrupt than raw PWM */
-#define LINE_MIN_STEER_CM_S 1.5f
 
 /* FR6: Encoder-based turning */
 #define WHEEL_TRACK_CM 9.9f
@@ -138,7 +137,7 @@ void motion_pidSetLineCorrection(int line_pos)
      * Was 8 / 80: with sensors that see the line one at a time the
      * position jumps between about -1000 and +1000, and +/-80 PWM on a
      * ~30 PWM base swung the car from side to side. Tune these two. */
-    line_error_filtered = (line_error_filtered + line_pos) / 2;
+    line_error_filtered = (line_error_filtered * 3 + line_pos) / 4;
     correction = (line_error_filtered * LINE_GAIN_PCT) / 100;
     if (correction > LINE_MAX_PWM) correction = LINE_MAX_PWM;
     if (correction < -LINE_MAX_PWM) correction = -LINE_MAX_PWM;
@@ -265,14 +264,6 @@ void motion_pidUpdate(float dt_seconds)
 
     float steer = target_speed * LINE_TARGET_GAIN
                   * ((float)line_error_filtered / 1000.0f);
-    if (steer > 0.0f && steer < LINE_MIN_STEER_CM_S)
-    {
-        steer = LINE_MIN_STEER_CM_S;
-    }
-    else if (steer < 0.0f && steer > -LINE_MIN_STEER_CM_S)
-    {
-        steer = -LINE_MIN_STEER_CM_S;
-    }
     float left_target = target_speed + steer;
     float right_target = target_speed - steer;
 

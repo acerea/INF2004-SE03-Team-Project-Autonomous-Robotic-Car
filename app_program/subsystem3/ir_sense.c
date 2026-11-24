@@ -54,7 +54,7 @@
 #define ADC_CENTRE              (1)
 #define ADC_RIGHT               (0)
 
-#define IR_TRACK_MS             (5u)        // Line tracking period for faster curves.
+#define IR_TRACK_MS             (10u)       // Line tracking period.
 #define IR_BARCODE_MS           (2u)        // Barcode sampling period.
 #define IR_CAL_SAMPLES          (50u)       // 0.5 s calibration.
 #define IR_LOST_TIMEOUT_MS      (1000u)     // Line lost -> report.
