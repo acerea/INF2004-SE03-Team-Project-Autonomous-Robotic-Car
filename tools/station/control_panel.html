@@ -56,9 +56,36 @@
   .speed input[type=range] { flex: 1; accent-color: var(--teal); }
   .speed button { padding: 6px 10px; }
   .note { font-size: 12px; color: var(--dim); }
+  .navmap { border: 1px solid var(--edge); padding: 12px; }
+  .navmap .row { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+  .navmap select { flex: 1; background: var(--panel); color: var(--ink); border: 1px solid var(--edge);
+                   font: 13px var(--mono); padding: 6px; }
+  .navmap button { padding: 6px 10px; }
+  .navmap table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  .navmap td { padding: 3px 6px; border-top: 1px solid var(--edge); }
+  .navmap td:first-child { color: var(--amber); width: 36px; }
+  .navmap td:last-child { text-align: right; }
+  .navmap td button { padding: 1px 6px; font-size: 11px; }
+  .scans { border: 1px solid var(--edge); }
+  .scans .head { display: flex; align-items: center; gap: 10px; padding: 8px;
+                 border-bottom: 1px solid var(--edge); }
+  .scans .head .sp { flex: 1; }
+  .scan { display: grid; grid-template-columns: 70px 240px 1fr; gap: 10px; align-items: center;
+          padding: 6px 10px; border-top: 1px solid #1d232c; font-size: 12.5px; }
+  .scan:first-of-type { border-top: 0; }
+  .scan .res { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .scan svg { width: 100%; height: 30px; display: block; }
+  .scan .meta { grid-column: 3; color: var(--dim); font-size: 11px; margin-top: -4px; }
+  .nudge { border: 1px solid var(--edge); padding: 12px; }
+  .nudge .row { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+  .nudge input { width: 64px; background: var(--panel); color: var(--ink); border: 1px solid var(--edge);
+                 font: 15px var(--mono); padding: 6px; text-align: center; }
+  .nudge button { flex: 1; padding: 8px 6px; }
+  .navmap td.empty { color: var(--dim); text-align: left; width: auto; }
   .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
            background: var(--edge); border: 1px solid var(--edge); }
   .tile { background: var(--panel); padding: 10px 12px; min-height: 86px; }
+  .tile.wide { grid-column: 1 / -1; min-height: 0; }
   .tile .k { font-size: 11px; color: var(--dim); letter-spacing: .14em; }
   .tile .v { font-size: 20px; margin-top: 4px; }
   .tile .s { font-size: 12px; color: var(--dim); margin-top: 2px; }
@@ -70,13 +97,15 @@
   .eyes span.blk { background: var(--ink); color: var(--bg); }
   .pos { position: relative; height: 4px; background: var(--edge); margin-top: 6px; }
   .pos i { position: absolute; top: -3px; width: 2px; height: 10px; background: var(--amber); left: 50%; }
-  .log { border: 1px solid var(--edge); display: flex; flex-direction: column; min-height: 320px; flex: 1; }
+  /* Events fill the panel: the list used to stop at 55vh with empty space below. */
+  .log { border: 1px solid var(--edge); display: flex; flex-direction: column;
+         height: 85vh; min-height: 320px; }
   .log .head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px;
                border-bottom: 1px solid var(--edge); }
   .chip { font: 11px var(--mono); padding: 3px 8px; letter-spacing: .06em; }
   .chip.sel { border-color: var(--amber); color: var(--amber); }
   .log .head .sp { flex: 1; }
-  .lines { overflow: auto; max-height: 55vh; padding: 4px 0; font-size: 12.5px; }
+  .lines { overflow: auto; flex: 1; min-height: 0; padding: 4px 0; font-size: 12.5px; }
   .ln { display: grid; grid-template-columns: 92px 70px 1fr; gap: 10px; padding: 2px 10px; }
   .ln:hover { background: #1a2029; }
   .ln .t { color: var(--dim); } .ln .g { color: var(--violet); }
@@ -88,6 +117,7 @@
   <label>car <input id="car" value="picocar-01"></label>
   <label>broker <input id="url" value="ws://localhost:9001"></label>
   <button id="reconnect" class="chip">CONNECT</button>
+  <button id="newRun" class="chip" title="Clear the events, scans and last barcode, and count humps from 0 again. Nothing is sent to the car.">NEW RUN (CLEAR)</button>
   <span class="led" id="ledBroker"><i></i>broker</span>
   <span class="led" id="ledStation"><i></i>station.py</span>
   <span class="led" id="ledCar"><i></i>car</span>
@@ -127,6 +157,42 @@
         cm/s in a MODE command). The car stops for anything within 15 cm;
         there is no slow-down band any more.</p>
     </div>
+
+    <div class="nudge">
+      <h3>NUDGE</h3>
+      <div class="row">
+        <button id="nudgeBack">&#9664; REVERSE</button>
+        <input type="number" id="nudgeCm" min="1" max="63" step="1" value="10">
+        <span class="note">cm</span>
+        <button id="nudgeFwd">FORWARD &#9654;</button>
+      </div>
+      <p class="note">Straight, 1-63 cm, at the CRUISE SPEED above (APPLY
+        it first to change). Only while the car is IDLE or STOPPED (press
+        STOP first). Reverse has no line steering.</p>
+    </div>
+
+    <div class="navmap">
+      <h3>BARCODE ACTIONS</h3>
+      <div class="row">
+        <select id="mapLetter"></select>
+        <select id="mapAction">
+          <option value="left">LEFT</option>
+          <option value="right">RIGHT</option>
+          <option value="straight">STRAIGHT</option>
+          <option value="uturn">U-TURN</option>
+          <option value="none">IGNORE</option>
+        </select>
+        <button class="go" id="mapSet">SET</button>
+      </div>
+      <table id="mapTable"></table>
+      <div class="row">
+        <button id="mapResend" style="flex:1">RESEND ALL</button>
+        <button id="mapClear" style="flex:1">CLEAR ALL</button>
+      </div>
+      <p class="note">Letters not listed use the car's built-in table
+        (A left, B right, C straight, D U-turn). station.py keeps this list
+        and sends it again whenever the car restarts.</p>
+    </div>
   </aside>
 
   <section class="right">
@@ -141,6 +207,17 @@
       <div class="tile"><div class="k">IMU</div><div class="v" id="tImu">--</div><div class="s" id="tImuS"></div></div>
       <div class="tile"><div class="k">LAST BARCODE</div><div class="v" id="tBar">--</div><div class="s" id="tBarS"></div></div>
       <div class="tile"><div class="k">LINK</div><div class="v" id="tLink">--</div><div class="s" id="tLinkS"></div></div>
+      <div class="tile wide"><div class="k">OBSTACLE WIDTH</div><div class="v" id="tWidth">--</div><div class="s" id="tWidthS">measured when the car stops for an obstacle</div></div>
+    </div>
+
+    <div class="scans">
+      <div class="head">
+        <h3 style="margin:0">BARCODE SCANS</h3>
+        <span class="note">each read attempt, drawn to time (black = bar). Hover a bar for ms.</span>
+        <span class="sp"></span>
+        <button class="chip" id="scanClear">CLEAR</button>
+      </div>
+      <div id="scanList"><div class="scan"><span class="c-dim">--</span><span class="c-dim">no scans yet</span><span></span></div></div>
     </div>
 
     <div class="log">
@@ -281,22 +358,123 @@
     c = changed("obsfault", d.fault);
     if (c && d.fault) { log("obstacle", "ultrasonic not answering", d.t); }
   }
+  // left/right: how far the obstacle reaches each side of the car's centre
+  // line (null = still there at the edge of the sweep: width is a minimum).
   function onProfile(d) {
-    log("obstacle", "sweep: go " + d.side + ", width " + d.width_cm + " cm, left " +
-        (d.left_cm || "open") + ", right " + (d.right_cm || "open"), d.t);
+    function reach(v) { return v === null ? "past the sweep" : v + " cm"; }
+    var w = (d.width_min ? "\u2265 " : "") + d.width_cm + " cm";
+    setTile("tWidth", w, "c-warn", "reaches left " + reach(d.left_cm) + ", right " +
+            reach(d.right_cm) + " \u2192 going " + d.side);
+    log("obstacle", "sweep: width " + w + ", reaches left " + reach(d.left_cm) +
+        ", right " + reach(d.right_cm) + " -> go " + d.side, d.t);
   }
+  var lastBar = { letter: "", t: 0 }, scans = [];
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function drawScan(sc) {
+    var row = document.createElement("div"), svg = document.createElementNS(SVGNS, "svg");
+    var total = sc.ms.reduce(function (a, b) { return a + b; }, 0) || 1, x = 0;
+    row.className = "scan";
+    row.innerHTML = '<span class="t"></span><span class="res"></span>';
+    row.children[0].textContent = hhmmss(sc.t);
+    row.children[1].textContent = sc.ok ? "OK  '" + (sc.letter || "?") + "'" : "FAIL  " + sc.reason;
+    row.children[1].className = "res " + (sc.ok ? "c-ok" : "c-bad");
+    row.children[1].title = row.children[1].textContent;
+    // White "paper" with a 20-unit margin, so bars at the ends show up.
+    svg.setAttribute("viewBox", "0 0 1040 30");
+    svg.setAttribute("preserveAspectRatio", "none");
+    var paper = document.createElementNS(SVGNS, "rect");
+    paper.setAttribute("width", 1040); paper.setAttribute("height", 30);
+    paper.setAttribute("fill", "#ece9e2");
+    svg.appendChild(paper);
+    x = 20;
+    sc.ms.forEach(function (w, i) {
+      var wpx = w / total * 1000;
+      if (i % 2 === 0) {
+        var r = document.createElementNS(SVGNS, "rect");
+        r.setAttribute("x", x); r.setAttribute("y", 3);
+        r.setAttribute("width", Math.max(wpx, 1)); r.setAttribute("height", 24);
+        r.setAttribute("fill", "#111");
+        var tt = document.createElementNS(SVGNS, "title");
+        tt.textContent = "bar " + (i / 2 + 1) + ": ~" + w + " ms";
+        r.appendChild(tt);
+        svg.appendChild(r);
+      }
+      x += wpx;
+    });
+    row.appendChild(svg);
+    var meta = document.createElement("div");
+    // A Code 39 char is 9 elements plus 1 gap, so a good *X* read is 29.
+    meta.className = "meta" + (sc.uneven ? " c-warn" : "");
+    meta.textContent = sc.elements + " elements (*X* = 29)" +
+      (sc.uneven ? "  |  UNEVEN SPEED: narrow bars differ > 2x" : "") +
+      (sc.incomplete ? "  |  some frames lost" : "") +
+      (sc.elements >= 60 ? "  |  truncated at 60" : "");
+    row.appendChild(meta);
+    return row;
+  }
+  function redrawScans() {
+    var box = $("scanList");
+    box.innerHTML = "";
+    if (!scans.length) {
+      box.innerHTML = '<div class="scan"><span class="c-dim">--</span><span class="c-dim">no scans yet</span><span></span></div>';
+      return;
+    }
+    scans.forEach(function (sc) { box.appendChild(drawScan(sc)); });
+  }
+  function onScan(d) {
+    if (d.ok && d.t - lastBar.t < 3) { d.letter = lastBar.letter; }
+    scans.unshift(d);
+    if (scans.length > 6) { scans.pop(); }
+    redrawScans();
+    log("barcode", d.ok ? "scan OK '" + (d.letter || "?") + "' (" + d.elements + " elements)"
+                        : "scan FAILED: " + d.reason + " (" + d.elements + " elements" +
+                          (d.uneven ? ", uneven speed" : "") + ")", d.t);
+  }
+  $("scanClear").onclick = function () { scans = []; redrawScans(); };
+
   function onBarcode(d) {
-    setTile("tBar", d.letter, "c-ok", d.command);
-    log("barcode", "read '" + d.letter + "' -> " + d.command, d.t);
+    lastBar = { letter: d.letter, t: d.t };
+    var act = d.mapped ? (d.mapped === "UTURN" ? "U-TURN" : d.mapped === "NONE" ? "IGNORE" : d.mapped) + " (map)"
+                       : d.command;
+    setTile("tBar", d.letter, "c-ok", act);
+    log("barcode", "read '" + d.letter + "' -> " + act, d.t);
   }
+  var ACTION_TEXT = { left: "LEFT", right: "RIGHT", straight: "STRAIGHT", uturn: "U-TURN", none: "IGNORE" };
+  function onNavmap(d) {
+    var t = $("mapTable"), keys = Object.keys(d.map || {}).sort();
+    t.innerHTML = "";
+    if (!keys.length) {
+      t.innerHTML = '<tr><td colspan="3" class="empty">no custom actions set</td></tr>';
+      return;
+    }
+    keys.forEach(function (k) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td></td><td></td><td><button>X</button></td>";
+      tr.children[0].textContent = k;
+      tr.children[1].textContent = ACTION_TEXT[d.map[k]] || d.map[k];
+      tr.querySelector("button").title = "back to default";
+      tr.querySelector("button").onclick = function () {
+        send({ cmd: "map", letter: k, action: "default" });
+      };
+      t.appendChild(tr);
+    });
+  }
+  // The car counts humps since it powered up. NEW RUN remembers the count
+  // at that moment, so the tile shows only this run's humps.
+  var humpBase = 0, humpBaseWanted = false, lastHumpCount = 0;
   function onTerrain(d) {
     var txt = d.imu_fault ? "IMU FAULT" : d.overturned ? "OVERTURNED" : d.motion;
-    var hump = d.hump_ok ? "hump " + d.hump_mm + " mm (x" + d.hump_count + ")" : "hump: not measured";
+    lastHumpCount = d.hump_count || 0;
+    if (humpBaseWanted) { humpBase = lastHumpCount; humpBaseWanted = false; }
+    if (lastHumpCount < humpBase) { humpBase = 0; }        // car restarted
+    var runHumps = lastHumpCount - humpBase;
+    var hump = (d.hump_ok && runHumps > 0) ? "hump " + d.hump_mm + " mm (x" + runHumps + ")"
+                                           : "hump: not measured this run";
     setTile("tImu", txt, d.imu_fault || d.overturned || d.motion === "LIFTED" ? "c-bad" : "c-ok", hump);
     var c = changed("imu", txt);
     if (c && c.was !== undefined) { log("imu", txt, d.t); }
     c = changed("hump", d.hump_count);
-    if (c && c.was !== undefined && d.hump_ok) { log("imu", "hump #" + d.hump_count + " measured, peak height " + d.hump_mm + " mm", d.t); }
+    if (c && c.was !== undefined && d.hump_ok && runHumps > 0) { log("imu", "hump #" + runHumps + " measured, peak height " + d.hump_mm + " mm", d.t); }
   }
   function onHb(d) {
     seen.car = Date.now();
@@ -310,6 +488,19 @@
   }
   function onAck(d) {
     if (!d.ok) { log("cmd", "station refused: " + (d.error || "?"), d.t); return; }
+    if (d.cmd === "map") {
+      log("cmd", "sent MAP " + d.letter + " -> " + (d.action === "DEFAULT" ? "default" : ACTION_TEXT[d.action.toLowerCase()] || d.action) +
+          "  (seq " + d.seq + ")", d.t);
+      return;
+    }
+    if (d.cmd === "move") {
+      log("cmd", "sent NUDGE " + (d.cm < 0 ? "back " + (-d.cm) : "forward " + d.cm) + " cm  (seq " + d.seq + ")", d.t);
+      return;
+    }
+    if (d.cmd === "map_resend" || d.cmd === "map_clear") {
+      log("cmd", (d.cmd === "map_clear" ? "clearing " : "resending ") + d.entries + " barcode action(s)", d.t);
+      return;
+    }
     log("cmd", "sent " + d.cmd.toUpperCase() + (d.mm_s ? " " + d.mm_s + " mm/s" : "") + "  (seq " + d.seq + ")", d.t);
   }
   function onIrcal(d) {
@@ -323,13 +514,15 @@
           ? "  <- low contrast on " + weak.join(",") : ""), d.t);
   }
   function onEvent(d) {
-    var g = /link/.test(d.text) ? "link" : /line/.test(d.text) ? "line"
+    var g = /hump/.test(d.text) ? "imu" : /barcode|junction/.test(d.text) ? "barcode" : /nudge/.test(d.text) ? "cmd"
+          : /link/.test(d.text) ? "link" : /line/.test(d.text) ? "line"
           : /bypass|obstacle/.test(d.text) ? "obstacle"
           : /lifted|overturned|IMU/.test(d.text) ? "imu" : "mission";
     log(g, "car: " + d.text, d.t);
   }
   var HANDLERS = { ircal: onIrcal, event: onEvent, state: onState, motion: onMotion, line: onLine, obstacle: onObstacle,
-                   obst_profile: onProfile, barcode: onBarcode, terrain: onTerrain, hb: onHb };
+                   obst_profile: onProfile, barcode: onBarcode, terrain: onTerrain, hb: onHb,
+                   navmap: onNavmap, scan: onScan };
 
   /* ---------- MQTT ---------- */
   function led(id, cls) { $(id).className = "led " + cls; }
@@ -365,6 +558,18 @@
   }
   $("reconnect").onclick = connect;
 
+  $("newRun").onclick = function () {
+    events = []; redraw();
+    scans = []; redrawScans();
+    lastBar = { letter: "", t: 0 };
+    setTile("tBar", "--", "", "");
+    setTile("tWidth", "--", "", "measured when the car stops for an obstacle");
+    humpBase = lastHumpCount;
+    humpBaseWanted = !seen.car;     // no TERRAIN yet: take the next one
+    setTile("tImu", $("tImu").textContent, $("tImu").className.replace("v ", ""), "hump: not measured this run");
+    log("mission", "NEW RUN: dashboard cleared, humps counted from 0 (car not changed)");
+  };
+
   setInterval(function () {     // freshness LEDs
     var now = Date.now();
     led("ledStation", now - seen.station < 4000 ? "on" : seen.station ? "off" : "");
@@ -381,7 +586,7 @@
     send({ cmd: "calibrate" });
   };
   document.addEventListener("keydown", function (e) {   // space = STOP, Esc = E-STOP
-    if (e.target.tagName === "INPUT") { return; }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") { return; }
     if (e.key === " ") { e.preventDefault(); send({ cmd: "stop" }); }
     if (e.key === "Escape") { send({ cmd: "estop" }); }
   });
@@ -400,6 +605,35 @@
     send({ cmd: "speed", mm_s: showWant(+$("spRange").value) });
     speedTouched = false;
   };
+
+  for (var i = 0; i < 26; i++) {
+    var o = document.createElement("option");
+    o.value = o.textContent = String.fromCharCode(65 + i);
+    $("mapLetter").appendChild(o);
+  }
+  $("mapSet").onclick = function () {
+    send({ cmd: "map", letter: $("mapLetter").value, action: $("mapAction").value });
+  };
+  $("mapResend").onclick = function () { send({ cmd: "map_resend" }); };
+  $("mapClear").onclick = function () {
+    if (confirm("Set every barcode letter back to the car's default?")) { send({ cmd: "map_clear" }); }
+  };
+  onNavmap({ map: {} });
+
+  try { if (localStorage.se03nudge) { $("nudgeCm").value = localStorage.se03nudge; } } catch (e) {}
+  function nudgeCm() {
+    var v = Math.max(1, Math.min(63, Math.round(+$("nudgeCm").value || 10)));
+    $("nudgeCm").value = v;
+    try { localStorage.se03nudge = v; } catch (e) {}
+    return v;
+  }
+  $("nudgeCm").onchange = nudgeCm;
+  function nudge(sign) {
+    if (DRIVING[vcState]) { log("cmd", "nudge refused here: car is " + vcState + " (STOP first)"); return; }
+    send({ cmd: "move", cm: sign * nudgeCm() });
+  }
+  $("nudgeFwd").onclick = function () { nudge(1); };
+  $("nudgeBack").onclick = function () { nudge(-1); };
 
   log("link", "panel loaded. Keys: SPACE = stop, ESC = emergency stop");
   connect();

@@ -16,6 +16,18 @@ UI command JSON (topic <car>/ui/cmd):
     {"cmd": "start" | "stop" | "estop" | "reset"}
     {"cmd": "calibrate"}               -> MODE 0 (IR recalibration)
     {"cmd": "speed", "mm_s": 100}      -> MODE n, n = cruise in cm/s (1-15)
+    {"cmd": "map", "letter": "E", "action": "left"}
+                                       -> MAP: barcode E means turn left.
+       action: left | right | straight | uturn | none | default
+       (default = forget it, use the car's built-in A-D table)
+    {"cmd": "map_resend"}              -> send the whole table again
+    {"cmd": "map_clear"}               -> every letter back to default
+    {"cmd": "move", "cm": 10}          -> MOVE: nudge forward 10 cm (1-63);
+    {"cmd": "move", "cm": -10}            negative = reverse. Only while the
+                                          car is IDLE or STOPPED.
+The barcode table is kept in ~/.picocar_navmap.json and sent to the car
+again whenever the car (re)starts, so a reboot does not lose it. It is
+shown on <car>/view/navmap (retained).
 Every command sent is echoed as JSON on <car>/ui/ack for the event log.
 
 Install once:  pip install paho-mqtt
@@ -45,9 +57,20 @@ VC_STATES = ["IDLE", "FOLLOWING", "TURNING", "BYPASSING", "BLOCKED",
              "STOPPED", "FAULT", "CALIBRATING"]
 MO_MODES = ["STOP", "SPEED", "DISTANCE", "TURN"]
 BC_CMDS = ["NONE", "LEFT", "RIGHT", "STRAIGHT", "U-TURN", "?", "?", "?"]
-CMDS = {"start": 0, "stop": 1, "estop": 2, "reset": 3, "mode": 4, "ping": 5}
+CMDS = {"start": 0, "stop": 1, "estop": 2, "reset": 3, "mode": 4, "ping": 5,
+        "map": 6, "move": 7}
+MOVE_CM_MAX = 63        # MOVE distance is 6 bits
+# MAP argument (3 bits on the car): 0-4 = BC_CMDS, 7 = car's own default.
+MAP_ACTIONS = {"none": 0, "left": 1, "right": 2, "straight": 3, "uturn": 4,
+               "default": 7}
+MAP_GAP_S = 0.2         # between MAP commands when sending the whole table
 CRUISE_MIN_CM_S, CRUISE_MAX_CM_S = 1, 15     # MODE argument is 4 bits
 IRCAL_KINDS = ["standing", "sweep", "sweep cancelled", "?"]
+# SCAN frame (type 10) reasons, PROTO_SCAN_xxx in wire_format.h
+SCAN_REASONS = ["OK", "single bar / noise (junction bar?)",
+                "missed or extra bar/space", "wide/narrow unclear (speed changed?)",
+                "not a Code 39 character", "no * at start and end (partial read)",
+                "solid black > 1 s (junction or pad)", "timed out (too slow / stopped)"]
 # VC_EVT_xxx in vehicle.c -> readable text ({arg} is filled in)
 EVENTS = {
     1: "laptop link lost ({arg} ms without a command), stopping",
@@ -68,6 +91,19 @@ EVENTS = {
     16: "IMU fault: lift/overturn stop unavailable",
     17: "calibration done, middle sensor on the line",
     18: "calibration done, but the line is NOT under the middle sensor",
+    19: "barcode {letter}: {act} at the next junction",
+    20: "junction: doing {act}",
+    21: "nudge {mdir} {cm} cm",
+    22: "nudge refused: car is on a run (STOP first)",
+    23: "bypass: line seen {arg} cm into the way back, driving onto it",
+    24: "bypass: no line within {arg} cm on the way back, line following will search",
+    25: "bypass done: {rejoin}",
+    # Buddy 4 hump events (arg = 0.1 mm)
+    40: "hump started ({mm} mm)",
+    41: "hump DISCARDED: peak {mm} mm is below 6 mm",
+    42: "hump DISCARDED: right wheel moved < 5 cm (peak {mm} mm)",
+    43: "hump DISCARDED: tilted > 10 s or rolled > 40 cm (peak {mm} mm)",
+    44: "hump DISCARDED: peak {mm} mm above 30 mm (car snagged or lifted)",
 }
 
 
@@ -90,9 +126,14 @@ def put_bits(fields):
     return acc.to_bytes((pos + 7) // 8, "little")
 
 
-def encode_cmd(seq, cmd, arg):
+def encode_cmd(seq, cmd, arg, ext=None, ext_bits=5):
     # seq 8 | version 2 | command 3 | argument 4 -> 3 bytes
-    return put_bits([(seq, 8), (PROTO_VERSION, 2), (cmd, 3), (arg, 4)])
+    # MAP adds letter (5 bits), MOVE adds cm (6 bits) in the spare bits:
+    # still 3 bytes.
+    fields = [(seq, 8), (PROTO_VERSION, 2), (cmd, 3), (arg, 4)]
+    if ext is not None:
+        fields.append((ext, ext_bits))
+    return put_bits(fields)
 
 
 def decode(f, car):
@@ -145,8 +186,14 @@ def decode(f, car):
                  cm=cm, fault=(cm == 511))
         return "obstacle", d
     if typ == 7 and len(f) >= 6:
+        # left/right: how far the obstacle reaches each side of the car's
+        # centre line; 511 = still there at the end of the sweep (left_cm
+        # then holds None, and width_cm is a minimum: width_min True).
+        lft, rgt = get_bits(f, 23, 9), get_bits(f, 32, 9)
         d.update(side=SIDES[get_bits(f, 14, 2)], width_cm=get_bits(f, 16, 7),
-                 left_cm=get_bits(f, 23, 9), right_cm=get_bits(f, 32, 9))
+                 left_cm=None if lft == 511 else lft,
+                 right_cm=None if rgt == 511 else rgt,
+                 width_min=(lft == 511 or rgt == 511))
         return "obst_profile", d
     if typ == 8 and len(f) >= 12:
         d["kind"] = IRCAL_KINDS[get_bits(f, 14, 2)]
@@ -162,8 +209,19 @@ def decode(f, car):
         d.update(code=code, arg=arg, text=text.format(
             arg=arg, dir="right" if arg else "left",
             side="left" if (arg >> 8) == 1 else "right", lat=arg & 0xFF,
-            why="lifted or overturned" if arg else "car is driving"))
+            why="lifted or overturned" if arg else "car is driving",
+            letter=chr(ord("A") + ((arg >> 8) & 0x1F)) if ((arg >> 8) & 0x1F) < 26 else "?",
+            act=BC_CMDS[arg & 7], mdir="back" if (arg >> 8) & 1 else "forward",
+            cm=arg & 0xFF, mm=f"{arg / 10:.1f}",
+            rejoin="middle sensor on the line" if arg else "line not under the middle sensor, following searches"))
         return "event", d
+    if typ == 10 and len(f) >= 5:
+        part, last = get_bits(f, 14, 2), get_bits(f, 16, 1)
+        reason, uneven = get_bits(f, 17, 3), get_bits(f, 20, 1)
+        scale, count = get_bits(f, 21, 8), get_bits(f, 29, 4)
+        d.update(part=part, last=last, reason=reason, uneven=uneven, scale=scale,
+                 widths=[get_bits(f, 33 + 6 * i, 6) * scale for i in range(count)])
+        return "scanpart", d
     d.update(type=TYPES[typ] if typ < len(TYPES) else f"type{typ}", raw=f.hex())
     return "other", d
 
@@ -188,6 +246,17 @@ class Station:
                 self.seq = (int(fh.read().strip()) + 1) & 0xFF
         except (OSError, ValueError):
             self.seq = 0
+        # Barcode letter -> action, set from the panel (see MAP above).
+        self.map_file = os.path.join(os.path.expanduser("~"), ".picocar_navmap.json")
+        try:
+            with open(self.map_file) as fh:
+                self.nav_map = {k: v for k, v in json.load(fh).items()
+                                if len(k) == 1 and "A" <= k <= "Z"
+                                and v in MAP_ACTIONS and v != "default"}
+        except (OSError, ValueError, AttributeError):
+            self.nav_map = {}
+        self.last_uptime = None
+        self.scan_parts = {}        # SCAN frames of the scan being received
         self.c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
                              client_id=f"station-{car}")
         self.c.on_connect = self.on_connect
@@ -207,6 +276,7 @@ class Station:
         self.log("station", {"event": "broker connected"})
         for t in ("hb", "tlm", "ui/cmd"):
             c.subscribe(f"{self.car}/{t}")
+        self.publish_map()
 
     def on_message(self, c, userdata, msg):
         if msg.topic.endswith("/ui/cmd"):
@@ -217,15 +287,27 @@ class Station:
             return
         kind, d = res
         d["t"] = time.time()
+        if kind == "scanpart":
+            d = self.add_scan_part(d)
+            if d is None:
+                return
+            kind = "scan"
+        if kind == "hb" and not d.get("last_will"):
+            self.check_car_restart(d.get("uptime_s", 0))
+        if kind == "barcode" and d.get("letter") in self.nav_map:
+            d["mapped"] = self.nav_map[d["letter"]].upper()
         c.publish(f"{self.car}/view/{kind}", json.dumps(d))
         self.log(kind, d)
         if kind not in ("motion", "line", "obstacle"):     # keep the terminal calm
             print(f"[car] {kind} {d}")
 
     # -- commands ---------------------------------------------------------
-    def send(self, name, arg=0, quiet=False):
+    def send(self, name, arg=0, quiet=False, letter=None, cm=None):
         with self.lock:
-            frame = encode_cmd(self.seq, CMDS[name], arg & 0xF)
+            if cm is not None:
+                frame = encode_cmd(self.seq, CMDS[name], arg & 0xF, cm, 6)
+            else:
+                frame = encode_cmd(self.seq, CMDS[name], arg & 0xF, letter)
             self.c.publish(f"{self.car}/cmd", frame, qos=1)
             sent = self.seq
             self.seq = (self.seq + 1) & 0xFF
@@ -235,9 +317,67 @@ class Station:
             except OSError:
                 pass
         if not quiet:
-            print(f"[station] sent {name} arg={arg} seq={sent}")
-            self.log("cmd", {"sent": name, "arg": arg, "seq": sent})
+            extra = ("" if letter is None else f" letter={chr(ord('A') + letter)}") \
+                + ("" if cm is None else f" cm={cm}")
+            print(f"[station] sent {name} arg={arg}{extra} seq={sent}")
+            self.log("cmd", {"sent": name, "arg": arg, "seq": sent,
+                             **({} if letter is None else
+                                {"letter": chr(ord("A") + letter)})})
         return sent
+
+    # -- barcode scans ----------------------------------------------------
+    def add_scan_part(self, d):
+        """Collect SCAN parts; return the whole scan when the last arrives."""
+        if d["part"] == 0:
+            self.scan_parts = {}
+        self.scan_parts[d["part"]] = d["widths"]
+        if not d["last"]:
+            return None
+        parts = [self.scan_parts.get(i) for i in range(d["part"] + 1)]
+        self.scan_parts = {}
+        ms = [w for p in parts if p is not None for w in p]
+        return {"car": d["car"], "seq": d["seq"], "t": d["t"],
+                "ok": d["reason"] == 0, "reason": SCAN_REASONS[d["reason"]],
+                "uneven": bool(d["uneven"]), "elements": len(ms),
+                "incomplete": any(p is None for p in parts),
+                # even index = bar (black), odd = space; ms are +/- scale/2
+                "ms": ms, "scale": d["scale"]}
+
+    # -- barcode map ------------------------------------------------------
+    def publish_map(self):
+        self.c.publish(f"{self.car}/view/navmap",
+                       json.dumps({"map": self.nav_map, "t": time.time()}),
+                       retain=True)
+
+    def save_map(self):
+        try:
+            with open(self.map_file, "w") as fh:
+                json.dump(self.nav_map, fh)
+        except OSError:
+            pass
+
+    def send_map(self, letter, action):
+        return self.send("map", MAP_ACTIONS[action], letter=ord(letter) - ord("A"))
+
+    def resend_map(self, entries, why):
+        """Send (letter, action) pairs one by one, in the background."""
+        def worker():
+            for letter, action in entries:
+                self.send_map(letter, action)
+                time.sleep(MAP_GAP_S)
+        if entries:
+            print(f"[station] sending {len(entries)} barcode map entries ({why})")
+            self.log("cmd", {"event": f"map resend ({why})", "entries": len(entries)})
+            threading.Thread(target=worker, daemon=True).start()
+
+    def check_car_restart(self, uptime):
+        # First heartbeat seen, or uptime went backwards: the car (re)started
+        # and has lost the table, so send it again.
+        if self.last_uptime is None or uptime < self.last_uptime:
+            self.resend_map(sorted(self.nav_map.items()),
+                            "car started" if self.last_uptime is None
+                            else "car restarted")
+        self.last_uptime = uptime
 
     def ack(self, **kw):
         kw["t"] = time.time()
@@ -262,6 +402,45 @@ class Station:
                 return
             cm = max(CRUISE_MIN_CM_S, min(CRUISE_MAX_CM_S, cm))
             self.ack(ok=True, cmd="speed", mm_s=cm * 10, seq=self.send("mode", cm))
+        elif name == "map":
+            letter = str(req.get("letter", "")).strip().upper()
+            action = str(req.get("action", "")).strip().lower().replace("-", "")
+            if len(letter) != 1 or not ("A" <= letter <= "Z"):
+                self.ack(ok=False, cmd="map", error="letter must be A-Z")
+                return
+            if action not in MAP_ACTIONS:
+                self.ack(ok=False, cmd="map",
+                         error="action must be one of " + ", ".join(MAP_ACTIONS))
+                return
+            if action == "default":
+                self.nav_map.pop(letter, None)
+            else:
+                self.nav_map[letter] = action
+            self.save_map()
+            self.publish_map()
+            self.ack(ok=True, cmd="map", letter=letter, action=action.upper(),
+                     seq=self.send_map(letter, action))
+        elif name == "move":
+            try:
+                cm = int(round(float(req.get("cm"))))
+            except (TypeError, ValueError):
+                self.ack(ok=False, cmd="move", error="no cm value")
+                return
+            if cm == 0 or abs(cm) > MOVE_CM_MAX:
+                self.ack(ok=False, cmd="move", error=f"cm must be 1-{MOVE_CM_MAX} (or negative)")
+                return
+            self.ack(ok=True, cmd="move", cm=cm,
+                     seq=self.send("move", 1 if cm < 0 else 0, cm=abs(cm)))
+        elif name == "map_resend":
+            self.resend_map(sorted(self.nav_map.items()), "requested")
+            self.ack(ok=True, cmd="map_resend", entries=len(self.nav_map))
+        elif name == "map_clear":
+            old = sorted(self.nav_map)
+            self.nav_map = {}
+            self.save_map()
+            self.publish_map()
+            self.resend_map([(k, "default") for k in old], "clear")
+            self.ack(ok=True, cmd="map_clear", entries=len(old))
         else:
             self.ack(ok=False, cmd=name, error="unknown command")
 
@@ -279,7 +458,8 @@ class Station:
 
         threading.Thread(target=pinger, daemon=True).start()
         print("[station] keep-alive on: closing this window stops the car within 2 s")
-        print("[station] typed commands also work: start | stop | estop | reset | cal | speed <mm/s>")
+        print("[station] typed commands also work: start | stop | estop | reset | cal | speed <mm/s>"
+              " | map <letter> <action> | map resend | map clear | move <cm, -cm = back>")
         try:
             while True:
                 words = input().strip().lower().split()
@@ -289,6 +469,13 @@ class Station:
                     self.ui_command(json.dumps({"cmd": "calibrate"}))
                 elif words[0] == "speed" and len(words) > 1:
                     self.ui_command(json.dumps({"cmd": "speed", "mm_s": words[1]}))
+                elif words[0] == "map" and len(words) == 2 and words[1] in ("resend", "clear"):
+                    self.ui_command(json.dumps({"cmd": "map_" + words[1]}))
+                elif words[0] == "move" and len(words) > 1:
+                    self.ui_command(json.dumps({"cmd": "move", "cm": words[1]}))
+                elif words[0] == "map" and len(words) == 3:
+                    self.ui_command(json.dumps({"cmd": "map", "letter": words[1],
+                                                "action": words[2]}))
                 else:
                     self.ui_command(json.dumps({"cmd": words[0]}))
         except EOFError:            # no terminal (started in the background)

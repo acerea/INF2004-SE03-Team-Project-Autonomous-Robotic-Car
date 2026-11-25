@@ -43,6 +43,7 @@
 #include "vehicle.h"
 #include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
+#include "../subsystem2/wheel_encoder.h"
 #include "../subsystem3/ir_sense.h"
 #include "../subsystem4/subsystem4.h"
 #include "../subsystem5/subsystem5.h"
@@ -72,7 +73,7 @@ typedef uint8_t vc_event_t;
 #define VC_EV_LIFTED        (7u)    // S4: robot picked up (rising edge).
 #define VC_EV_OVERTURNED    (8u)    // S4: robot overturned (rising edge).
 #define VC_EV_MOTION_DONE   (9u)    // S2 completed a distance/turn command.
-#define VC_EV_REJOIN        (10u)   // S3 saw the guide line stably.
+#define VC_EV_REJOIN        (10u)   // Unused: the bypass rejoins in vc_poll_bypass.
 
 #define VC_HANDLED_BITS     (S4_FLG_LIFTED | S4_FLG_OVERTURNED)
 
@@ -95,6 +96,13 @@ typedef uint8_t vc_event_t;
 #define VC_EVT_IMU_FAULT        (16u)
 #define VC_EVT_CAL_CENTRED      (17u)   // Calibration done, middle on the line.
 #define VC_EVT_CAL_NOT_CENTRED  (18u)   // Calibration done, line not found.
+#define VC_EVT_BARCODE_PENDING  (19u)   // arg: letter << 8 | IR_NAV_xxx.
+#define VC_EVT_JUNCTION         (20u)   // arg: IR_NAV_xxx being done.
+#define VC_EVT_MOVE             (21u)   // arg: reverse << 8 | cm.
+#define VC_EVT_MOVE_REFUSED     (22u)   // Nudge only while IDLE / STOPPED.
+#define VC_EVT_BYPASS_LINE      (23u)   // Way back saw the line; arg: cm driven.
+#define VC_EVT_BYPASS_NO_LINE   (24u)   // Return leg: no line; arg: cm driven.
+#define VC_EVT_BYPASS_DONE      (25u)   // arg: 1 middle sensor on the line, 0 not.
 
 // Keep-alive: laptop_station.py sends PING every 0.5 s. With no command at
 // all for this long (station closed, Wi-Fi or broker gone) the car stops.
@@ -144,24 +152,64 @@ static uint8_t    g_vc_cal_step = 0u;           // 0 left, 1 right, 2 back.
 static vc_state_t g_vc_cal_return = VC_STATE_IDLE;
 static uint32_t   g_vc_cal_step_ms = 0u;
 
+/* The leg the car is driving NOW (each MOTION_DONE starts the next one).
+ * Out and past by measured distances; back in by the line sensors. */
 typedef enum {
-    VC_BYPASS_TURN_OUT = 0,
-    VC_BYPASS_LATERAL_OUT,
-    VC_BYPASS_FORWARD,
-    VC_BYPASS_TURN_IN,
-    VC_BYPASS_LATERAL_IN,
-    VC_BYPASS_TURN_ALIGN,
-    VC_BYPASS_WAIT_REJOIN
+    VC_BYPASS_TURN_OUT = 0,     // Turn 90 towards the chosen side.
+    VC_BYPASS_SIDE_OUT,         // Sideways: S5's clearance + half car + margin.
+    VC_BYPASS_TURN_PARALLEL,    // Turn back to the original heading.
+    VC_BYPASS_PASS,             // Drive past the obstacle.
+    VC_BYPASS_TURN_IN,          // Turn 90 towards the line.
+    VC_BYPASS_SEEK,             // Drive in until a line sensor sees black.
+    VC_BYPASS_ADVANCE,          // Wheels onto the line (sensors are ahead).
+    VC_BYPASS_ALIGN             // Pivot until the middle sensor is on it.
 } vc_bypass_step_t;
 
 static vc_bypass_step_t g_vc_bypass_step;
 static S5_BYPASS_DIR    g_vc_bypass_dir;
 static uint32_t         g_vc_bypass_started;
-static uint8_t          g_vc_rejoin_samples;
+static uint8_t          g_vc_see_samples;       // Line seen this many ticks.
+static bool             g_vc_align_left_line;   // ALIGN: middle saw white first.
+static float            g_vc_seek_start_cm;     // Wheel distance at the start of SEEK.
 static uint32_t         g_vc_bypass_lateral_cm = VC_BYPASS_LATERAL_CM;
 static uint32_t         g_vc_bypass_forward_cm = VC_BYPASS_FORWARD_CM;
-static bool              g_vc_rejoin_armed;
 
+/*
+ * Barcode letter -> action, set from the dashboard (S1_CMD_MAP) because the
+ * letter/action pairs are only announced just before the demo.
+ * 26 letters x 3 bits (minimum-bit change requirement), 10 per word:
+ *   0-4 = IR_NAV_xxx (NONE, LEFT, RIGHT, STRAIGHT, UTURN)
+ *   7   = VC_MAP_DEFAULT: not set, use subsystem 3's own command
+ *         (A=LEFT, B=RIGHT, C=STRAIGHT, D=UTURN)
+ * Only vc_task reads or writes it, so no locking is needed.
+ */
+#define VC_MAP_BITS         (3u)
+#define VC_MAP_PER_WORD     (10u)
+#define VC_MAP_LETTERS      (26u)
+#define VC_MAP_DEFAULT      (PROTO_MAP_DEFAULT)
+#define VC_MAP_ALL_DEFAULT  (0x3FFFFFFFu)   // 10 x 0b111.
+
+static uint32_t g_vc_nav_map[3] =
+{
+    VC_MAP_ALL_DEFAULT, VC_MAP_ALL_DEFAULT, VC_MAP_ALL_DEFAULT
+};
+
+/* Barcode action waiting for the next T-junction (IR_NAV_NONE = none), and
+ * the turn still to do after driving onto the junction (0 = none). */
+static ir_nav_cmd_t g_vc_pending_cmd = IR_NAV_NONE;
+static uint8_t      g_vc_pending_letter = 0u;
+static uint32_t     g_vc_pending_ms = 0u;
+static ir_nav_cmd_t g_vc_junction_turn = IR_NAV_NONE;
+
+static void       vc_junction_start(void);
+
+/* S2 MOVE arguments carry cm in 7 bits (s2_move_arg). */
+#if (VC_BYPASS_FORWARD_MAX_CM > 127u) || (VC_BYPASS_LATERAL_MAX_CM > 127u) \
+    || (VC_JUNCTION_ADVANCE_CM > 127u)
+#error "S2 move distances must be <= 127 cm"
+#endif
+static void       vc_map_set(uint32_t letter, uint32_t action);
+static uint32_t   vc_map_get(uint32_t letter);
 static void       vc_task(INT stacd, void * exinf);
 static void       vc_poll_remote(void);
 static void       vc_poll_navigation(void);
@@ -181,8 +229,10 @@ static char const * vc_state_name(vc_state_t state);
 static void       vc_publish_state(void);
 static void       vc_start_bypass(void);
 static void       vc_bypass_command(uint32_t cmd, uint32_t arg);
-static bool       vc_rejoin_seen(void);
 static void       vc_finish_bypass(bool rejoined);
+static void       vc_bypass_next(void);
+static void       vc_bypass_cut(void);
+static uint32_t   vc_bypass_turn(bool toward);
 static void       vc_follow_speed(uint32_t speed);
 static uint32_t   vc_slow_speed(void);
 static void       vc_handle_mode(uint32_t arg);
@@ -288,13 +338,15 @@ vc_poll_remote (void)
 
         if (0u != (ptn & S1_FLG_CMD_READY))
         {
+            uint8_t msg[S1_CMD_MAX_MSG] = {0u};
             uint8_t packed = 0u;
             INT     size   = 0;
 
             // One CMD_READY may stand for several commands: drain them all.
             do
             {
-                size = tk_rcv_mbf(g_mbf_remote_cmd, &packed, TMO_POL);
+                size = tk_rcv_mbf(g_mbf_remote_cmd, msg, TMO_POL);
+                packed = msg[0];
                 if (size > 0)
                 {
                     uint32_t cmd = s1_cmd_of(packed);
@@ -316,6 +368,42 @@ vc_poll_remote (void)
                     else if (S1_CMD_MODE == cmd)
                     {
                         vc_handle_mode(s1_arg_of(packed));
+                    }
+                    else if ((S1_CMD_MAP == cmd) && (size >= 2))
+                    {
+                        vc_map_set(msg[1], s1_arg_of(packed));
+                    }
+                    else if ((S1_CMD_MOVE == cmd) && (size >= 2))
+                    {
+                        bool b_back = (0u != (s1_arg_of(packed)
+                                              & PROTO_MOVE_REVERSE));
+
+                        // Nudge only when the car is not on a run.
+                        if ((VC_STATE_IDLE == g_vc_state)
+                            || (VC_STATE_STOPPED == g_vc_state))
+                        {
+                            (void) vc_take_motion_done();
+                            vc_motion(S2_MOTION_STOP, 0u);  // So a repeat
+                                                            // is resent.
+                            // At the cruise speed (dashboard), not
+                            // subsystem 2's 10 cm/s stopped default.
+                            vc_motion(b_back ? S2_MOTION_MOVE_BACK
+                                             : S2_MOTION_MOVE_DISTANCE,
+                                      s2_move_arg(msg[1],
+                                                  g_vc_cruise_cm_s));
+                            vc_event(VC_EVT_MOVE,
+                                     ((b_back ? 1u : 0u) << 8) | msg[1]);
+                            tm_printf((UB*)"vc: nudge %s %u cm at %u cm/s\n",
+                                      b_back ? "back" : "forward",
+                                      (unsigned int) msg[1],
+                                      (unsigned int) g_vc_cruise_cm_s);
+                        }
+                        else
+                        {
+                            vc_event(VC_EVT_MOVE_REFUSED, 0u);
+                            tm_printf((UB*)"vc: nudge refused, state %s\n",
+                                      vc_state_name(g_vc_state));
+                        }
                     }
                     else
                     {
@@ -419,45 +507,123 @@ vc_check_link (void)
 }
 
 static void
+vc_map_set (uint32_t letter, uint32_t action)
+{
+    static char const * const names[8] =
+    {
+        "NONE", "LEFT", "RIGHT", "STRAIGHT", "UTURN", "?", "?", "DEFAULT"
+    };
+    uint32_t word;
+    uint32_t shift;
+
+    if ((letter >= VC_MAP_LETTERS)
+        || ((action > IR_NAV_UTURN) && (VC_MAP_DEFAULT != action)))
+    {
+        return;
+    }
+
+    word  = letter / VC_MAP_PER_WORD;
+    shift = (letter % VC_MAP_PER_WORD) * VC_MAP_BITS;
+    g_vc_nav_map[word] = (g_vc_nav_map[word]
+                          & ~(((1u << VC_MAP_BITS) - 1u) << shift))
+                         | (action << shift);
+
+    tm_printf((UB*)"vc: barcode map %c -> %s\n",
+              (int) ('A' + letter), names[action]);
+
+    return;
+}
+
+static uint32_t
+vc_map_get (uint32_t letter)
+{
+    uint32_t word;
+    uint32_t shift;
+
+    if (letter >= VC_MAP_LETTERS)
+    {
+        return (VC_MAP_DEFAULT);
+    }
+
+    word  = letter / VC_MAP_PER_WORD;
+    shift = (letter % VC_MAP_PER_WORD) * VC_MAP_BITS;
+
+    return ((g_vc_nav_map[word] >> shift) & ((1u << VC_MAP_BITS) - 1u));
+}
+
+static void
 vc_poll_navigation (void)
 {
     ir_nav_event_t nav;
 
     while (ir_receive_nav_event(&nav))
     {
+        uint32_t mapped;
+
         if (VC_STATE_FOLLOWING != g_vc_state)
         {
             continue;
         }
 
-        if (IR_NAV_LEFT == nav.cmd)
+        // Dashboard mapping wins; DEFAULT keeps subsystem 3's command.
+        mapped = vc_map_get(nav.letter);
+        if (VC_MAP_DEFAULT != mapped)
         {
-            s2_setLineCorrection(0);
-            ir_lock_steering(true);
-            vc_set_state(VC_STATE_TURNING);
-            vc_motion(S2_MOTION_TURN_LEFT, VC_BARCODE_TURN_ANGLE);
+            nav.cmd = (ir_nav_cmd_t) mapped;
         }
-        else if (IR_NAV_RIGHT == nav.cmd)
+        if (nav.letter < VC_MAP_LETTERS)
         {
-            s2_setLineCorrection(0);
-            ir_lock_steering(true);
-            vc_set_state(VC_STATE_TURNING);
-            vc_motion(S2_MOTION_TURN_RIGHT, VC_BARCODE_TURN_ANGLE);
+            tm_printf((UB*)"vc: barcode %c -> cmd %u%s\n",
+                      (int) ('A' + nav.letter), (unsigned int) nav.cmd,
+                      (VC_MAP_DEFAULT != mapped) ? " (dashboard map)" : "");
         }
-        else if (IR_NAV_STRAIGHT == nav.cmd)
+
+        if (IR_NAV_NONE == nav.cmd)
         {
-            s2_setLineCorrection(0);
-            ir_lock_steering(true);
-            vc_set_state(VC_STATE_TURNING);
-            vc_motion(S2_MOTION_MOVE_DISTANCE, VC_BARCODE_STRAIGHT_CM);
+            continue;               // Unknown letter or IGNORE: carry on.
         }
-        else if (IR_NAV_UTURN == nav.cmd)
-        {
-            s2_setLineCorrection(0);
-            ir_lock_steering(true);
-            vc_set_state(VC_STATE_TURNING);
-            vc_motion(S2_MOTION_TURN_LEFT, VC_BARCODE_UTURN_ANGLE);
-        }
+
+        // Do it at the next T-junction, not here: the barcode is beside
+        // the line some way before the junction.
+        g_vc_pending_cmd    = nav.cmd;
+        g_vc_pending_letter = nav.letter;
+        g_vc_pending_ms     = vc_now_ms();
+        vc_event(VC_EVT_BARCODE_PENDING,
+                 ((uint32_t) nav.letter << 8) | (uint32_t) nav.cmd);
+        tm_printf((UB*)"vc: action %u waits for the junction\n",
+                  (unsigned int) nav.cmd);
+    }
+
+    return;
+}
+
+/* T-junction reached with a barcode action waiting. STRAIGHT drives on
+ * across; a turn first drives the wheels onto the junction (the sensors
+ * are ahead of them), then turns there (vc_poll_motion_done). */
+static void
+vc_junction_start (void)
+{
+    ir_nav_cmd_t cmd = g_vc_pending_cmd;
+
+    g_vc_pending_cmd = IR_NAV_NONE;
+    vc_event(VC_EVT_JUNCTION, (uint32_t) cmd);
+    tm_printf((UB*)"vc: junction, doing barcode %c action %u\n",
+              (int) ('A' + g_vc_pending_letter), (unsigned int) cmd);
+
+    s2_setLineCorrection(0);
+    ir_lock_steering(true);
+    vc_set_state(VC_STATE_TURNING);
+    (void) vc_take_motion_done();           // No stale "done".
+    vc_motion(S2_MOTION_STOP, 0u);
+
+    if (IR_NAV_STRAIGHT == cmd)
+    {
+        vc_motion(S2_MOTION_MOVE_DISTANCE, VC_BARCODE_STRAIGHT_CM);
+    }
+    else
+    {
+        g_vc_junction_turn = cmd;           // Set after vc_set_state.
+        vc_motion(S2_MOTION_MOVE_DISTANCE, VC_JUNCTION_ADVANCE_CM);
     }
 
     return;
@@ -501,6 +667,20 @@ vc_poll_line_following (void)
         return;
     }
 
+    // A barcode action is waiting: the T-junction's bar runs under the
+    // barcode sensor AND the C/R pair (a left bend only reaches the
+    // barcode sensor), or the C+R pair reports a junction. Not straight
+    // after the barcode itself.
+    if ((IR_NAV_NONE != g_vc_pending_cmd)
+        && ((vc_now_ms() - g_vc_pending_ms) >= VC_JUNCTION_GUARD_MS)
+        && (((IR_BARCODE == snap.state)
+             && (0u != (snap.sensors & (IR_SENS_CENTRE | IR_SENS_RIGHT))))
+            || (IR_JUNC_NONE != snap.junction)))
+    {
+        vc_junction_start();
+        return;
+    }
+
     if (IR_TRACK == snap.state)
     {
         // On the line: steer by it, release a hold. The obstacle dispatch
@@ -511,21 +691,40 @@ vc_poll_line_following (void)
     }
     else if (IR_BARCODE == snap.state)
     {
-        // All three sensors black: a junction / crossing (or a barcode).
-        // The line IS there, so this is not "lost": reset the timer and go
-        // straight across. Before, the time spent on a crossing counted as
-        // lost, and the search started the moment the car came off it.
+        // The barcode sensor (left) sees black: a barcode, a junction bar,
+        // or the line itself sliding left on a LEFT bend. Not "lost": reset
+        // the timer. Keep steering by C/R (still updated while reading):
+        // going straight here ran the car off every left bend (video
+        // 25 Nov 17:44). Line gone from C/R and last seen on the left:
+        // it is under the barcode sensor, so curve left.
         g_vc_lost_since = 0u;
         g_vc_line_hold = false;
-        s2_setLineCorrection(0);
+        if (0u != (snap.sensors & (IR_SENS_CENTRE | IR_SENS_RIGHT)))
+        {
+            s2_setLineCorrection(snap.line_pos);
+        }
+        else if (snap.line_pos <= -VC_LOST_ARC_MIN_POS)
+        {
+            s2_setLineCorrection(-1000);        // Curve left.
+        }
+        else if (snap.line_pos >= VC_LOST_ARC_MIN_POS)
+        {
+            s2_setLineCorrection(1000);         // Curve right.
+        }
+        else
+        {
+            s2_setLineCorrection(0);
+        }
     }
     else if ((IR_LINE_LOST == snap.state)
              && ((0u == g_vc_lost_since)
                  || ((vc_now_ms() - g_vc_lost_since) < VC_LOST_STRAIGHT_MS)))
     {
-        // Just lost it (a gap, a sensor between two others, a wobble):
-        // keep going STRAIGHT for a while. Steering hard towards the last
-        // position swung the car past the line. The timer is the VC's own,
+        // Just lost it. Off a bend (last seen well to one side): curve
+        // towards that side at full steering, because driving straight
+        // took the car further from a line that curves away (video 25 Nov:
+        // ran wide on the loop, then stop-and-search). Lost while nearly
+        // centred (a gap): keep going straight. The timer is the VC's own,
         // started here while driving, so a "lost" left over from before
         // START does not start a search at once.
         if (0u == g_vc_lost_since)
@@ -536,7 +735,18 @@ vc_poll_line_following (void)
                 g_vc_lost_since = 1u;
             }
         }
-        s2_setLineCorrection(0);
+        if (snap.line_pos >= VC_LOST_ARC_MIN_POS)
+        {
+            s2_setLineCorrection(1000);         // Curve right.
+        }
+        else if (snap.line_pos <= -VC_LOST_ARC_MIN_POS)
+        {
+            s2_setLineCorrection(-1000);        // Curve left.
+        }
+        else
+        {
+            s2_setLineCorrection(0);
+        }
     }
     else if (IR_LINE_LOST == snap.state)
     {
@@ -574,11 +784,38 @@ vc_poll_motion_done (void)
 {
     UINT ptn = 0u;
 
+    if ((VC_STATE_IDLE == g_vc_state) || (VC_STATE_STOPPED == g_vc_state))
+    {
+        (void) vc_take_motion_done();   // End of a nudge: nothing to do.
+        return;
+    }
+
     if ((VC_STATE_TURNING == g_vc_state)
         && (E_OK == tk_wai_flg(flg_motion, S2_MOTION_DONE,
                                TWF_ORW | TWF_BITCLR, &ptn, TMO_POL)))
     {
-        if (0u != (ptn & S2_MOTION_DONE))
+        if ((0u != (ptn & S2_MOTION_DONE))
+            && (IR_NAV_NONE != g_vc_junction_turn))
+        {
+            // Wheels are now over the junction: do the barcode's turn.
+            ir_nav_cmd_t turn = g_vc_junction_turn;
+
+            g_vc_junction_turn = IR_NAV_NONE;
+            vc_motion(S2_MOTION_STOP, 0u);
+            if (IR_NAV_LEFT == turn)
+            {
+                vc_motion(S2_MOTION_TURN_LEFT, VC_BARCODE_TURN_ANGLE);
+            }
+            else if (IR_NAV_RIGHT == turn)
+            {
+                vc_motion(S2_MOTION_TURN_RIGHT, VC_BARCODE_TURN_ANGLE);
+            }
+            else
+            {
+                vc_motion(S2_MOTION_TURN_LEFT, VC_BARCODE_UTURN_ANGLE);
+            }
+        }
+        else if (0u != (ptn & S2_MOTION_DONE))
         {
             ir_lock_steering(false);
             s2_setLineCorrection(0);
@@ -600,6 +837,7 @@ vc_dispatch (vc_event_t ev)
         && ((VC_STATE_IDLE == g_vc_state) || (VC_STATE_STOPPED == g_vc_state)
             || (VC_STATE_FAULT == g_vc_state)))
     {
+        vc_motion(S2_MOTION_STOP, 0u);  // Ends a nudge (else already off).
         return;
     }
 
@@ -686,61 +924,7 @@ vc_dispatch (vc_event_t ev)
       case VC_STATE_BYPASSING:
         if (VC_EV_MOTION_DONE == ev)
         {
-            switch (g_vc_bypass_step)
-            {
-              case VC_BYPASS_TURN_OUT:
-                g_vc_bypass_step = VC_BYPASS_LATERAL_OUT;
-                vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
-                                  g_vc_bypass_lateral_cm);
-              break;
-              case VC_BYPASS_LATERAL_OUT:
-                g_vc_bypass_step = VC_BYPASS_FORWARD;
-                vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
-                                      ? S2_MOTION_TURN_RIGHT
-                                      : S2_MOTION_TURN_LEFT,
-                                  VC_BYPASS_TURN_DEG);
-              break;
-              case VC_BYPASS_FORWARD:
-                g_vc_bypass_step = VC_BYPASS_TURN_IN;
-                vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
-                                  g_vc_bypass_forward_cm);
-              break;
-              case VC_BYPASS_TURN_IN:
-                /* Turn in towards the line: opposite of the first turn. */
-                g_vc_bypass_step = VC_BYPASS_LATERAL_IN;
-                vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
-                                      ? S2_MOTION_TURN_RIGHT
-                                      : S2_MOTION_TURN_LEFT,
-                                  VC_BYPASS_TURN_DEG);
-              break;
-              case VC_BYPASS_LATERAL_IN:
-                g_vc_bypass_step = VC_BYPASS_TURN_ALIGN;
-                vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
-                                  g_vc_bypass_lateral_cm);
-              break;
-              case VC_BYPASS_TURN_ALIGN:
-                /* Line up with the original heading: same as the first turn. */
-                g_vc_bypass_step = VC_BYPASS_WAIT_REJOIN;
-                vc_bypass_command((g_vc_bypass_dir == S5_DIR_LEFT)
-                                      ? S2_MOTION_TURN_LEFT
-                                      : S2_MOTION_TURN_RIGHT,
-                                  VC_BYPASS_TURN_DEG);
-              break;
-              default:
-                /* Completion of the final turn only starts the explicit
-                 * line rejoin window; it does not assume success. */
-                {
-                    SYSTIM now;
-                    (void)tk_get_otm(&now);
-                    g_vc_bypass_started = now.lo;
-                    g_vc_rejoin_armed = true;
-                }
-              break;
-            }
-        }
-        else if (VC_EV_REJOIN == ev)
-        {
-            vc_finish_bypass(true);
+            vc_bypass_next();
         }
       break;
 
@@ -821,13 +1005,15 @@ vc_dispatch (vc_event_t ev)
             return;
         }
 
-        /* Sideways distance from S5's width estimate: half the obstacle,
-         * half the car and a margin. Fixed distance if S5 has no width. */
+        /* Sideways: how far the obstacle reaches past the line on the
+         * chosen side (S5's sweep), plus half the car and a margin. The
+         * old "half the width" assumed the obstacle was centred on the
+         * line. No sweep size at all: the fixed distance. */
         {
             uint32_t w = g_s5_width_cm;
 
-            g_vc_bypass_lateral_cm = (0u == w) ? VC_BYPASS_LATERAL_CM
-                : (w / 2u) + VC_CAR_HALF_WIDTH_CM + VC_BYPASS_MARGIN_CM;
+            g_vc_bypass_lateral_cm = (0u == g_s5_front_cm) ? VC_BYPASS_LATERAL_CM
+                : g_s5_clear_cm + VC_CAR_HALF_WIDTH_CM + VC_BYPASS_MARGIN_CM;
             if (g_vc_bypass_lateral_cm < VC_BYPASS_LATERAL_MIN_CM)
             {
                 g_vc_bypass_lateral_cm = VC_BYPASS_LATERAL_MIN_CM;
@@ -867,8 +1053,8 @@ vc_dispatch (vc_event_t ev)
         (void)tk_wai_flg(flg_motion, S2_MOTION_DONE, TWF_ORW | TWF_BITCLR,
                          &side, TMO_POL);
         g_vc_bypass_step = VC_BYPASS_TURN_OUT;
-        g_vc_rejoin_samples = 0u;
-        g_vc_rejoin_armed = false;
+        g_vc_see_samples = 0u;
+        g_vc_align_left_line = false;
         g_vc_bypass_started = 0u;
         ir_lock_steering(true);
         vc_set_state(VC_STATE_BYPASSING);
@@ -887,47 +1073,108 @@ vc_dispatch (vc_event_t ev)
         g_vc_bypass_started = now.lo;
     }
 
-    static bool
-    vc_rejoin_seen (void)
+    /* Distance driven forward (cm), both wheels averaged. */
+    static float
+    vc_wheel_cm (void)
     {
-        ir_snapshot_t snap;
-        int pos;
-
-        ir_get_telemetry(&snap);
-        pos = snap.line_pos;
-        if ((snap.state == IR_TRACK) && (snap.lost_timeout == 0u)
-            && ((snap.sensors & IR_SENS_CENTRE) != 0u)
-            && (pos >= -250) && (pos <= 250))
-        {
-            if (g_vc_rejoin_samples < VC_REJOIN_STABLE_SAMPLES)
-            {
-                g_vc_rejoin_samples++;
-            }
-        }
-        else
-        {
-            g_vc_rejoin_samples = 0u;
-        }
-        return (g_vc_rejoin_samples >= VC_REJOIN_STABLE_SAMPLES);
+        return 0.5f * (encoder_getLeftDistance() + encoder_getRightDistance());
     }
 
+    /* Turn towards the chosen side (toward = true) or back (false). */
+    static uint32_t
+    vc_bypass_turn (bool toward)
+    {
+        bool left = (S5_DIR_LEFT == g_vc_bypass_dir);
+
+        return (left == toward) ? S2_MOTION_TURN_LEFT : S2_MOTION_TURN_RIGHT;
+    }
+
+    /* The leg that was running finished: start the next one. */
+    static void
+    vc_bypass_next (void)
+    {
+        uint32_t seek_cm;
+
+        switch (g_vc_bypass_step)
+        {
+          case VC_BYPASS_TURN_OUT:
+            g_vc_bypass_step = VC_BYPASS_SIDE_OUT;
+            vc_bypass_command(S2_MOTION_MOVE_DISTANCE, g_vc_bypass_lateral_cm);
+          break;
+          case VC_BYPASS_SIDE_OUT:
+            g_vc_bypass_step = VC_BYPASS_TURN_PARALLEL;
+            vc_bypass_command(vc_bypass_turn(false), VC_BYPASS_TURN_DEG);
+          break;
+          case VC_BYPASS_TURN_PARALLEL:
+            g_vc_see_samples = 0u;
+            g_vc_bypass_step = VC_BYPASS_PASS;
+            vc_bypass_command(S2_MOTION_MOVE_DISTANCE, g_vc_bypass_forward_cm);
+          break;
+          case VC_BYPASS_PASS:
+            g_vc_bypass_step = VC_BYPASS_TURN_IN;
+            vc_bypass_command(vc_bypass_turn(false), VC_BYPASS_TURN_DEG);
+          break;
+          case VC_BYPASS_TURN_IN:
+            /* Drive towards the line; vc_poll_bypass stops on it. */
+            seek_cm = g_vc_bypass_lateral_cm + VC_BYPASS_SEEK_EXTRA_CM;
+            if (seek_cm > 127u)
+            {
+                seek_cm = 127u;
+            }
+            g_vc_see_samples = 0u;
+            g_vc_seek_start_cm = vc_wheel_cm();
+            g_vc_bypass_step = VC_BYPASS_SEEK;
+            vc_bypass_command(S2_MOTION_MOVE_DISTANCE, seek_cm);
+          break;
+          case VC_BYPASS_SEEK:
+            /* Drove the whole way and never saw it. Turn back to the
+             * original heading anyway; line following searches. */
+            vc_event(VC_EVT_BYPASS_NO_LINE,
+                     g_vc_bypass_lateral_cm + VC_BYPASS_SEEK_EXTRA_CM);
+            tm_printf((UB*)"vc: bypass return, no line found\n");
+            g_vc_align_left_line = false;
+            g_vc_see_samples = 0u;
+            g_vc_bypass_step = VC_BYPASS_ALIGN;
+            vc_bypass_command(vc_bypass_turn(true), VC_BYPASS_TURN_DEG);
+          break;
+          case VC_BYPASS_ADVANCE:
+            g_vc_align_left_line = false;
+            g_vc_see_samples = 0u;
+            g_vc_bypass_step = VC_BYPASS_ALIGN;
+            vc_bypass_command(vc_bypass_turn(true), VC_BYPASS_ALIGN_MAX_DEG);
+          break;
+          case VC_BYPASS_ALIGN:
+          default:
+            /* Turned all the way without the middle sensor finding it. */
+            vc_finish_bypass(false);
+          break;
+        }
+    }
+
+    /* Stop the leg that is running (line seen) without a stale "done". */
+    static void
+    vc_bypass_cut (void)
+    {
+        vc_motion(S2_MOTION_STOP, 0u);
+        (void) vc_take_motion_done();
+    }
+
+    /* rejoined: the middle sensor found the line. Either way the car goes
+     * back to FOLLOWING: line following steers onto it or searches, which
+     * beats standing in BLOCKED off the line (log 18:26:31). */
     static void
     vc_finish_bypass (bool rejoined)
     {
         ir_lock_steering(false);
         vc_motion(S2_MOTION_STOP, 0u);
-        g_vc_rejoin_samples = 0u;
-        g_vc_rejoin_armed = false;
-        if (rejoined)
-        {
-            g_vc_line_hold = false;
-            vc_set_state(VC_STATE_FOLLOWING);
-            vc_follow_speed(g_vc_cruise_cm_s);
-        }
-        else
-        {
-            vc_set_state(VC_STATE_BLOCKED);
-        }
+        g_vc_see_samples = 0u;
+        vc_event(VC_EVT_BYPASS_DONE, rejoined ? 1u : 0u);
+        tm_printf((UB*)"vc: bypass done, %s\n",
+                  rejoined ? "on the line" : "line not under the middle sensor");
+        g_vc_line_hold = false;
+        g_vc_lost_since = 0u;
+        vc_set_state(VC_STATE_FOLLOWING);
+        vc_follow_speed(g_vc_cruise_cm_s);
     }
 
     static void
@@ -935,39 +1182,90 @@ vc_dispatch (vc_event_t ev)
     {
         SYSTIM now;
         UINT ptn = 0u;
+        ir_snapshot_t snap;
 
         if (VC_STATE_BYPASSING != g_vc_state)
         {
             return;
         }
-        if (E_OK == tk_wai_flg(flg_motion, S2_MOTION_DONE,
-                               TWF_ORW | TWF_BITCLR, &ptn, TMO_POL))
+
+        ir_get_telemetry(&snap);
+
+        if (VC_BYPASS_SEEK == g_vc_bypass_step)
         {
-            vc_dispatch(VC_EV_MOTION_DONE);
-        }
-        if ((VC_BYPASS_WAIT_REJOIN == g_vc_bypass_step)
-            && g_vc_rejoin_armed)
-        {
-            if (vc_rejoin_seen())
+            /* Any sensor on black, met at an angle (so the barcode sensor
+             * may be first) -- but only near where the original line is.
+             * Passing and turning in are NOT watched: the obstacle sits on
+             * the original line, so a line there is another one (video
+             * 25 Nov 18:55 followed the S-bend beside the box). */
+            float gate_cm = (float)g_vc_bypass_lateral_cm
+                            - (float)VC_JUNCTION_ADVANCE_CM
+                            - (float)VC_BYPASS_SEEK_EARLY_CM;
+            float driven_cm = vc_wheel_cm() - g_vc_seek_start_cm;
+
+            if ((0u != snap.sensors) && (driven_cm >= gate_cm))
             {
-                vc_dispatch(VC_EV_REJOIN);
+                g_vc_see_samples++;
             }
             else
             {
-                (void)tk_get_otm(&now);
-                if ((now.lo - g_vc_bypass_started) >= VC_REJOIN_TIMEOUT_MS)
-                {
-                    vc_finish_bypass(false);
-                }
+                g_vc_see_samples = 0u;
+            }
+            if (g_vc_see_samples >= VC_BYPASS_SEE_SAMPLES)
+            {
+                vc_bypass_cut();
+                vc_event(VC_EVT_BYPASS_LINE, (uint32_t)(driven_cm + 0.5f));
+                tm_printf((UB*)"vc: bypass return, line seen after %d cm, onto it\n",
+                          (int)(driven_cm + 0.5f));
+                g_vc_see_samples = 0u;
+                g_vc_bypass_step = VC_BYPASS_ADVANCE;
+                vc_bypass_command(S2_MOTION_MOVE_DISTANCE,
+                                  VC_JUNCTION_ADVANCE_CM);
+                return;
+            }
+        }
+        else if (VC_BYPASS_ALIGN == g_vc_bypass_step)
+        {
+            /* The sensors swing round over the line: wait for the middle
+             * one to be off it first, then stop when it is on it. */
+            if (0u == (snap.sensors & IR_SENS_CENTRE))
+            {
+                g_vc_align_left_line = true;
+                g_vc_see_samples = 0u;
+            }
+            else if (g_vc_align_left_line)
+            {
+                g_vc_see_samples++;
+            }
+            else
+            {
+                /* Still on the bit it crossed: not yet. */
+            }
+            if (g_vc_see_samples >= VC_BYPASS_SEE_SAMPLES)
+            {
+                vc_bypass_cut();
+                vc_finish_bypass(true);
+                return;
             }
         }
         else
         {
-            (void)tk_get_otm(&now);
-            if ((now.lo - g_vc_bypass_started) >= VC_BYPASS_TIMEOUT_MS)
-            {
-                vc_finish_bypass(false);
-            }
+            /* Out and past: measured legs, no sensors. */
+        }
+
+        if (E_OK == tk_wai_flg(flg_motion, S2_MOTION_DONE,
+                               TWF_ORW | TWF_BITCLR, &ptn, TMO_POL))
+        {
+            vc_dispatch(VC_EV_MOTION_DONE);
+            return;
+        }
+
+        (void)tk_get_otm(&now);
+        if ((now.lo - g_vc_bypass_started) >= VC_BYPASS_TIMEOUT_MS)
+        {
+            tm_printf((UB*)"vc: bypass leg %u timed out\n",
+                      (unsigned int) g_vc_bypass_step);
+            vc_finish_bypass(false);
         }
     }
 
@@ -1122,6 +1420,18 @@ vc_set_state (vc_state_t next)
     if (VC_STATE_FOLLOWING != next)
     {
         g_vc_search_step = 0u;
+    }
+
+    // A junction turn only exists while TURNING; a waiting barcode action
+    // only while a run is going on.
+    if (VC_STATE_TURNING != next)
+    {
+        g_vc_junction_turn = IR_NAV_NONE;
+    }
+    if ((VC_STATE_IDLE == next) || (VC_STATE_STOPPED == next)
+        || (VC_STATE_FAULT == next))
+    {
+        g_vc_pending_cmd = IR_NAV_NONE;
     }
 
     // Leaving CALIBRATING any way but the normal end (STOP, ESTOP, lift,

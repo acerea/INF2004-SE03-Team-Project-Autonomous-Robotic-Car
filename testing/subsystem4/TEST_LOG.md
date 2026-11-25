@@ -51,6 +51,7 @@ Define a test here before running it. Test IDs never change.
 | B4-K06 | Turn acceleration removed by lat_comp_mg | Hump turn compensation | auto | subsystem4_test.c | Reading stays level, no hump reported. |
 | B4-K07 | Roll ratio to height conversion | Hump height (buddy4_hump.h) | auto | subsystem4_test.c | 90 mg at 1 g on a 111 mm track gives 10.0 mm. |
 | B4-K08 | Car stops halfway up the ramp for 8 s, then continues | Hump measurement during line search | auto | subsystem4_test.c | One hump reported, height 9.0–11.0 mm. |
+| B4-K09 | Reset while lifted, then put down | Hump level re-learn | auto | subsystem4_test.c | Reading is level (within 1 mm) once re-learned. |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

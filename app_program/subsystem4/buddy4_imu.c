@@ -655,6 +655,26 @@ LOCAL int16_t b4_turn_comp_mg(B4_TURN_COMP *tc, int32_t dt_ms)
 #endif
 }
 
+/*
+ * Hump start / discard as EVENT frames (type 9), so the dashboard shows why
+ * a crossing did not count without the serial port. Codes 40-44 are
+ * Buddy 4's (the VC uses 1-30): 40 start, 41-44 = 40 + B4_HUMP_REJ_xxx.
+ * arg = height in 0.1 mm (start height, or the discarded peak).
+ */
+#define B4_EVT_HUMP_START   (40u)
+
+LOCAL void b4_publish_hump_event(uint32_t code, int32_t dmm)
+{
+    uint8_t      frame[PROTO_MAX_FRAME_BYTES];
+    proto_bits_t bits;
+
+    proto_init(&bits, frame, sizeof(frame));
+    proto_begin(&bits, PROTO_TYPE_EVENT);
+    proto_put(&bits, code, PROTO_EV_CODE_BITS);
+    proto_put_sat(&bits, (dmm > 0) ? (uint32_t) dmm : 0u, PROTO_EV_ARG_BITS);
+    (void) s1_publish(frame, proto_end(&bits), false);
+}
+
 LOCAL int32_t b4_right_travel_mm(void)
 {
     return (int32_t)(encoder_getRightDistance() * 10.0f);
@@ -867,6 +887,15 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * Hump under the right wheel: height from the roll angle.
              * Needs ~0.6 s on flat ground after start-up to learn level.
              */
+            /* Lifted or overturned: the hump detector stops and forgets
+               its level, and learns it again (~2 s) once the car is back
+               on the floor. Wheels turning in the air used to teach it
+               the held-up tilt as "level" (test 25 Nov 18:06). */
+            if ((handling.b_lifted != 0u) || (handling.b_overturned != 0u))
+            {
+                b4_hump_relevel(&hump);
+            }
+
             hump_lat_mg = b4_turn_comp_mg(&turn_comp, dt_ms);
             hump_travel_mm = b4_right_travel_mm();
             hump.hold = turn_comp.spinning;
@@ -906,6 +935,16 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                 terrain_first_publish = 1u;
             }
 
+            if (hump.started != 0u)
+            {
+                b4_publish_hump_event(B4_EVT_HUMP_START, hump.now_dmm);
+            }
+            if (hump.rejected != B4_HUMP_REJ_NONE)
+            {
+                b4_publish_hump_event(B4_EVT_HUMP_START + hump.rejected,
+                                      hump.reject_peak_dmm);
+            }
+
 #if B4_HUMP_DEBUG
             if ((hump.ready != 0u) && (hump_was_ready == 0u))
             {
@@ -930,8 +969,10 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                                 "right wheel moved %d mm)\n",
                           (hump.rejected == B4_HUMP_REJ_LOW_PEAK)
                               ? "peak below 6 mm"
+                          : (hump.rejected == B4_HUMP_REJ_TOO_HIGH)
+                              ? "peak above 30 mm (car snagged or lifted)"
                           : (hump.rejected == B4_HUMP_REJ_NO_TRAVEL)
-                              ? "right wheel moved < 30 mm"
+                              ? "right wheel moved < 50 mm"
                               : "tilted > 10 s or rolled > 40 cm",
                           (INT)hump.reject_peak_dmm,
                           (INT)hump.reject_travel_mm);

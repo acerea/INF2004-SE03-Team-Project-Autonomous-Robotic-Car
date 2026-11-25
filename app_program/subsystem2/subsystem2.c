@@ -139,15 +139,40 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
         break;
 
     case S2_MOTION_MOVE_DISTANCE:
-        if (argument > 0u) {
+        if ((argument & S2_MOVE_CM_MASK) > 0u) {
             float speed = requested_speed_cm_s;
+            uint16_t asked = (argument >> S2_MOVE_SPEED_SHIFT)
+                             & S2_MOVE_SPEED_MASK;
 
-            if (speed <= 0.0f) {
+            if (asked > 0u) {
+                speed = (float)asked;           /* e.g. a dashboard nudge */
+            } else if (speed <= 0.0f) {
                 speed = (float)S2_MOTION_DEFAULT_SPEED;
             }
 
             motion_pidStop();
-            motion_pidMoveDistance((float)argument, speed);
+            motion_pidMoveDistance((float)(argument & S2_MOVE_CM_MASK),
+                                   speed);
+            awaiting_motion_done = 1;
+            motion_mode = PROTO_MO_MODE_DISTANCE;
+        }
+        break;
+
+    case S2_MOTION_MOVE_BACK:
+        if ((argument & S2_MOVE_CM_MASK) > 0u) {
+            float speed = requested_speed_cm_s;
+            uint16_t asked = (argument >> S2_MOVE_SPEED_SHIFT)
+                             & S2_MOVE_SPEED_MASK;
+
+            if (asked > 0u) {
+                speed = (float)asked;
+            } else if (speed <= 0.0f) {
+                speed = (float)S2_MOTION_DEFAULT_SPEED;
+            }
+
+            motion_pidStop();
+            motion_pidMoveBackDistance((float)(argument & S2_MOVE_CM_MASK),
+                                       speed);
             awaiting_motion_done = 1;
             motion_mode = PROTO_MO_MODE_DISTANCE;
         }

@@ -256,6 +256,23 @@ LOCAL void hump_tests(INT *pass, INT *fail)
 		   found == 1 && h.result_dmm >= 90 && h.result_dmm <= 110,
 		   "stopping on the ramp does not lose or skew the hump");
 
+	/* B4-K09: after a reset (lift / read error) and a re-learn, level
+	   reads level again: the averaging window used to keep stale values
+	   after a reset, which turned later readings into garbage */
+	b4_hump_init(&h);
+	for (i = 0; i < 100; i++) {
+		(void)b4_hump_update(&h, 20, -10, 1000, 0, i, 30);
+	}
+	for (i = 0; i < 60; i++) {
+		b4_hump_relevel(&h);		/* held up: lifted */
+		(void)b4_hump_update(&h, -450, -10, 880, 0, 100, 30);
+	}
+	for (i = 0; i < 120; i++) {
+		(void)b4_hump_update(&h, 20, -10, 1000, 0, 100 + i, 30);
+	}
+	TEST_CHECK("B4-K09", h.ready && h.now_dmm > -10 && h.now_dmm < 10,
+		   "level reads level after a lift and re-learn");
+
 	/* B4-K07: height helper: 90 mg at 1 g on a 111 mm track ~ 10 mm */
 	TEST_CHECK("B4-K07",
 		   b4_hump_height_dmm(B4_HUMP_TRACK_MM, 90, 1000) == 100,

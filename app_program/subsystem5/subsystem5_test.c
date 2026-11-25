@@ -88,6 +88,33 @@ EXPORT void subsystem5_test(void)
     /* S5-U10: Event flag communication object creation */
     TEST_CHECK("S5-U10", flg_s5_obstacle > 0, "S5 event flag object valid and published");
 
+    /* S5-U11: Profile sweep, obstacle sitting LEFT of the line (video
+     * 25 Nov 18:25: 19 cm box, right edge on the line, 14 cm ahead).
+     * Angles -45 -30 -15 0 15 30 45; -1 = no echo. Must go RIGHT, the left
+     * side is past the sweep, and it reaches at most ~1 cm right. */
+    {
+        static S5_PROFILE prof = { { 19.8f, 16.2f, 14.5f, 14.0f, -1.0f, -1.0f, -1.0f } };
+        s5_profile_analyse(&prof, 14.0f);
+        TEST_CHECK("S5-U11", (prof.dir == S5_DIR_RIGHT) && prof.left_open
+                   && !prof.right_open && (prof.right_cm < 1.5f)
+                   && (prof.clear_cm < 1.5f),
+                   "obstacle on the left: bypass right, small clearance");
+
+        /* Mirror image: obstacle on the right, a far wall (150 cm) at -45. */
+        static S5_PROFILE prof2 = { { 150.0f, -1.0f, -1.0f, 14.0f, 14.5f, 16.2f, 19.8f } };
+        s5_profile_analyse(&prof2, 14.0f);
+        TEST_CHECK("S5-U12", (prof2.dir == S5_DIR_LEFT) && prof2.right_open
+                   && !prof2.left_open,
+                   "obstacle on the right: bypass left, far wall ignored");
+
+        /* 10 cm box centred: both corners seen at +/-30, edges in between. */
+        static S5_PROFILE prof3 = { { -1.0f, 14.9f, 14.1f, 14.0f, 14.1f, 14.9f, -1.0f } };
+        s5_profile_analyse(&prof3, 14.0f);
+        TEST_CHECK("S5-U13", !prof3.left_open && !prof3.right_open
+                   && (prof3.width_cm > 8.0f) && (prof3.width_cm < 18.0f),
+                   "centred 10 cm obstacle: width measured, both edges found");
+    }
+
     TEST_SUMMARY("subsystem5");
 }
 

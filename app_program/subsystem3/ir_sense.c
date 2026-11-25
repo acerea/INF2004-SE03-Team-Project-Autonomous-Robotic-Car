@@ -59,10 +59,27 @@
 #define IR_CAL_SAMPLES          (50u)       // 0.5 s calibration.
 #define IR_LOST_TIMEOUT_MS      (1000u)     // Line lost -> report.
 #define IR_BLACK_MAX_MS         (1000u)     // Longer black: not a barcode.
-#define IR_BARCODE_MAX_MS       (4000u)     // Give up on a barcode.
+#define IR_BARCODE_MAX_MS       (12000u)    // Give up on a barcode (141 mm
+                                            // at ~1.2 cm/s).
 #define IR_QUIET_MIN_MS         (60u)       // Shortest end-of-barcode gap.
-#define IR_QUIET_NARROWS        (4u)        // Quiet zone > 4 narrow widths
-                                            // (wide <= 3, quiet >= 10).
+#define IR_QUIET_MAX_MS         (2500u)
+#define IR_PEAK_EDGES           (1)         // 1 = edges relative to each
+                                            // element's own peak (below).
+#define IR_PEAK_KEEP_PCT        (70u)       // Bar ends below 70 % of its peak.
+#define IR_PEAK_RISE_PCT        (30u)       // Space ends 30 % (of the last
+                                            // bar's peak) above its lowest.
+#define IR_PEAK_MIN_SWING       (80u)       // ADC counts; smaller = noise.
+#define IR_DEBOUNCE_MS          (20u)       // A colour change must last this
+                                            // long to count (edge flicker
+                                            // made 16 ms fake elements).
+                                            // Fine below ~12 cm/s.     // Longest end-of-barcode wait.
+#define IR_QUIET_WIDEST         (4u)        // Quiet zone > 4 x the widest
+                                            // element so far. Based on the
+                                            // widest, not the narrowest: one
+                                            // short (fast) element used to
+                                            // make the limit so small that
+                                            // the next wide space ended the
+                                            // barcode.
 #define IR_JUNC_SAMPLES         (3u)        // Junction must hold 30 ms.
 #define IR_BARCODE_CONFIRM_SAMPLES (3u)     // Barcode pad must hold 30 ms.
 #define IR_JUNC_HOLD_MS         (300u)      // Report a junction this long.
@@ -92,6 +109,7 @@ typedef struct
     uint16_t widths[IR_C39_ELEMENTS];   // Element widths, ms.
     uint16_t pats[IR_MAX_CHARS];        // 9-bit character patterns.
     uint16_t min_elem_ms;               // Narrowest element so far.
+    uint16_t max_elem_ms;               // Widest element so far.
     int16_t  last_line_pos;             // Last real line position for reacquisition.
     uint8_t  cal_count;                 // 0..50.
     uint8_t  elem    : 4;               // 0..9 elements of the character.
@@ -108,6 +126,21 @@ typedef struct
 typedef void (*ir_handler_t)(uint32_t now);
 
 static ir_ctx_t       g_ctx;
+
+// Scan record for the SCAN telemetry (type 10): every element of the
+// current read attempt, in ms, in the order seen. Task-private.
+static uint16_t       g_scan_ms[PROTO_SC_MAX_ELEMS];
+static uint8_t        g_scan_n = 0u;
+static uint16_t       g_scan_narrow_min = 0xFFFFu;  // Of decoded chars.
+static uint16_t       g_scan_narrow_max = 0u;
+static bool           g_b_scan_timeout = false;
+static bool           g_b_edge_pending = false; // Colour change being debounced.
+// Peak-relative edge tracker (IR_PEAK_EDGES), in ADC counts above white.
+static bool           g_b_trk_black = false;
+static uint16_t       g_trk_peak = 0u;      // Darkest of the current bar.
+static uint16_t       g_trk_trough = 0u;    // Lightest of the current space.
+static uint16_t       g_trk_ref = 0u;       // Peak of the last bar.
+static uint32_t       g_edge_pending_ms = 0u;   // Its first sample.
 static ir_snapshot_t  g_snap;           // Shared, under g_ir_mutex.
 static ir_snapshot_t  g_next;           // Built by the task each tick.
 static ID             g_ir_mutex = -1;
@@ -129,6 +162,9 @@ static volatile bool  g_b_recal_request = false;
 static volatile uint32_t g_ir_stage = 0u;
 #define IR_STAGE(s)   (g_ir_stage = (s))
 static volatile bool  g_b_sweep_begin = false;
+// Barcode sensor's last black/white decision, for hysteresis. Only
+// ir_sensor_task reads or writes it.
+static bool           g_b_bar_black = false;
 // DEBUG: last raw ADC readings (L, C, R) for the periodic RAW print.
 static uint16_t       g_dbg_raw[3] = {0u, 0u, 0u};
 static uint32_t       g_dbg_ms = 0u;
@@ -143,6 +179,9 @@ static void s3_publish_ircal(uint32_t kind, uint32_t ok_mask);
 static void ir_handle_track(uint32_t now);
 static void ir_handle_barcode(uint32_t now);
 static void ir_handle_lost(uint32_t now);
+static uint16_t ir_bar_lift(void);
+static bool ir_peak_update(uint16_t lift);
+static void ir_scan_tx_poll(void);
 
 static ir_handler_t const g_handlers[] =
 {
@@ -281,7 +320,11 @@ ir_read_barcode_sensor (void)
     uint8_t bits = 0u;
 
     g_dbg_raw[0] = raw_l;
-    if (ir_is_black(raw_l, 0u, &g_ctx.cal[0]))
+    // Hysteresis (black >= 45 %, white <= 30 %, keep in between): without
+    // it, ADC noise at a bar edge flips the result several times and adds
+    // false 2-20 ms elements that shift the 9-element character framing.
+    g_b_bar_black = ir_is_bar_black(raw_l, g_b_bar_black, &g_ctx.cal[0]);
+    if (g_b_bar_black)
     {
         bits |= IR_SENS_LEFT;
     }
@@ -375,6 +418,17 @@ ir_barcode_begin (uint32_t now, uint32_t start_ms)
     g_ctx.b_black     = 1u;
     g_ctx.b_gap       = 0u;
     g_ctx.min_elem_ms = 0xFFFFu;
+    g_ctx.max_elem_ms = 0u;
+    g_scan_n          = 0u;
+    g_scan_narrow_min = 0xFFFFu;
+    g_scan_narrow_max = 0u;
+    g_b_scan_timeout  = false;
+    g_b_edge_pending  = false;
+    // The tracker starts on the bar that started the barcode.
+    g_b_trk_black     = true;
+    g_trk_peak        = ir_bar_lift();
+    g_trk_ref         = g_trk_peak;
+    g_trk_trough      = 0u;
     ir_set_state(IR_BARCODE, now);
 
     return;
@@ -512,6 +566,237 @@ s3_publish_barcode (char letter, uint32_t command)
     return;
 }
 
+// SCAN frames (type 10): the elements of one read attempt and the result.
+// Widths are sent in units of "scale" ms so each fits 6 bits.
+//
+// Sent one frame per TRACK tick from a copy (ir_scan_tx_poll), and a
+// frame the telemetry queue refused is retried: sent all at once, the 2-4
+// frames often found the queue full and the scan never reached the
+// dashboard (test 25 Nov: 6 frames lost after one '?' read).
+#define IR_SCAN_TX_TRIES    (100u)      // ~1 s of retries per frame.
+
+typedef struct
+{
+    uint16_t ms[PROTO_SC_MAX_ELEMS];
+    uint8_t  n;
+    uint8_t  part;          // Next part to send.
+    uint8_t  tries;
+    uint8_t  reason : 3;
+    uint8_t  uneven : 1;
+    uint8_t  b_busy : 1;    // Frames still to send.
+    uint8_t  scale;
+} ir_scan_tx_t;
+
+static ir_scan_tx_t g_scan_tx;
+
+static void
+s3_publish_scan (uint32_t reason)
+{
+    uint32_t widest = 1u;
+    uint32_t scale;
+    uint8_t  idx;
+
+    // A lone bar or pad (noise, a junction bar, standing on black) is
+    // only printed: sending it filled the queue for nothing.
+    if (g_scan_n <= 1u)
+    {
+        return;
+    }
+
+    for (idx = 0u; idx < g_scan_n; idx++)
+    {
+        g_scan_tx.ms[idx] = g_scan_ms[idx];
+        if (g_scan_ms[idx] > widest)
+        {
+            widest = g_scan_ms[idx];
+        }
+    }
+    scale = (widest + 62u) / 63u;           // Round up: widest fits 63.
+    if (scale > 255u)
+    {
+        scale = 255u;
+    }
+
+    g_scan_tx.n      = g_scan_n;
+    g_scan_tx.scale  = (uint8_t) scale;
+    g_scan_tx.reason = reason & 0x07u;
+    g_scan_tx.uneven = ((0xFFFFu != g_scan_narrow_min)
+                        && ((uint32_t) g_scan_narrow_max
+                            > (2u * (uint32_t) g_scan_narrow_min))) ? 1u : 0u;
+    g_scan_tx.part   = 0u;
+    g_scan_tx.tries  = 0u;
+    g_scan_tx.b_busy = 1u;                  // Replaces an unsent older one.
+
+    return;
+}
+
+// Send the next SCAN frame, if any. Never while a barcode is being timed.
+static void
+ir_scan_tx_poll (void)
+{
+    uint8_t      frame[PROTO_MAX_FRAME_BYTES];
+    proto_bits_t bits;
+    uint8_t      first;
+    uint8_t      count;
+    uint8_t      idx;
+    bool         b_last;
+
+    if (0u == g_scan_tx.b_busy)
+    {
+        return;
+    }
+
+    first = (uint8_t) (g_scan_tx.part * PROTO_SC_PER_PART);
+    count = (g_scan_tx.n > first) ? (uint8_t) (g_scan_tx.n - first) : 0u;
+    if (count > PROTO_SC_PER_PART)
+    {
+        count = PROTO_SC_PER_PART;
+    }
+    b_last = ((first + count) >= g_scan_tx.n)
+             || ((g_scan_tx.part + 1u)
+                 >= (PROTO_SC_MAX_ELEMS / PROTO_SC_PER_PART));
+
+    proto_init(&bits, frame, sizeof(frame));
+    proto_begin(&bits, PROTO_TYPE_SCAN);
+    proto_put(&bits, g_scan_tx.part, PROTO_SC_PART_BITS);
+    proto_put(&bits, b_last ? 1u : 0u, PROTO_SC_LAST_BITS);
+    proto_put(&bits, g_scan_tx.reason, PROTO_SC_REASON_BITS);
+    proto_put(&bits, g_scan_tx.uneven, PROTO_SC_UNEVEN_BITS);
+    proto_put(&bits, g_scan_tx.scale, PROTO_SC_SCALE_BITS);
+    proto_put(&bits, count, PROTO_SC_COUNT_BITS);
+    for (idx = 0u; idx < count; idx++)
+    {
+        uint32_t ms = g_scan_tx.ms[first + idx];
+        uint32_t w  = (ms + (g_scan_tx.scale / 2u)) / g_scan_tx.scale;
+
+        if ((0u == w) && (0u != ms))
+        {
+            w = 1u;
+        }
+        proto_put_sat(&bits, w, PROTO_SC_WIDTH_BITS);
+    }
+
+    if (E_OK == s1_publish(frame, proto_end(&bits), false))
+    {
+        g_scan_tx.tries = 0u;
+        g_scan_tx.part++;
+        if (b_last)
+        {
+            g_scan_tx.b_busy = 0u;
+        }
+    }
+    else if (++g_scan_tx.tries >= IR_SCAN_TX_TRIES)
+    {
+        g_scan_tx.b_busy = 0u;              // Give up on this scan.
+    }
+    else
+    {
+        // Queue full: try the same frame on the next tick.
+    }
+
+    return;
+}
+
+// Barcode sensor reading in ADC counts above its calibrated white.
+static uint16_t
+ir_bar_lift (void)
+{
+    uint16_t raw = g_dbg_raw[0];            // Set by ir_read_barcode_sensor.
+
+    return ((raw > g_ctx.cal[0].white) ? (uint16_t) (raw - g_ctx.cal[0].white)
+                                        : 0u);
+}
+
+// Edges relative to each element's own extreme instead of a fixed level.
+// The sensor spot is wider than a narrow bar, so a narrow bar never gets
+// as dark as a wide one: with a fixed level, narrow bars read thin and
+// were sometimes missed (test 25 Nov). A bar ends when the reading falls
+// below IR_PEAK_KEEP_PCT of that bar's own peak; a space ends when it
+// rises IR_PEAK_RISE_PCT of the last bar's peak above the space's lowest
+// point. Both need IR_PEAK_MIN_SWING counts, so ADC noise cannot flip it.
+static bool
+ir_peak_update (uint16_t lift)
+{
+    if (g_b_trk_black)
+    {
+        if (lift > g_trk_peak)
+        {
+            g_trk_peak = lift;
+        }
+        if ((((uint32_t) lift * 100u)
+             < ((uint32_t) g_trk_peak * IR_PEAK_KEEP_PCT))
+            && ((uint32_t) (g_trk_peak - lift) >= IR_PEAK_MIN_SWING))
+        {
+            g_b_trk_black = false;
+            g_trk_ref     = g_trk_peak;
+            g_trk_trough  = lift;
+        }
+    }
+    else
+    {
+        if (lift < g_trk_trough)
+        {
+            g_trk_trough = lift;
+        }
+        if ((((uint32_t) lift)
+             > ((uint32_t) g_trk_trough
+                + (((uint32_t) g_trk_ref * IR_PEAK_RISE_PCT) / 100u)))
+            && ((uint32_t) (lift - g_trk_trough) >= IR_PEAK_MIN_SWING))
+        {
+            g_b_trk_black = true;
+            g_trk_peak    = lift;
+        }
+    }
+
+    return (g_b_trk_black);
+}
+
+// Why a read attempt that did not decode failed (PROTO_SCAN_xxx).
+static uint32_t
+ir_scan_reason (uint8_t len)
+{
+    uint8_t idx;
+
+    if (len > 0u)
+    {
+        return (PROTO_SCAN_OK);
+    }
+    if (g_b_scan_timeout)
+    {
+        return (PROTO_SCAN_TIMEOUT);
+    }
+    if (0u == g_ctx.chars)
+    {
+        return (PROTO_SCAN_NO_CHAR);
+    }
+    if (0u != g_ctx.elem)
+    {
+        return (PROTO_SCAN_EXTRA);          // Framing slipped somewhere.
+    }
+    for (idx = 0u; idx < g_ctx.chars; idx++)
+    {
+        if (0u == g_ctx.pats[idx])
+        {
+            return (PROTO_SCAN_UNCLEAR);
+        }
+    }
+    for (idx = 0u; idx < g_ctx.chars; idx++)
+    {
+        if (IR_C39_BAD == ir_c39_lookup(g_ctx.pats[idx]))
+        {
+            return (PROTO_SCAN_BAD_CHAR);
+        }
+    }
+    return (PROTO_SCAN_NO_FRAME);
+}
+
+static char const * const g_scan_reason_text[8] =
+{
+    "OK", "single bar/noise", "missed or extra bar", "wide/narrow unclear",
+    "not a Code 39 char", "no * start/stop", "solid black (junction)",
+    "timed out"
+};
+
 // IRCAL frame (type 8): the calibration result, so it can be checked on
 // the dashboard / station log without the serial port. ok_mask bit 0 = L,
 // bit 1 = C, bit 2 = R: 1 if that sensor got new levels.
@@ -591,13 +876,17 @@ ir_barcode_finish (uint32_t now)
     {
         uint8_t idx;
 
+        uint32_t reason = ir_scan_reason(len);
+
         tm_printf((UB*)"ir: barcode read %u ms, chars=%u elem=%u "
-                       "narrow=%u ms -> %s\n",
+                       "narrow=%u ms -> %s (%s)\n",
                   (unsigned int) (now - g_ctx.state_ms),
                   (unsigned int) g_ctx.chars,
                   (unsigned int) g_ctx.elem,
                   (unsigned int) g_ctx.min_elem_ms,
-                  (len > 0u) ? word : "FAIL");
+                  (len > 0u) ? word : "FAIL",
+                  g_scan_reason_text[reason]);
+        s3_publish_scan(reason);
         for (idx = 0u; idx < g_ctx.chars; idx++)
         {
             tm_printf((UB*)"ir:   char %u pattern 0x%03x '%c'\n",
@@ -626,13 +915,79 @@ ir_handle_barcode (uint32_t now)
     }
 
     uint8_t  bits = ir_read_barcode_sensor();
+
+    // Keep the line (C/R) position live every IR_TRACK_MS while reading,
+    // so the VC can still steer. The barcode sensor is on the LEFT: on a
+    // left bend the line itself slides under it, which started a "barcode"
+    // and froze the line position, so the car drove straight off every
+    // left bend (video 25 Nov 17:44).
+    {
+        static uint8_t s_line_div = 0u;
+
+        s_line_div++;
+        if (s_line_div >= (uint8_t) (IR_TRACK_MS / IR_BARCODE_MS))
+        {
+            uint16_t dark[2];
+            int16_t  pos;
+
+            s_line_div = 0u;
+            g_next.sensors = ir_read_line_sensors(dark);
+            if (ir_line_position_lr(dark[0], dark[1], &pos))
+            {
+                g_next.line_pos     = (signed int) pos;
+                g_ctx.last_line_pos = pos;
+            }
+            else
+            {
+                g_next.line_pos = g_ctx.last_line_pos;
+            }
+        }
+    }
+#if IR_PEAK_EDGES
+    bool     b_black = ir_peak_update(ir_bar_lift());
+    (void) bits;
+#else
     bool     b_black = (0u != (bits & IR_SENS_LEFT));
+#endif
     uint32_t span = now - g_ctx.edge_ms;
     uint32_t quiet;
+    uint32_t black_max = IR_BLACK_MAX_MS;
+    uint32_t edge = now;            // Time of an accepted colour change.
+
+    // Debounce: a change counts only once it has lasted IR_DEBOUNCE_MS,
+    // and is then dated from its first sample, so widths stay accurate.
+    if (b_black != (0u != g_ctx.b_black))
+    {
+        if (!g_b_edge_pending)
+        {
+            g_b_edge_pending  = true;
+            g_edge_pending_ms = now;
+        }
+        if ((now - g_edge_pending_ms) < IR_DEBOUNCE_MS)
+        {
+            b_black = (0u != g_ctx.b_black);    // Not yet: no change.
+        }
+        else
+        {
+            edge = g_edge_pending_ms;
+            span = edge - g_ctx.edge_ms;
+            g_b_edge_pending = false;
+        }
+    }
+    else
+    {
+        g_b_edge_pending = false;               // Flicker: ignored.
+    }
 
     if (b_black != (0u != g_ctx.b_black))
     {
         uint16_t width = (span > 0xFFFFu) ? 0xFFFFu : (uint16_t) span;
+
+        if (g_scan_n < PROTO_SC_MAX_ELEMS)  // Every element, gaps too.
+        {
+            g_scan_ms[g_scan_n] = width;
+            g_scan_n++;
+        }
 
         if (0u != g_ctx.b_gap)
         {
@@ -650,39 +1005,123 @@ ir_handle_barcode (uint32_t now)
             {
                 g_ctx.min_elem_ms = width;
             }
+            if (width > g_ctx.max_elem_ms)
+            {
+                g_ctx.max_elem_ms = width;
+            }
             g_ctx.elem++;
 
             if (g_ctx.elem >= IR_C39_ELEMENTS)
             {
                 if (g_ctx.chars < IR_MAX_CHARS)
                 {
-                    g_ctx.pats[g_ctx.chars] = ir_c39_pattern(g_ctx.widths);
+                    uint16_t pat = ir_c39_pattern(g_ctx.widths);
+                    uint8_t  k;
+
+                    g_ctx.pats[g_ctx.chars] = pat;
+                    // Narrow widths, for the "uneven speed" flag. The first
+                    // bar of the scan is only known to 10 ms: skipped.
+                    for (k = (0u == g_ctx.chars) ? 1u : 0u;
+                         (0u != pat) && (k < IR_C39_ELEMENTS); k++)
+                    {
+                        if (0u == (pat & (1u << (IR_C39_ELEMENTS - 1u - k))))
+                        {
+                            if (g_ctx.widths[k] < g_scan_narrow_min)
+                            {
+                                g_scan_narrow_min = g_ctx.widths[k];
+                            }
+                            if (g_ctx.widths[k] > g_scan_narrow_max)
+                            {
+                                g_scan_narrow_max = g_ctx.widths[k];
+                            }
+                        }
+                    }
                     g_ctx.chars++;
                 }
                 g_ctx.elem  = 0u;
                 g_ctx.b_gap = 1u;
+
+                // Stop '*' read (start '*', a letter, end '*', either
+                // direction): the word is complete, finish now instead of
+                // waiting for the white quiet zone.
+                if ((g_ctx.chars >= 3u)
+                    && (((IR_C39_STAR == g_ctx.pats[0])
+                         && (IR_C39_STAR == g_ctx.pats[g_ctx.chars - 1u]))
+                        || ((ir_c39_reverse(IR_C39_STAR) == g_ctx.pats[0])
+                            && (ir_c39_reverse(IR_C39_STAR)
+                                == g_ctx.pats[g_ctx.chars - 1u]))))
+                {
+                    g_ctx.b_black = b_black ? 1u : 0u;
+                    g_ctx.edge_ms = edge;
+                    ir_barcode_finish(now);
+                    return;
+                }
             }
         }
 
         g_ctx.b_black = b_black ? 1u : 0u;
-        g_ctx.edge_ms = now;
+        g_ctx.edge_ms = edge;
         return;
     }
 
     // No transition this sample.
     // End of barcode: white for longer than any element can be.
-    quiet = IR_QUIET_NARROWS * (uint32_t) g_ctx.min_elem_ms;
+    // The first bar of '*' is narrow and the next space is wide (about
+    // 3 narrow), so 4 x the widest so far never cuts a real space short.
+    quiet = IR_QUIET_WIDEST * (uint32_t) g_ctx.max_elem_ms;
     if (quiet < IR_QUIET_MIN_MS)
     {
         quiet = IR_QUIET_MIN_MS;
+    }
+    else if (quiet > IR_QUIET_MAX_MS)
+    {
+        quiet = IR_QUIET_MAX_MS;
+    }
+    else
+    {
+        // In range.
+    }
+
+    // Mid-word (a character started, stop '*' not read yet): a slow or
+    // paused car makes one space very long, and the short limit above cut
+    // the word in half and restarted from the middle. Only a lone bar
+    // (noise, a junction bar) keeps the short limit, so line tracking is
+    // not held up by it.
+    if ((0u != g_ctx.chars) || (g_ctx.elem > 1u))
+    {
+        quiet = IR_QUIET_MAX_MS;
+
+        // Same for black: a fixed 1 s cut slow reads off at a wide bar
+        // (test 25 Nov: 11- and 13-element reads ended "solid black" at
+        // 1020 ms). Mid-word, black only counts as a pad/junction when it
+        // is 4 x longer than the widest element so far (1-2.5 s).
+        black_max = IR_QUIET_WIDEST * (uint32_t) g_ctx.max_elem_ms;
+        if (black_max < IR_BLACK_MAX_MS)
+        {
+            black_max = IR_BLACK_MAX_MS;
+        }
+        else if (black_max > IR_QUIET_MAX_MS)
+        {
+            black_max = IR_QUIET_MAX_MS;
+        }
+        else
+        {
+            // In range.
+        }
     }
 
     if ((!b_black) && (span > quiet))
     {
         ir_barcode_finish(now);             // White quiet zone: done.
     }
-    else if (b_black && (span > IR_BLACK_MAX_MS))
+    else if (b_black && (span > black_max))
     {
+        if (g_scan_n < PROTO_SC_MAX_ELEMS)
+        {
+            g_scan_ms[g_scan_n] = (uint16_t) span;
+            g_scan_n++;
+        }
+        s3_publish_scan(PROTO_SCAN_SOLID);
         g_ctx.junc      = IR_JUNC_BOTH;     // Solid black: T or cross.
         g_ctx.junc_ms   = now;
         g_ctx.b_armed   = 0u;               // Not again until white.
@@ -691,6 +1130,7 @@ ir_handle_barcode (uint32_t now)
     }
     else if ((now - g_ctx.state_ms) > IR_BARCODE_MAX_MS)
     {
+        g_b_scan_timeout = true;
         ir_barcode_finish(now);             // Safety net.
     }
     else
@@ -882,6 +1322,24 @@ ir_sweep_requests (uint32_t now)
                               (unsigned int) g_ctx.cal[idx].black);
                 }
             }
+            // The barcode sensor (L) never crosses the line during the
+            // sweep, so it never sees black and used to keep the 500/2000
+            // defaults: its real black (~1500) then barely passed the 60 %
+            // threshold and narrow bars were missed (test 25 Nov). Use its
+            // own white and the middle sensor's black (same sensor type).
+            if ((0u == (ok_mask & 1u)) && (0u != (ok_mask & 2u))
+                && (g_ctx.sw_lo[0] < g_ctx.cal[1].black)
+                && (((uint32_t) g_ctx.cal[1].black - g_ctx.sw_lo[0])
+                    >= IR_MIN_CONTRAST))
+            {
+                g_ctx.cal[0].white = g_ctx.sw_lo[0];
+                g_ctx.cal[0].black = g_ctx.cal[1].black;
+                ok_mask |= 1u;
+                tm_printf((UB*)"ir: L (barcode) uses own white=%u, "
+                               "centre black=%u\n",
+                          (unsigned int) g_ctx.cal[0].white,
+                          (unsigned int) g_ctx.cal[0].black);
+            }
             g_ctx.b_sweeping = false;
             tm_printf((UB*)"ir: sweep calibration done\n");
             s3_publish_ircal(1u, ok_mask);
@@ -975,6 +1433,7 @@ ir_sensor_task (INT stacd, void * exinf)
         if ((IR_CALI != g_next.state) && (IR_BARCODE != g_next.state))
         {
             ir_publish_line(now);
+            ir_scan_tx_poll();          // One SCAN frame per tick.
         }
 
         IR_STAGE(8u);

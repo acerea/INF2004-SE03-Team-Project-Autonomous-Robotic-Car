@@ -24,6 +24,21 @@
 #define S2_MOTION_MOVE_DISTANCE 2u
 #define S2_MOTION_TURN_LEFT     3u
 #define S2_MOTION_TURN_RIGHT    4u
+#define S2_MOTION_MOVE_BACK     5u  /* Reverse straight for arg cm. */
+
+/* MOVE_DISTANCE / MOVE_BACK argument: cm in bits 0-6 (1-127), optional
+ * speed in cm/s in bits 7-12 (0 = the last SET_SPEED, or the default if
+ * stopped). Plain cm values (< 128) keep working as before. */
+#define S2_MOVE_CM_MASK         0x7Fu
+#define S2_MOVE_SPEED_SHIFT     7u
+#define S2_MOVE_SPEED_MASK      0x3Fu
+
+static inline uint16_t s2_move_arg(uint32_t cm, uint32_t speed_cm_s)
+{
+    return (uint16_t)((cm & S2_MOVE_CM_MASK)
+                      | ((speed_cm_s & S2_MOVE_SPEED_MASK)
+                         << S2_MOVE_SPEED_SHIFT));
+}
 
 /* Agreed speed settings (in cm/s). Max measured at 95 % PWM (S2-S04): slower
  * wheel about 40 cm/s; 30 leaves the PID room to keep the car straight. */
@@ -45,7 +60,7 @@ IMPORT void s2_setLineCorrection(int line_pos);
 /* Motion sets this bit when a distance/turn completes. The VC clears it after reading. */
 #define S2_MOTION_DONE (1u << 0)
 
-/* Caller must validate command and argument before packing. Reserved command numbers: 5-7. */
+/* Caller must validate command and argument before packing. Reserved command numbers: 6-7. */
 static inline uint16_t motion_packRequest(uint8_t command,
                                           uint16_t argument)
 {

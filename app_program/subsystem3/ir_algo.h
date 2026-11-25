@@ -37,6 +37,12 @@
 // Hysteresis: black above 60 % of the contrast, white below 40 %.
 #define IR_BLACK_PCT            (60u)
 #define IR_WHITE_PCT            (40u)
+/* Barcode sensor only: lower thresholds. The sensor spot is wider than a
+ * narrow bar, so at 60 % bars read thin, spaces wide, and some narrow bars
+ * never counted (test 25 Nov at a steady 3 cm/s: narrow bars 99 ms vs
+ * narrow spaces 198 ms, one bar missed). */
+#define IR_BAR_BLACK_PCT        (45u)
+#define IR_BAR_WHITE_PCT        (30u)
 
 // Code 39.
 #define IR_C39_ELEMENTS         (9u)
@@ -65,6 +71,8 @@ typedef struct
 
 void         ir_cal_set(ir_cal_t * p_cal, uint16_t lo, uint16_t hi);
 uint16_t     ir_darkness(uint16_t raw, ir_cal_t const * p_cal);
+bool         ir_is_bar_black(uint16_t raw, bool b_was_black,
+                             ir_cal_t const * p_cal);
 bool         ir_is_black(uint16_t raw, bool b_was_black,
                          ir_cal_t const * p_cal);
 bool         ir_line_position(uint16_t dark_l, uint16_t dark_c,

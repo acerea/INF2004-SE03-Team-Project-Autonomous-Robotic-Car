@@ -33,6 +33,15 @@
 #define PROTO_CMD_BITS          (3u)
 #define PROTO_ARG_BITS          (4u)
 #define PROTO_CMD_FRAME_BYTES   (3u)
+// MAP command only (cmd 6): seq | ver | cmd | arg | letter, still 3 bytes
+// (22 of 24 bits). arg = action for that barcode letter: PROTO_BC_CMD_xxx
+// (0-4), or PROTO_MAP_DEFAULT = use subsystem 3's built-in table again.
+#define PROTO_MAP_LETTER_BITS   (5u)    // 0-25 = 'A'-'Z'.
+#define PROTO_MAP_DEFAULT       (7u)
+// MOVE command only (cmd 7): seq | ver | cmd | arg | cm, 23 of 24 bits.
+// arg bit 0: 0 = forward, 1 = reverse. Only while IDLE or STOPPED.
+#define PROTO_MOVE_CM_BITS      (6u)    // 1-63 cm.
+#define PROTO_MOVE_REVERSE      (1u)
 
 typedef uint8_t proto_type_t;
 #define PROTO_TYPE_HEARTBEAT    (0u)
@@ -111,6 +120,31 @@ typedef uint8_t proto_type_t;
 #define PROTO_TYPE_EVENT        (9u)
 #define PROTO_EV_CODE_BITS      (8u)    // VC_EVT_xxx (vehicle.c).
 #define PROTO_EV_ARG_BITS       (16u)
+
+// Barcode scan (type 10, subsystem 3): every bar/space of one read attempt
+// and why it failed, so the dashboard can draw it. Up to 4 frames of 15
+// elements: part | last | reason | uneven | scale | count | widths.
+// Element i is black when i is even (a scan starts on a bar).
+// Width in ms = value x scale. 33 + 6 x count bits (<= 123).
+#define PROTO_TYPE_SCAN         (10u)
+#define PROTO_SC_PART_BITS      (2u)    // 0-3.
+#define PROTO_SC_LAST_BITS      (1u)    // 1 = final part of this scan.
+#define PROTO_SC_REASON_BITS    (3u)    // PROTO_SCAN_xxx below.
+#define PROTO_SC_UNEVEN_BITS    (1u)    // 1 = narrow widths differ > 2x.
+#define PROTO_SC_SCALE_BITS     (8u)    // ms per width unit, 1-255.
+#define PROTO_SC_COUNT_BITS     (4u)    // Elements in this part, 0-15.
+#define PROTO_SC_WIDTH_BITS     (6u)    // Width in scale units, 0-63.
+#define PROTO_SC_PER_PART       (15u)
+#define PROTO_SC_MAX_ELEMS      (60u)   // 4 parts.
+#define PROTO_SCAN_OK           (0u)    // Decoded.
+#define PROTO_SCAN_NO_CHAR      (1u)    // < 9 elements: a single bar/noise.
+#define PROTO_SCAN_EXTRA        (2u)    // Count not a multiple of 9:
+                                        // missed or extra bar/space.
+#define PROTO_SCAN_UNCLEAR      (3u)    // Wide and narrow too alike.
+#define PROTO_SCAN_BAD_CHAR     (4u)    // Not a Code 39 character.
+#define PROTO_SCAN_NO_FRAME     (5u)    // No '*' at start and end.
+#define PROTO_SCAN_SOLID        (6u)    // Black > 1 s: junction or pad.
+#define PROTO_SCAN_TIMEOUT      (7u)    // Gave up (too slow / stopped).
 
 typedef struct
 {

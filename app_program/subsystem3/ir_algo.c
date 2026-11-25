@@ -102,6 +102,28 @@ ir_darkness (uint16_t raw, ir_cal_t const * p_cal)
 }
 
 bool
+ir_is_bar_black (uint16_t raw, bool b_was_black, ir_cal_t const * p_cal)
+{
+    uint16_t dark = ir_darkness(raw, p_cal);
+    bool     b_black = b_was_black;     // Between the two: keep.
+
+    if (dark >= ((IR_DARK_MAX * IR_BAR_BLACK_PCT) / 100u))
+    {
+        b_black = true;
+    }
+    else if (dark <= ((IR_DARK_MAX * IR_BAR_WHITE_PCT) / 100u))
+    {
+        b_black = false;
+    }
+    else
+    {
+        // Hysteresis band: no change.
+    }
+
+    return (b_black);
+}
+
+bool
 ir_is_black (uint16_t raw, bool b_was_black, ir_cal_t const * p_cal)
 {
     uint16_t dark = ir_darkness(raw, p_cal);

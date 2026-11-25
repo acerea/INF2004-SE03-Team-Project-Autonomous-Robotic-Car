@@ -33,9 +33,21 @@
 #define VC_CAR_HALF_LENGTH_CM        (10u)   // Half the car length.
 #define VC_BYPASS_FORWARD_MIN_CM     (30u)
 #define VC_BYPASS_FORWARD_MAX_CM     (120u)
-#define VC_BYPASS_TIMEOUT_MS         (30000u)
-#define VC_REJOIN_TIMEOUT_MS         (3000u)
-#define VC_REJOIN_STABLE_SAMPLES     (3u)
+#define VC_BYPASS_TIMEOUT_MS         (30000u)   // Per leg.
+/* Return leg: after turning in, drive towards the line until a sensor sees
+ * it (up to the sideways distance plus this), not a fixed distance: four
+ * encoder turns on the foam mat add up to a tilt (video 25 Nov 18:25). */
+#define VC_BYPASS_SEEK_EXTRA_CM      (30u)
+/* Then pivot back to the original heading, stopping when the middle sensor
+ * is on the line; give up (line following searches) after this much. */
+#define VC_BYPASS_ALIGN_MAX_DEG      (135u)
+#define VC_BYPASS_SEE_SAMPLES        (2u)       // VC ticks (10 ms) in a row.
+/* Only the way back looks for the line, and only near where the ORIGINAL
+ * line should be: the sensors (VC_JUNCTION_ADVANCE_CM ahead of the wheels)
+ * reach it after (sideways - advance) cm; a line seen more than this much
+ * sooner is another one (video 25 Nov 18:55: the S-bend beside the line
+ * was taken while passing the box) and is driven over. */
+#define VC_BYPASS_SEEK_EARLY_CM      (6u)
 
 // Mission state, 3 bits on the wire (8 values), one byte in RAM.
 typedef uint8_t vc_state_t;
@@ -76,6 +88,20 @@ typedef uint8_t vc_state_t;
 /* Line lost while following: drive straight this long before searching
  * (counted from when the VC itself lost it, not from before START). */
 #define VC_LOST_STRAIGHT_MS     (1200u)
+
+/* Just lost the line: if it was last seen this far off centre (C/R position,
+ * +/-500 full scale), it went round a bend: curve that way at full steering
+ * instead of driving straight. Nearer the centre (a gap): straight. */
+#define VC_LOST_ARC_MIN_POS     (200)
+
+/* Barcode actions happen at the next T-junction, not where the barcode is
+ * read. At the junction the IR sensors are on the bar but the wheels are
+ * behind it: drive this far first so the car turns about the junction.
+ * MEASURE: IR sensors to the rear axle, plus half the 18 mm line. */
+#define VC_JUNCTION_ADVANCE_CM  (12u)
+/* Ignore "junction" signals this soon after the barcode: the IR state is
+ * still settling from the barcode read itself. */
+#define VC_JUNCTION_GUARD_MS    (500u)
 
 IMPORT ER vehicle_init(void);
 IMPORT ER vehicle_start(void);

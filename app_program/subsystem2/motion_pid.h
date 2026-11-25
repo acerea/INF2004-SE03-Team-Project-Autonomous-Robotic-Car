@@ -16,6 +16,9 @@ void motion_pidStop(void);
 /* Start moving forward for a specified distance (cm) */
 void motion_pidMoveDistance(float distance_cm, float speed_cm_s);
 
+/* Same, driving backwards (no line steering). */
+void motion_pidMoveBackDistance(float distance_cm, float speed_cm_s);
+
 /* Check whether requested distance or turn has completed (return 1)*/
 int motion_pidIsComplete(void);
 

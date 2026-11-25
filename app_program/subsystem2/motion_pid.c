@@ -30,6 +30,10 @@ static float left_start_distance = 0.0f;
 static float right_start_distance = 0.0f;
 static float target_distance = 0.0f;
 static int distance_mode = 0;
+/* +1 forward, -1 reverse (only set by motion_pidMoveBackDistance). The PID
+ * works on forward speeds; reverse flips the measured speeds and travel
+ * going in, and the wheel PWM coming out. */
+static int drive_dir = 1;
 static int motion_complete = 0;
 static int line_correction_pwm = 0;
 static int line_error_filtered = 0;
@@ -49,7 +53,12 @@ static int line_error_filtered = 0;
 /* Line steering strength (see motion_pidSetLineCorrection). */
 #define LINE_GAIN_PCT 2      /* was 3: oversteered on curves at 30 mm/s */
 #define LINE_MAX_PWM  15     /* was 30: base PWM at 30 mm/s is only ~14 */
-#define LINE_TARGET_GAIN 0.35f /* Wheel-target steering: less abrupt than raw PWM */
+/* Wheel-target steering: each wheel's target = speed x (1 +/- GAIN x pos/1000).
+ * The C/R line position only reaches +/-500, so at 0.35 the tightest turn
+ * was ~31 cm radius and the car ran wide on the ~20 cm loop, lost the line
+ * and searched (video 25 Nov). 1.0 gives ~11 cm at full error; at +/-1000
+ * (the VC's lost-line arc) the inside wheel stops: radius = half the track. */
+#define LINE_TARGET_GAIN 1.0f
 
 /* FR6: Encoder-based turning */
 #define WHEEL_TRACK_CM 9.9f
@@ -122,6 +131,7 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
     target_speed = speed_cm_s;
     pid_active = 1;
     distance_mode = 0;
+    drive_dir = 1;
     motion_complete = 0;
 }
 
@@ -226,11 +236,11 @@ void motion_pidUpdate(float dt_seconds)
     float distance_correction = 0.0f;
 
     if (distance_mode) {
-        float left_travelled =
-            encoder_getLeftDistance() - left_start_distance;
+        float left_travelled = (float)drive_dir
+            * (encoder_getLeftDistance() - left_start_distance);
 
-        float right_travelled =
-            encoder_getRightDistance() - right_start_distance;
+        float right_travelled = (float)drive_dir
+            * (encoder_getRightDistance() - right_start_distance);
 
         float travelled =
             (left_travelled + right_travelled) / 2.0f;
@@ -256,13 +266,15 @@ void motion_pidUpdate(float dt_seconds)
     left_previous_count = left_now;
     right_previous_count = right_now;
 
-    float left_speed =
-        encoder_calculateLeftSpeed(left_change, dt_seconds);
+    float left_speed = (float)drive_dir
+        * encoder_calculateLeftSpeed(left_change, dt_seconds);
 
-    float right_speed =
-        encoder_calculateRightSpeed(right_change, dt_seconds);
+    float right_speed = (float)drive_dir
+        * encoder_calculateRightSpeed(right_change, dt_seconds);
 
-    float steer = target_speed * LINE_TARGET_GAIN
+    /* No line steering when reversing: the sensors are at the front. */
+    float steer = (drive_dir < 0) ? 0.0f
+                : target_speed * LINE_TARGET_GAIN
                   * ((float)line_error_filtered / 1000.0f);
     float left_target = target_speed + steer;
     float right_target = target_speed - steer;
@@ -297,7 +309,7 @@ void motion_pidUpdate(float dt_seconds)
     if (right_pwm < 0.0f) right_pwm = 0.0f;
     if (right_pwm > 100.0f) right_pwm = 100.0f;
 
-    motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+    motion_setWheelPWM(drive_dir * (int)left_pwm, drive_dir * (int)right_pwm);
 }
 
 
@@ -309,6 +321,7 @@ void motion_pidStop(void)
     pid_active = 0;
     target_speed = 0.0f;
     distance_mode = 0;
+    drive_dir = 1;
     turn_mode = 0;
     line_correction_pwm = 0;
     line_error_filtered = 0;
@@ -332,6 +345,15 @@ void motion_pidMoveDistance(float distance_cm, float speed_cm_s)
     target_distance = distance_cm;
     distance_mode = 1;
     motion_complete = 0;
+}
+
+/* Reverse straight for distance_cm: same controller, direction flipped. */
+void motion_pidMoveBackDistance(float distance_cm, float speed_cm_s)
+{
+    motion_pidMoveDistance(distance_cm, speed_cm_s);
+    if (distance_mode) {
+        drive_dir = -1;
+    }
 }
 
 /* Return the completion flag for the last distance or turn action. */
