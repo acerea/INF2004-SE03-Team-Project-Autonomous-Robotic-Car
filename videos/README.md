@@ -39,3 +39,6 @@ Newest at the bottom. Never delete a row.
 | Date | Subsystem | Test ID / demo | Commit | Student ID | Link | Notes |
 |---|---|---|---|---|---|---|
 | YYYY-MM-DD | S1 | S1-U03 | `abc1234` | | <https://youtu.be/...> | LED blinks at 2 Hz |
+| 2026-11-25 | INT | INT run R1 (INT-VC5, VC6, VC7, VC9, VC11) | `f2b1748` | 2502049 | <https://youtu.be/KNKkJJi9sS0> | Line following, hump 11 mm, obstacle sweep -> bypass right, back on the line. Logs: `testing/integration/logs/2026-11-25_R1_*.log` |
+| 2026-11-25 | INT | INT run R2 (INT-VC5, VC6, VC7, VC9, VC11) | `f2b1748` | 2502049 | <https://youtu.be/FVoq1ijGTDE> | Line following, hump 11 mm, obstacle sweep -> bypass right, back on the line. Logs: `testing/integration/logs/2026-11-25_R2_*.log` |
+| 2026-11-25 | INT | INT run R3 (INT-VC6, VC7, VC9, VC10, VC11) | `f2b1748` | 2502049 | <https://youtu.be/xRuwYrglJrI> | Hump 11 mm, bypass, back on the line, picked up -> motors stop. Logs: `testing/integration/logs/2026-11-25_R3_*.log` |
