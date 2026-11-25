@@ -1,0 +1,108 @@
+Unit tests, all subsystems (make TEST=1), serial monitor output.
+Date: 2026-11-25   Commit: f2b1748   Tester: Kathryn
+
+---- Opened the serial port COM5 ----
+[TEST] === test run start ===
+[TEST] S1-U01 PASS  kernel objects exist
+[TEST] S1-U02 PASS  pack/unpack round trip at min and max
+[TEST] S1-U03 PASS  out-of-range values saturate and flag an error
+[TEST] S1-U04 PASS  valid accepted, duplicate rejected, STOP always ok
+[TEST] S1-U05 PASS  sequence window edges
+[TEST] S1-U06 PASS  bad version, cmd or length rejected
+[TEST] S1-U07 PASS  full queue drops frames and never blocks
+[TEST] S1-U08 PASS  frame type bits match the MQTT library
+[TEST] S1-U09 PASS  1-byte oversize marker rejected, sequence unchanged
+[TEST] S1-U10 PASS  cmd counters wrap 255 -> 0 and fit 8 bits
+[TEST] S1-U11 PASS  uptime wraps at 65536 s and fits 16 bits
+[TEST] subsystem1 SUMMARY 11 passed, 0 failed
+[TEST] S2-U01 PASS  sample values stay within 0..100
+[TEST] S2-U02 PASS  free slots and free blocks within pool size
+[TEST] S2-U03 FAIL  Left encoder calculates expected wheel speed   (../app_program/subsystem2/subsystem2_test.c:46)
+[TEST] S2-U04 PASS  Right encoder calculates expected wheel speed
+[TEST] S2-U05 PASS  P controller calculates expected PWM output
+[TEST] S2-U06 PASS  PI controller accumulates speed error correctly
+[TEST] S2-U07 PASS  PID controller produces expected PWM outputs
+[TEST] S2-U08 PASS  PID maintains base PWM when speed error is zero
+[TEST] S2-U09 PASS  PID output remains within valid PWM limits
+[TEST] subsystem2 SUMMARY 8 passed, 1 failed
+[TEST] S3-U02 PASS  calibration: learned levels or safe defaults
+[TEST] S3-U03 PASS  darkness normalisation 0..1000
+[TEST] S3-U04 PASS  black/white hysteresis
+[TEST] S3-U05 PASS  line position estimate -1000..1000
+[TEST] S3-U20 PASS  C/R line position excludes the barcode sensor
+[TEST] S3-U06 PASS  all-white reading reports line lost
+[TEST] S3-U07 PASS  A-Z decode at narrow = 10, 25, 40 ms
+[TEST] S3-U08 PASS  decode tolerates +/-30 % element jitter
+[TEST] S3-U09 PASS  no wide/narrow contrast -> unreadable
+[TEST] S3-U10 PASS  forward read of *A* decodes A
+[TEST] S3-U11 PASS  backward read of *B* decodes B
+[TEST] S3-U12 PASS  barcode word -> navigation command
+[TEST] S3-U13 PASS  nav byte packing and letter codes
+[TEST] S3-U14 PASS  mbf_s3_nav exists, 1-byte messages
+[TEST] S3-U15 PASS  ir_sensor_task running and calibrated
+[TEST] S3-U16 PASS  snapshot values within range
+[TEST] S3-U17 PASS  snapshot is bit-packed into 8 bytes
+[TEST] S3-U18 PASS  unframed barcode pattern is rejected
+[TEST] S3-U19 PASS  invalid interior pattern rejects the word
+[TEST] subsystem3 SUMMARY 19 passed, 0 failed
+[TEST] B4-U01 PASS  turning state plus overturned flag packs correctly
+[TEST] B4-U02 PASS  motion state can be extracted
+[TEST] B4-U03 PASS  overturned and IMU fault flags are independent
+[TEST] B4-U04 PASS  invalid state code is handled safely
+[TEST] S4-U01 PASS  message buffer max line = S4_SUMMARY_MAX
+[TEST] B4-U05 PASS  low activity is classified as stationary
+[TEST] B4-U06 PASS  sufficient activity is classified as moving
+[TEST] B4-U07 PASS  high yaw rate is classified as turning
+[TEST] B4-U08 PASS  sideways sensor tilt does not indicate climbing or descending
+[TEST] B4-U09 PASS  opposite sensor tilt does not indicate climbing or descending
+[TEST] B4-U10 PASS  lifted robot is classified as LIFTED
+[TEST] B4-U11 PASS  IMU fault produces a fault event
+[TEST] B4-U12 PASS  activity just below threshold is stationary
+[TEST] B4-U13 PASS  activity at threshold is classified as moving
+[TEST] B4-U14 PASS  large negative yaw rate is classified as turning
+[TEST] B4-U15 PASS  IMU fault takes priority over lift classification
+[TEST] B4-U17 PASS  overturned flag is carried with the motion state
+[TEST] B4-U16 PASS  reserved bits remain zero
+[TEST] B4-R01 PASS  30 degree ramp height calculation is approximately correct
+[TEST] B4-R02 PASS  zero ramp angle returns invalid result
+[TEST] B4-R03 PASS  angle above 90 degrees returns invalid result
+[TEST] B4-R04 PASS  zero ramp distance returns invalid result
+[TEST] B4-R05 PASS  distance beyond supported bound returns invalid result
+[TEST] B4-H01 PASS  robot at rest is not lifted or overturned
+[TEST] B4-H02 PASS  vibration does not trigger LIFTED
+[TEST] B4-H03 PASS  short bump does not trigger LIFTED
+[TEST] B4-H04 FAIL  lift is detected within 200 ms   (../app_program/subsystem4/subsystem4_test.c:84)
+[TEST] B4-H05 FAIL  gentle lift is detected without a fast upward motion   (../app_program/subsystem4/subsystem4_test.c:90)
+[TEST] B4-H06 FAIL  LIFTED latches for the hold time, then clears   (../app_program/subsystem4/subsystem4_test.c:97)
+[TEST] B4-H07 PASS  upside down is OVERTURNED
+[TEST] B4-H08 PASS  on its side is OVERTURNED
+[TEST] B4-H09 PASS  upright again clears OVERTURNED
+[TEST] B4-H10 PASS  20 deg slope is not overturned or lifted
+[TEST] B4-H11 PASS  integer square root and magnitude are exact
+[TEST] B4-K01 PASS  10 mm right-wheel hump measured within 1 mm
+[TEST] B4-K02 PASS  hump measured within 1 mm with motor vibration
+[TEST] B4-K03 PASS  tilt with no right-wheel travel is not reported
+[TEST] B4-K04 PASS  flat floor gives no hump
+[TEST] B4-K05 PASS  3 mm bump is ignored
+[TEST] B4-K06 PASS  turn acceleration removed by lat_comp_mg
+ir: RAW L=194 C=223 R=164 | cal white=500 black=2000 | L dark=0 (white)
+[TEST] B4-K08 PASS  stopping on the ramp does not lose or skew the hump
+[TEST] B4-K09 PASS  level reads level after a lift and re-learn
+[TEST] B4-K07 PASS  roll ratio to height conversion
+[TEST] S4-U02 PASS  flg_s4_imu exists and uses only S4_FLG_* bits
+[TEST] subsystem4 SUMMARY 41 passed, 3 failed
+[TEST] S5-U01 PASS  running in a task context
+[TEST] S5-U02 PASS  ultrasonic driver initialized
+[TEST] S5-U03 PASS  reading falls within operational limits or returns clean -1.0 timeout
+[TEST] S5-U04 PASS  reading does not return dead zero / unhandled timeout
+[TEST] S5-U05 PASS  12-bit bit-packed telemetry encodes and decodes cleanly without data loss
+[TEST] S5-U06 PASS  servo PWM hardware initialized and centered
+[TEST] S5-U07 PASS  servo angles and out-of-bound angles clamped safely
+[TEST] S5-U08 PASS  direction arbitration correctly selects side with maximum clearance
+[TEST] S5-U09 PASS  obstacle width calculated accurately via triangulation geometry
+[TEST] S5-U10 PASS  S5 event flag object valid and published
+[TEST] S5-U11 PASS  obstacle on the left: bypass right, small clearance
+[TEST] S5-U12 PASS  obstacle on the right: bypass left, far wall ignored
+[TEST] S5-U13 PASS  centred 10 cm obstacle: width measured, both edges found
+[TEST] subsystem5 SUMMARY 13 passed, 0 failed
+[TEST] === test run end ===

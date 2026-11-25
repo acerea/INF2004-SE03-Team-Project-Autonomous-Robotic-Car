@@ -24,7 +24,6 @@
 #include "../subsystem1/subsystem1.h"
 
 #define COS_45_DEG   0.70710678f
-#define S5_STATE_MASK (S5_FLAG_CLEAR | S5_FLAG_SLOWDOWN | S5_FLAG_EMERGENCY)
 
 EXPORT ID flg_s5_obstacle;
 EXPORT volatile UW g_s5_width_cm = 0;

@@ -25,7 +25,6 @@
 #define IR_ADC_MAX              (4095u)     // 12-bit ADC.
 #define IR_DARK_MAX             (1000u)     // Darkness full scale.
 #define IR_POS_MAX              (1000)      // |line position| maximum.
-#define IR_POS_BITS             (11u)       // -1024..1023 holds +/-1000.
 #define IR_LOST_DARK_SUM        (300u)      // Sum of 3 darkness below = no line.
 
 // Calibration defaults (used if the start-up calibration has too little
@@ -47,7 +46,6 @@
 // Code 39.
 #define IR_C39_ELEMENTS         (9u)
 #define IR_C39_WIDE_COUNT       (3u)
-#define IR_C39_PATTERN_MASK     (0x1FFu)    // 9 bits.
 #define IR_C39_STAR             (0x094u)    // '*' = 010010100 (start/stop).
 #define IR_C39_MIN_RATIO_X10    (15u)       // 3rd widest >= 1.5 x 4th widest.
 #define IR_C39_BAD              ('?')

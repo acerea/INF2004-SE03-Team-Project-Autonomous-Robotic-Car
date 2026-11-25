@@ -83,8 +83,6 @@
 #define IR_JUNC_SAMPLES         (3u)        // Junction must hold 30 ms.
 #define IR_BARCODE_CONFIRM_SAMPLES (3u)     // Barcode pad must hold 30 ms.
 #define IR_JUNC_HOLD_MS         (300u)      // Report a junction this long.
-#define IR_SENS_SIDES           (IR_SENS_LEFT | IR_SENS_RIGHT)
-#define IR_SENS_ALL             (IR_SENS_LEFT | IR_SENS_CENTRE | IR_SENS_RIGHT)
 #define IR_LINE_PUB_MS          (1000u)     // LINE frame at least every 1 s.
 #define IR_POS_PUB_MS           (100u)      // Line position alone: max 10 Hz.
 #define IR_MAX_CHARS            (10u)       // '*' + 8 letters + '*'.
@@ -241,41 +239,6 @@ ir_set_state (uint8_t state, uint32_t now)
     g_ctx.state_ms = now;
 
     return;
-}
-
-// Read the three sensors, classify them, update g_next.sensors.
-static uint8_t
-ir_read_sensors (uint16_t p_dark[3])
-{
-    uint16_t raw_l = ir_read_adc(ADC_LEFT);
-    uint16_t raw_c = ir_read_adc(ADC_CENTRE);
-    uint16_t raw_r = ir_read_adc(ADC_RIGHT);
-    uint8_t  old = g_ctx.sensors;
-    uint8_t  bits = 0u;
-
-    if (ir_is_black(raw_l, 0u != (old & IR_SENS_LEFT), &g_ctx.cal[0]))
-    {
-        bits |= IR_SENS_LEFT;
-    }
-    if (ir_is_black(raw_c, 0u != (old & IR_SENS_CENTRE), &g_ctx.cal[1]))
-    {
-        bits |= IR_SENS_CENTRE;
-    }
-    if (ir_is_black(raw_r, 0u != (old & IR_SENS_RIGHT), &g_ctx.cal[2]))
-    {
-        bits |= IR_SENS_RIGHT;
-    }
-
-    if (NULL != p_dark)
-    {
-        p_dark[0] = ir_darkness(raw_l, &g_ctx.cal[0]);
-        p_dark[1] = ir_darkness(raw_c, &g_ctx.cal[1]);
-        p_dark[2] = ir_darkness(raw_r, &g_ctx.cal[2]);
-    }
-
-    g_ctx.sensors  = bits & 0x07u;
-    g_next.sensors = bits & 0x07u;
-    return (bits);
 }
 
 // Line-following uses the centre and right IR sensors only.  ADC_LEFT is

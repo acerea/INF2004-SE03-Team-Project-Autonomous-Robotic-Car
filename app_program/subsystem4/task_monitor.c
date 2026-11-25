@@ -25,19 +25,6 @@ EXPORT void monitor_alarm_handler(void *exinf)
 	tk_set_flg(flg_events, FLG_ALARM);
 }
 
-LOCAL const char *state_name(UINT tskstat)
-{
-	switch (tskstat) {
-	case TTS_RUN:	return "RUN";
-	case TTS_RDY:	return "READY";
-	case TTS_WAI:	return "WAIT";
-	case TTS_SUS:	return "SUSPEND";
-	case TTS_WAS:	return "WAIT+SUSPEND";
-	case TTS_DMT:	return "DORMANT";
-	default:	return "?";
-	}
-}
-
 EXPORT void monitor_task(INT stacd, void *exinf)
 {
 	UINT		flgptn;
@@ -46,10 +33,7 @@ EXPORT void monitor_task(INT stacd, void *exinf)
 	APP_STATS	snap;
 	T_RSEM		rsem;
 	T_RMPF		rmpf;
-	// T_RTSK		rtsk;
 	SYSTIM		now;
-	// UW		reports = 0;
-	// BOOL		led_paused = FALSE;
 	ER		er;
 
 	(void)stacd; (void)exinf;
@@ -96,24 +80,5 @@ EXPORT void monitor_task(INT stacd, void *exinf)
 			  now.lo, snap.received, snap.min, snap.max,
 			  snap.received ? (INT)(snap.sum / (W)snap.received) : 0,
 			  rsem.semcnt, (INT)rmpf.frbcnt);
-
-		// /* 4. Every few reports, pause or resume subsystem 1's LED task
-		//       (IF-05) and look at it with tk_ref_tsk. */
-		// if (++reports % S4_LED_TOGGLE_REPORTS == 0) {
-		// 	if (led_paused) {
-		// 		tk_rsm_tsk(tid_led);
-		// 		tk_chg_pri(tid_led, S1_PRI_LED);	/* back to normal */
-		// 	} else {
-		// 		tk_sus_tsk(tid_led);
-		// 		/* Changing the priority of a task: */
-		// 		tk_chg_pri(tid_led, S1_PRI_LED + 1);
-		// 	}
-		// 	led_paused = !led_paused;
-
-		// 	tk_ref_tsk(tid_led, &rtsk);
-		// 	tm_printf((UB*)"monitor: LED task %s, state=%s, pri=%d\n",
-		// 		  led_paused ? "paused" : "resumed",
-		// 		  state_name(rtsk.tskstat), rtsk.tskpri);
-		// }
 	}
 }

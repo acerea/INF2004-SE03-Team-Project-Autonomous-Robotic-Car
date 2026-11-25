@@ -13,7 +13,6 @@
 #include "../app.h"
 
 /* Task configuration */
-#define S2_PRI_PRODUCER		14	/* priority band 14-15 (TEAM.md) */
 #define S2_PRI_MOTION    	15  /* S2 motion priority */
 #define S2_PERIOD_MS		300	/* one sample every 300 ms */
 #define S2_MOTION_MS     	20  /* Motion update period */
@@ -78,16 +77,6 @@ static inline uint8_t motion_unpackCommand(uint16_t request)
 static inline uint16_t motion_unpackArgument(uint16_t request)
 {
     return (uint16_t)(request >> 3);
-}
-
-static inline void motion_encodeRequest(uint8_t bytes[2],
-                                        uint8_t command,
-                                        uint16_t argument)
-{
-    uint16_t request = motion_packRequest(command, argument);
-
-    bytes[0] = (uint8_t)(request & 0xFFu);
-    bytes[1] = (uint8_t)(request >> 8);
 }
 
 static inline uint16_t motion_decodeRequest(const uint8_t bytes[2])

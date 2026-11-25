@@ -14,7 +14,6 @@
 #define S4_PRI_MONITOR		18	/* priority band 18-19 (TEAM.md) */
 #define S4_PRI_IMU		19	/* GY-511 sampling task; same S4 priority band */
 #define S4_ALARM_MS		2000	/* report anyway if nothing for 2 s */
-#define S4_LED_TOGGLE_REPORTS	6	/* pause/resume the LED every N reports */
 
 /* IF-03: send one text line (at most S4_SUMMARY_MAX bytes, no '\0'
    needed) to mbf_summary, then set FLG_BATCH in flg_events. */

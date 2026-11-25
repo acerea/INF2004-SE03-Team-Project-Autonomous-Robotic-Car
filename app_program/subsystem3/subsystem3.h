@@ -15,7 +15,6 @@
 #include "ir_sense.h"
 
 #define S3_PRI_IR		16	/* ir_sensor_task, band 16-17 (TEAM.md) */
-#define S3_PRI_CONSUMER		17	/* legacy example, not started */
 #define S3_BATCH_SIZE		5	/* legacy example */
 
 /* ---------------------------------------------------------------------

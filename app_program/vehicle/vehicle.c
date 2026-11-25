@@ -73,7 +73,6 @@ typedef uint8_t vc_event_t;
 #define VC_EV_LIFTED        (7u)    // S4: robot picked up (rising edge).
 #define VC_EV_OVERTURNED    (8u)    // S4: robot overturned (rising edge).
 #define VC_EV_MOTION_DONE   (9u)    // S2 completed a distance/turn command.
-#define VC_EV_REJOIN        (10u)   // Unused: the bypass rejoins in vc_poll_bypass.
 
 #define VC_HANDLED_BITS     (S4_FLG_LIFTED | S4_FLG_OVERTURNED)
 
