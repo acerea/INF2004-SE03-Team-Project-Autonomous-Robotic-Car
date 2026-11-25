@@ -67,7 +67,7 @@
  * 
  * NOTE: Calibration should be verified during motor-driven testing.
  */
-#define LEFT_COUNTS_PER_REV         2513.4f 
+#define LEFT_COUNTS_PER_REV         2576.0f  /* was 2513.4; tuned by tape test (drift left) */
 #define RIGHT_COUNTS_PER_REV        2533.2f 
 #define WHEEL_DIAMETER_CM           6.0f 
 #define WHEEL_CIRCUMFERENCE_CM      (3.14159265f * WHEEL_DIAMETER_CM)

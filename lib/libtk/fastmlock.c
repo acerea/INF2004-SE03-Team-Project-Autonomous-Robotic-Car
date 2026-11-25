@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include <tk/tkernel.h>
+#include <tk/smp.h>
 
 #if USE_MULTI_LOCK
 /* ------------------------------------------------------------------------ */
@@ -31,6 +32,37 @@
  *	The above must be operated exclusively.
  */
 
+/*
+ * SE03 fix (2026-11-24): on the dual-core (SMP) build these helpers must be
+ * atomic across BOTH cores. Disabling interrupts (DI/EI) only protects the
+ * core that does it, so two tasks on different cores (e.g. the IR task's
+ * tk_srea_dev and the IMU task's tk_swri_dev, which share the device
+ * manager's lock) could corrupt lock->wai / lock->flg: a waiter was then
+ * never woken and stayed blocked forever. fastlock.c already does this.
+ */
+#if TK_SUPPORT_SMP
+Inline void INC( INT *val )
+{
+	(void)atomic_inc((UW*)val);
+}
+
+Inline void DEC( INT *val )
+{
+	(void)atomic_dec((UW*)val);
+}
+
+Inline BOOL BTS( UINT *val, INT no )
+{
+	UW	bm = (UW)(1 << no);
+
+	return (BOOL)((atomic_bitset((UW*)val, bm) & bm) != 0);
+}
+
+Inline void BR( UINT *val, INT no )
+{
+	(void)atomic_bitclr((UW*)val, (UW)(1 << no));
+}
+#else
 Inline void INC( INT *val )
 {
 	UINT	imask;
@@ -70,6 +102,7 @@ Inline void BR( UINT *val, INT no )
 	*val &= ~(UINT)(1 << no);
 	EI(imask);
 }
+#endif /* TK_SUPPORT_SMP */
 
 
 /*

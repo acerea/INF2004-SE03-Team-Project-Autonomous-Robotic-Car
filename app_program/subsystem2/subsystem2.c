@@ -11,6 +11,7 @@
 #include "motion_pid.h"
 #include "subsystem2.h"
 #include "wheel_encoder.h"
+#include "../subsystem1/subsystem1.h"
 
 EXPORT ID	sem_slots;	/* IF-02, see subsystem2.h */
 EXPORT ID	mpf_samples;
@@ -25,6 +26,11 @@ static ID motion_sem;
 /* Only the motion task changes these values. */
 static float requested_speed_cm_s = 0.0f;
 static int awaiting_motion_done = 0;
+static uint32_t motion_mode = PROTO_MO_MODE_STOP;   /* For telemetry. */
+
+/* MOTION telemetry (IF-10, type 2): every 200 ms moving, 1 s stopped. */
+#define MOTION_TLM_MOVING_MS 200u
+#define MOTION_TLM_IDLE_MS   1000u
 
 /* Process at most one full queue per cycle. */
 #define MOTION_REQUESTS_PER_CYCLE 8u
@@ -90,6 +96,10 @@ EXPORT ER subsystem2_init(void)
     return E_OK;
 }
 
+EXPORT void s2_setLineCorrection(int line_pos)
+{
+    motion_pidSetLineCorrection(line_pos);
+}
 /* Cyclic handler: signal the motion task without performing PID work here. */
 static void motion_tick(void *exinf)
 {
@@ -105,6 +115,7 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
         motion_pidStop();
         requested_speed_cm_s = 0.0f;
         awaiting_motion_done = 0;
+        motion_mode = PROTO_MO_MODE_STOP;
         break;
 
     case S2_MOTION_SET_SPEED:
@@ -116,22 +127,54 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
         requested_speed_cm_s = (float)argument;
         motion_pidChangeSpeed(requested_speed_cm_s);
 
+        /* A speed change keeps an active distance move or turn. */
+        if ((motion_mode != PROTO_MO_MODE_DISTANCE)
+            && (motion_mode != PROTO_MO_MODE_TURN)) {
+            motion_mode = PROTO_MO_MODE_SPEED;
+        }
+
         if (argument == 0u) {
             awaiting_motion_done = 0;
         }
         break;
 
     case S2_MOTION_MOVE_DISTANCE:
-        if (argument > 0u) {
+        if ((argument & S2_MOVE_CM_MASK) > 0u) {
             float speed = requested_speed_cm_s;
+            uint16_t asked = (argument >> S2_MOVE_SPEED_SHIFT)
+                             & S2_MOVE_SPEED_MASK;
 
-            if (speed <= 0.0f) {
+            if (asked > 0u) {
+                speed = (float)asked;           /* e.g. a dashboard nudge */
+            } else if (speed <= 0.0f) {
                 speed = (float)S2_MOTION_DEFAULT_SPEED;
             }
 
             motion_pidStop();
-            motion_pidMoveDistance((float)argument, speed);
+            motion_pidMoveDistance((float)(argument & S2_MOVE_CM_MASK),
+                                   speed);
             awaiting_motion_done = 1;
+            motion_mode = PROTO_MO_MODE_DISTANCE;
+        }
+        break;
+
+    case S2_MOTION_MOVE_BACK:
+        if ((argument & S2_MOVE_CM_MASK) > 0u) {
+            float speed = requested_speed_cm_s;
+            uint16_t asked = (argument >> S2_MOVE_SPEED_SHIFT)
+                             & S2_MOVE_SPEED_MASK;
+
+            if (asked > 0u) {
+                speed = (float)asked;
+            } else if (speed <= 0.0f) {
+                speed = (float)S2_MOTION_DEFAULT_SPEED;
+            }
+
+            motion_pidStop();
+            motion_pidMoveBackDistance((float)(argument & S2_MOVE_CM_MASK),
+                                       speed);
+            awaiting_motion_done = 1;
+            motion_mode = PROTO_MO_MODE_DISTANCE;
         }
         break;
 
@@ -140,6 +183,7 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
             motion_pidStop();
             motion_pidTurnLeft((float)argument);
             awaiting_motion_done = 1;
+            motion_mode = PROTO_MO_MODE_TURN;
         }
         break;
 
@@ -148,6 +192,7 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
             motion_pidStop();
             motion_pidTurnRight((float)argument);
             awaiting_motion_done = 1;
+            motion_mode = PROTO_MO_MODE_TURN;
         }
         break;
 
@@ -159,11 +204,13 @@ static void motion_handleRequest(uint8_t command, uint16_t argument)
 
 static void motion_receiveRequests(void)
 {
-    uint16_t requests[MOTION_REQUESTS_PER_CYCLE];
-    UINT count = 0;
-    int stop_received = 0;
-
-    /* Read without blocking. A finite limit prevents starving PID. */
+    /* Read without blocking. A finite limit prevents starving PID.
+     *
+     * Requests are applied strictly in the order the VC sent them. A STOP
+     * still cancels everything queued before it, but a request sent AFTER
+     * the STOP (e.g. STOP then SET_SPEED when a bypass finishes) must not
+     * be thrown away: the VC only resends a request when it changes, so a
+     * dropped one left the car standing still in FOLLOWING. */
     for (UINT i = 0; i < MOTION_REQUESTS_PER_CYCLE; i++) {
         uint8_t bytes[S2_MOTION_REQUEST_BYTES];
 
@@ -179,27 +226,58 @@ static void motion_receiveRequests(void)
 
         uint16_t request = motion_decodeRequest(bytes);
 
-        requests[count++] = request;
-
-        if (motion_unpackCommand(request) == S2_MOTION_STOP) {
-            stop_received = 1;
-
-            /* Apply STOP immediately when encountered. */
-            motion_handleRequest(S2_MOTION_STOP, 0u);
-        }
+        motion_handleRequest(
+            motion_unpackCommand(request),
+            motion_unpackArgument(request)
+        );
     }
+}
 
-    /* STOP overrides other requests read in this batch. */
-    if (stop_received) {
+/* Speed in 0.1 cm/s from an encoder count change over elapsed_ms. */
+static int32_t motion_tenths(float speed_cm_s)
+{
+    return (int32_t)((speed_cm_s >= 0.0f) ? (speed_cm_s * 10.0f + 0.5f)
+                                          : (speed_cm_s * 10.0f - 0.5f));
+}
+
+/* Publish one MOTION frame when it is due. Never blocks. */
+static void motion_publishTelemetry(UW now_ms)
+{
+    static UW last_ms = 0u;
+    static int32_t last_left = 0;
+    static int32_t last_right = 0;
+    UW period = (motion_mode == PROTO_MO_MODE_STOP) ? MOTION_TLM_IDLE_MS
+                                                    : MOTION_TLM_MOVING_MS;
+    UW elapsed_ms = now_ms - last_ms;
+
+    if (elapsed_ms < period) {
         return;
     }
 
-    for (UINT i = 0; i < count; i++) {
-        motion_handleRequest(
-            motion_unpackCommand(requests[i]),
-            motion_unpackArgument(requests[i])
-        );
-    }
+    int32_t left = encoder_getLeftCount();
+    int32_t right = encoder_getRightCount();
+    float dt = (float)elapsed_ms / 1000.0f;
+    float left_speed = encoder_calculateLeftSpeed(left - last_left, dt);
+    float right_speed = encoder_calculateRightSpeed(right - last_right, dt);
+    int left_pwm;
+    int right_pwm;
+    uint8_t frame[PROTO_MAX_FRAME_BYTES];
+    proto_bits_t bits;
+
+    last_ms = now_ms;
+    last_left = left;
+    last_right = right;
+    motion_getWheelPWM(&left_pwm, &right_pwm);
+
+    proto_init(&bits, frame, sizeof(frame));
+    proto_begin(&bits, PROTO_TYPE_MOTION);
+    proto_put(&bits, motion_mode, PROTO_MO_MODE_BITS);
+    proto_put_sat(&bits, (uint32_t)requested_speed_cm_s, PROTO_MO_TARGET_BITS);
+    proto_put_s(&bits, motion_tenths(left_speed), PROTO_MO_SPEED_BITS);
+    proto_put_s(&bits, motion_tenths(right_speed), PROTO_MO_SPEED_BITS);
+    proto_put_s(&bits, (int32_t)left_pwm, PROTO_MO_PWM_BITS);
+    proto_put_s(&bits, (int32_t)right_pwm, PROTO_MO_PWM_BITS);
+    (void)s1_publish(frame, proto_end(&bits), false);
 }
 
 /* Run PID updates and temporarily report measured wake-up intervals. */
@@ -240,8 +318,11 @@ static void motion_control_task(INT stacd, void *exinf)
         if (awaiting_motion_done && motion_pidIsComplete()) {
             if (tk_set_flg(flg_motion, S2_MOTION_DONE) == E_OK) {
                 awaiting_motion_done = 0;
+                motion_mode = PROTO_MO_MODE_STOP;
             }
         }
+
+        motion_publishTelemetry((UW)current_time.lo);
     }
 }
 

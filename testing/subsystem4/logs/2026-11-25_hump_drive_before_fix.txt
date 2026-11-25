@@ -1,0 +1,302 @@
+---- Opened the serial port COM5 ----
+[HUMP] rdy=1 act=1 h=20 p=-49 | X=14 Y=61 Z=954 dx=17 dy=23 lat=0 | R=729 mm dt=30
+ir: RAW L=175 C=1729 R=152 | cal white=147 black=4095 | L dark=7 (white)
+[HUMP] rdy=1 act=1 h=24 p=-61 | X=22 Y=63 Z=953 dx=21 dy=29 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=28 p=-28 | X=24 Y=24 Z=912 dx=24 dy=13 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=29 p=-52 | X=19 Y=66 Z=958 dx=25 dy=25 lat=0 | R=729 mm dt=20
+[HUMP] rdy=1 act=1 h=38 p=-27 | X=46 Y=38 Z=951 dx=32 dy=13 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=37 p=-29 | X=21 Y=42 Z=930 dx=32 dy=14 lat=0 | R=729 mm dt=30
+ir: RAW L=157 C=1734 R=182 | cal white=147 black=4095 | L dark=2 (white)
+[HUMP] rdy=1 act=1 h=30 p=-24 | X=35 Y=50 Z=942 dx=25 dy=11 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=32 p=-40 | X=26 Y=51 Z=949 dx=27 dy=19 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=40 p=-34 | X=28 Y=57 Z=949 dx=34 dy=16 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=28 p=-53 | X=27 Y=64 Z=957 dx=24 dy=25 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=33 p=-30 | X=35 Y=52 Z=948 dx=28 dy=14 lat=0 | R=729 mm dt=20
+ir: RAW L=150 C=1724 R=183 | cal white=147 black=4095 | L dark=0 (white)
+[HUMP] rdy=1 act=1 h=21 p=-55 | X=19 Y=54 Z=947 dx=18 dy=26 lat=0 | R=729 mm dt=40
+[HUMP] rdy=1 act=1 h=15 p=-49 | X=28 Y=50 Z=944 dx=13 dy=23 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=20 p=-53 | X=17 Y=49 Z=946 dx=17 dy=25 lat=0 | R=729 mm dt=40
+[HUMP] rdy=1 act=1 h=23 p=-48 | X=24 Y=55 Z=947 dx=20 dy=23 lat=0 | R=729 mm dt=40
+ir: RAW L=206 C=1742 R=147 | cal white=147 black=4095 | L dark=14 (white)
+[HUMP] rdy=1 act=1 h=35 p=-52 | X=39 Y=65 Z=977 dx=30 dy=25 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=28 p=-19 | X=19 Y=37 Z=938 dx=24 dy=9 lat=0 | R=729 mm dt=20
+[HUMP] rdy=1 act=1 h=17 p=-30 | X=4 Y=64 Z=938 dx=14 dy=14 lat=0 | R=729 mm dt=40
+[HUMP] rdy=1 act=1 h=24 p=-56 | X=31 Y=46 Z=945 dx=21 dy=27 lat=0 | R=729 mm dt=40
+[HUMP] rdy=1 act=1 h=31 p=-30 | X=33 Y=49 Z=946 dx=26 dy=14 lat=0 | R=729 mm dt=30
+ir: RAW L=179 C=1745 R=176 | cal white=147 black=4095 | L dark=8 (white)
+[HUMP] rdy=1 act=1 h=28 p=-36 | X=21 Y=52 Z=943 dx=24 dy=17 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=34 p=-40 | X=30 Y=48 Z=943 dx=29 dy=19 lat=0 | R=729 mm dt=20
+[HUMP] rdy=1 act=1 h=23 p=-71 | X=22 Y=51 Z=950 dx=20 dy=34 lat=0 | R=729 mm dt=20
+[HUMP] rdy=1 act=1 h=34 p=-48 | X=14 Y=71 Z=950 dx=29 dy=23 lat=0 | R=729 mm dt=20
+[HUMP] rdy=1 act=1 h=30 p=-48 | X=34 Y=44 Z=943 dx=26 dy=23 lat=0 | R=729 mm dt=40
+ir: RAW L=202 C=1741 R=143 | cal white=147 black=4095 | L dark=13 (white)
+[HUMP] rdy=1 act=1 h=16 p=-36 | X=10 Y=58 Z=957 dx=14 dy=17 lat=0 | R=729 mm dt=20
+[HUMP] rdy=1 act=1 h=31 p=-36 | X=25 Y=54 Z=946 dx=27 dy=17 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=24 p=-53 | X=28 Y=63 Z=961 dx=21 dy=25 lat=0 | R=729 mm dt=40
+[HUMP] rdy=1 act=1 h=22 p=-53 | X=46 Y=21 Z=939 dx=19 dy=25 lat=0 | R=729 mm dt=20
+ir: RAW L=196 C=1737 R=149 | cal white=147 black=4095 | L dark=12 (white)
+[HUMP] rdy=1 act=1 h=33 p=-40 | X=25 Y=67 Z=957 dx=28 dy=19 lat=0 | R=729 mm dt=20
+[HUMP] rdy=1 act=1 h=31 p=-36 | X=24 Y=50 Z=951 dx=27 dy=17 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=27 p=-15 | X=4 Y=68 Z=941 dx=23 dy=7 lat=0 | R=729 mm dt=20
+[HUMP] rdy=1 act=1 h=36 p=-32 | X=42 Y=53 Z=965 dx=31 dy=15 lat=0 | R=729 mm dt=40
+[HUMP] rdy=1 act=1 h=34 p=-38 | X=23 Y=58 Z=951 dx=29 dy=18 lat=0 | R=729 mm dt=20
+ir: RAW L=206 C=1746 R=142 | cal white=147 black=4095 | L dark=14 (white)
+[HUMP] rdy=1 act=1 h=22 p=-38 | X=38 Y=56 Z=966 dx=19 dy=18 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=37 p=-42 | X=38 Y=46 Z=956 dx=32 dy=20 lat=0 | R=729 mm dt=40
+[HUMP] rdy=1 act=1 h=48 p=-4 | X=55 Y=28 Z=951 dx=41 dy=2 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=35 p=-48 | X=22 Y=50 Z=944 dx=30 dy=23 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=34 p=-42 | X=26 Y=59 Z=958 dx=29 dy=20 lat=0 | R=729 mm dt=20
+ir: RAW L=161 C=1750 R=164 | cal white=147 black=4095 | L dark=3 (white)
+[HUMP] discarded: tilted > 6 s (peak=54 x0.1mm, right wheel moved 0 mm)
+[HUMP] start: roll height=44 x0.1mm travel=729 mm
+[HUMP] rdy=1 act=1 h=44 p=-33 | X=37 Y=55 Z=976 dx=38 dy=16 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=35 p=-34 | X=34 Y=49 Z=949 dx=30 dy=16 lat=0 | R=729 mm dt=30
+[HUMP] rdy=1 act=1 h=38 p=-30 | X=42 Y=45 Z=948 dx=32 dy=14 lat=0 | R=729 mm dt=40
+[HUMP] rdy=1 act=1 h=31 p=-46 | X=20 Y=55 Z=951 dx=27 dy=22 lat=0 | R=729 mm dt=40
+ir: RAW L=157 C[HUMP] rdy=1 act=0 h=37 p=-30 | X=30 Y=50 Z=956 dx=32 dy=14 lat=0 | R=740 mm dt=20
+[HUMP] rdy=1 act=0 h=41 p=-29 | X=40 Y=48 Z=952 dx=35 dy=14 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=0 h=30 p=-38 | X=33 Y=58 Z=962 dx=26 dy=18 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=0 h=23 p=-47 | X=20 Y=72 Z=956 dx=20 dy=22 lat=0 | R=740 mm dt=20
+ir: RAW L=189 C=1989 R=172 | cal white=147 black=3143 | L dark=14 (white)
+[HUMP] rdy=1 act=0 h=37 p=-38 | X=38 Y=53 Z=953 dx=32 dy=18 lat=0 | R=740 mm dt=30
+[HUMP] start: roll height=40 x0.1mm travel=740 mm
+[HUMP] rdy=1 act=1 h=38 p=-25 | X=31 Y=46 Z=942 dx=32 dy=12 lat=0 | R=740 mm dt=20
+[HUMP] rdy=1 act=1 h=32 p=-36 | X=28 Y=62 Z=958 dx=27 dy=17 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=28 p=-29 | X=32 Y=47 Z=956 dx=24 dy=14 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=28 p=-36 | X=16 Y=60 Z=960 dx=24 dy=17 lat=0 | R=740 mm dt=30
+ir: RAW L=176 C=1994 R=171 | cal white=147 black=3143 | L dark=9 (white)
+[HUMP] rdy=1 act=1 h=32 p=0 | X=37 Y=36 Z=930 dx=27 dy=0 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=30 p=-38 | X=22 Y=61 Z=946 dx=26 dy=18 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=31 p=-40 | X=30 Y=55 Z=952 dx=27 dy=19 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=37 p=-29 | X=51 Y=30 Z=954 dx=32 dy=14 lat=0 | R=740 mm dt=30
+ir: RAW L=177 C=2002 R=204 | cal white=147 black=3143 | L dark=10 (white)
+[HUMP] rdy=1 act=1 h=38 p=-25 | X=35 Y=59 Z=961 dx=33 dy=12 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=25 p=-44 | X=18 Y=63 Z=947 dx=21 dy=21 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=29 p=-36 | X=29 Y=56 Z=950 dx=25 dy=17 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=37 p=-32 | X=37 Y=51 Z=947 dx=32 dy=15 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=43 p=-38 | X=25 Y=63 Z=954 dx=37 dy=18 lat=0 | R=740 mm dt=20
+ir: RAW L=202 C=2006 R=202 | cal white=147 black=3143 | L dark=18 (white)
+[HUMP] rdy=1 act=1 h=29 p=-32 | X=22 Y=52 Z=938 dx=25 dy=15 lat=0 | R=740 mm dt=30
+[HUMP] rdy=1 act=1 h=41 p=-19 | X=33 Y=48 Z=957 dx=35 dy=9 lat=0 | R=740 mm dt=30
+vc: state STOPPED -> FOLLOWING
+vc: motion cmd=1 arg=3
+[HUMP] rdy=1 act=1 h=23 p=-32 | X=4 Y=71 Z=939 dx=20 dy=15 lat=0 | R=740 mm dt=20
+[HUMP] rdy=1 act=1 h=32 p=-109 | X=4 Y=212 Z=1011 dx=28 dy=53 lat=0 | R=742 mm dt=40
+ir: RAW L=198 C=1612 R=179 | cal white=147 black=3143 | L dark=17 (white)
+[HUMP] rdy=1 act=1 h=22 p=-111 | X=31 Y=114 Z=947 dx=19 dy=52 lat=0 | R=746 mm dt=40
+ir: state=3 sensors=0 junction=0 line_pos=-433 lost=0
+[HUMP] rdy=1 act=1 h=43 p=-10 | X=66 Y=39 Z=982 dx=37 dy=5 lat=0 | R=750 mm dt=30
+[HUMP] rdy=1 act=1 h=31 p=8 | X=63 Y=-5 Z=932 dx=26 dy=-4 lat=0 | R=755 mm dt=30
+[HUMP] rdy=1 act=1 h=61 p=-2 | X=26 Y=36 Z=955 dx=53 dy=1 lat=0 | R=758 mm dt=30
+ir: RAW L=177 C=203 R=1078 | cal white=147 black=3143 | L dark=10 (white)
+[HUMP] rdy=1 act=1 h=34 p=-34 | X=33 Y=27 Z=939 dx=29 dy=16 lat=0 | R=761 mm dt=40
+[HUMP] rdy=1 act=1 h=54 p=-87 | X=57 Y=49 Z=932 dx=46 dy=41 lat=0 | R=765 mm dt=40
+[HUMP] rdy=1 act=1 h=14 p=-11 | X=-12 Y=-1 Z=912 dx=12 dy=5 lat=0 | R=770 mm dt=40
+[HUMP] rdy=1 act=1 h=43 p=29 | X=43 Y=22 Z=944 dx=37 dy=-14 lat=0 | R=775 mm dt=40
+ir: RAW L=189 C=205 R=1449 | cal white=147 black=3143 | L dark=14 (white)
+[HUMP] rdy=1 act=1 h=55 p=-35 | X=52 Y=25 Z=978 dx=48 dy=17 lat=0 | R=778 mm dt=40
+ir: state=1 sensors=1 junction=0 line_pos=-433 lost=0
+[HUMP] rdy=1 act=1 h=27 p=-96 | X=24 Y=127 Z=969 dx=23 dy=46 lat=0 | R=782 mm dt=30
+ir: state=3 sensors=0 junction=0 line_pos=413 lost=0
+[HUMP] rdy=1 act=1 h=63 p=-21 | X=60 Y=49 Z=924 dx=53 dy=10 lat=0 | R=786 mm dt=40
+[HUMP] rdy=1 act=1 h=39 p=-43 | X=50 Y=34 Z=958 dx=33 dy=20 lat=0 | R=790 mm dt=30
+[HUMP] rdy=1 act=1 h=58 p=-2 | X=80 Y=73 Z=1000 dx=50 dy=1 lat=0 | R=793 mm dt=40
+ir: RAW L=201 C=245 R=280 | cal white=147 black=3143 | L dark=18 (white)
+[HUMP] rdy=1 act=1 h=42 p=-64 | X=6 Y=83 Z=946 dx=35 dy=30 lat=0 | R=797 mm dt=30
+[HUMP] rdy=1 act=1 h=17 p=-63 | X=32 Y=50 Z=961 dx=15 dy=30 lat=0 | R=801 mm dt=40
+[HUMP] rdy=1 act=1 h=29 p=13 | X=12 Y=38 Z=962 dx=25 dy=-6 lat=0 | R=804 mm dt=20
+[HUMP] rdy=1 act=1 h=25 p=-29 | X=41 Y=47 Z=951 dx=22 dy=14 lat=0 | R=808 mm dt=40
+ir: RAW L=167 C=241 R=626 | cal white=147 black=3143 | L dark=6 (white)
+[HUMP] rdy=1 act=1 h=40 p=19 | X=30 Y=22 Z=917 dx=34 dy=-9 lat=0 | R=811 mm dt=40
+[HUMP] rdy=1 act=1 h=37 p=6 | X=55 Y=29 Z=945 dx=31 dy=-3 lat=0 | R=814 mm dt=40
+[HUMP] rdy=1 act=1 h=31 p=-58 | X=20 Y=49 Z=951 dx=26 dy=27 lat=0 | R=817 mm dt=40
+[HUMP] rdy=1 act=1 h=44 p=-6 | X=68 Y=-20 Z=920 dx=37 dy=3 lat=0 | R=821 mm dt=30
+vc: line lost, searching right
+vc: motion cmd=0 arg=0
+vc: motion cmd=4 arg=6
+[HUMP] rdy=1 act=1 h=42 p=-2 | X=13 Y=36 Z=916 dx=35 dy=1 lat=0 | R=825 mm dt=40
+ir: RAW L=190 C=242 R=334 | cal white=147 black=3143 | L dark=14 (white)
+ir: state=1 sensors=2 junction=0 line_pos=413 lost=0
+vc: motion cmd=0 arg=0
+[HUMP] rdy=1 act=1 h=25 p=-32 | X=8 Y=203 Z=968 dx=21 dy=15 lat=0 | R=822 mm dt=40
+[HUMP] rdy=1 act=1 h=29 p=27 | X=38 Y=-83 Z=946 dx=25 dy=-13 lat=0 | R=821 mm dt=30
+vc: line found again
+vc: motion cmd=1 arg=3
+[HUMP] rdy=1 act=1 h=36 p=-49 | X=34 Y=53 Z=929 dx=31 dy=23 lat=0 | R=823 mm dt=40
+[HUMP] rdy=1 act=1 h=34 p=-86 | X=40 Y=107 Z=973 dx=29 dy=41 lat=0 | R=827 mm dt=20
+ir: RAW L=204 C=2086 R=176 | cal white=147 black=3143 | L dark=19 (white)
+[HUMP] rdy=1 act=1 h=24 p=-48 | X=24 Y=38 Z=952 dx=21 dy=23 lat=0 | R=830 mm dt=40
+[HUMP] rdy=1 act=1 h=28 p=-42 | X=27 Y=30 Z=973 dx=24 dy=20 lat=0 | R=833 mm dt=40
+[HUMP] rdy=1 act=1 h=44 p=-44 | X=31 Y=56 Z=944 dx=38 dy=21 lat=0 | R=837 mm dt=40
+[HUMP] rdy=1 act=1 h=34 p=-48 | X=21 Y=69 Z=963 dx=29 dy=23 lat=0 | R=840 mm dt=40
+ir: state=3 sensors=0 junction=0 line_pos=-490 lost=0
+[HUMP] rdy=1 act=1 h=34 p=-19 | X=37 Y=44 Z=927 dx=29 dy=9 lat=0 | R=843 mm dt=40
+ir: RAW L=156 C=674 R=191 | cal white=147 black=3143 | L dark=3 (white)
+[HUMP] rdy=1 act=1 h=29 p=13 | X=23 Y=35 Z=939 dx=25 dy=-6 lat=0 | R=847 mm dt=50
+ir: state=1 sensors=2 junction=0 line_pos=-490 lost=0
+[HUMP] rdy=1 act=1 h=57 p=-42 | X=51 Y=37 Z=952 dx=49 dy=20 lat=0 | R=850 mm dt=30
+[HUMP] rdy=1 act=1 h=31 p=81 | X=26 Y=20 Z=937 dx=26 dy=-38 lat=0 | R=853 mm dt=40
+[HUMP] rdy=1 act=1 h=60 p=21 | X=40 Y=27 Z=921 dx=51 dy=-10 lat=0 | R=858 mm dt=40
+ir: RAW L=188 C=1179 R=160 | cal white=147 black=3143 | L dark=13 (white)
+[HUMP] rdy=1 act=1 h=48 p=28 | X=18 Y=22 Z=938 dx=41 dy=-13 lat=0 | R=861 mm dt=40
+[HUMP] discarded: tilted > 6 s (peak=68 x0.1mm, right wheel moved 0 mm)
+[HUMP] rdy=1 act=0 h=60 p=62 | X=83 Y=4 Z=922 dx=50 dy=-29 lat=0 | R=864 mm dt=40
+[HUMP] start: roll height=75 x0.1mm travel=867 mm
+[HUMP] rdy=1 act=1 h=61 p=49 | X=40 Y=13 Z=954 dx=52 dy=-23 lat=0 | R=868 mm dt=30
+[HUMP] rdy=1 act=1 h=83 p=25 | X=69 Y=6 Z=934 dx=71 dy=-12 lat=0 | R=871 mm dt=30
+[HUMP] rdy=1 act=1 h=70 p=27 | X=71 Y=47 Z=944 dx=60 dy=-13 lat=0 | R=875 mm dt=40
+ir: RAW L=256 C=1356 R=134 | cal white=147 black=3143 | L dark=36 (white)
+[HUMP] rdy=1 act=1 h=90 p=44 | X=82 Y=-10 Z=957 dx=77 dy=-21 lat=0 | R=879 mm dt=40
+[HUMP] rdy=1 act=1 h=101 p=99 | X=91 Y=-32 Z=961 dx=86 dy=-47 lat=0 | R=882 mm dt=40
+[HUMP] rdy=1 act=1 h=100 p=87 | X=108 Y=-2 Z=938 dx=85 dy=-41 lat=0 | R=886 mm dt=40
+[HUMP] rdy=1 act=1 h=103 p=36 | X=94 Y=77 Z=966 dx=88 dy=-17 lat=0 | R=888 mm dt=40
+[HUMP] rdy=1 act=1 h=91 p=36 | X=79 Y=1 Z=910 dx=77 dy=-17 lat=0 | R=891 mm dt=40
+ir: RAW L=290 C=1654 R=196 | cal white=147 black=3143 | L dark=47 (white)
+[HUMP] rdy=1 act=1 h=94 p=64 | X=82 Y=-3 Z=948 dx=79 dy=-30 lat=0 | R=896 mm dt=40
+[HUMP] rdy=1 act=1 h=106 p=88 | X=98 Y=-30 Z=959 dx=91 dy=-42 lat=0 | R=899 mm dt=40
+[HUMP] rdy=1 act=1 h=118 p=85 | X=93 Y=-15 Z=944 dx=100 dy=-40 lat=0 | R=902 mm dt=20
+[HUMP] rdy=1 act=1 h=112 p=111 | X=117 Y=32 Z=980 dx=95 dy=-52 lat=0 | R=904 mm dt=40
+ir: RAW L=527 C=1843 R=205 | cal white=147 black=3143 | L dark=126 (white)
+[HUMP] rdy=1 act=1 h=108 p=76 | X=123 Y=-6 Z=935 dx=92 dy=-36 lat=0 | R=907 mm dt=40
+[HUMP] rdy=1 act=1 h=136 p=101 | X=59 Y=-12 Z=947 dx=116 dy=-48 lat=0 | R=911 mm dt=40
+[HUMP] rdy=1 act=1 h=116 p=90 | X=85 Y=-15 Z=908 dx=98 dy=-42 lat=0 | R=914 mm dt=20
+ir: state=3 sensors=0 junction=0 line_pos=-432 lost=0
+[HUMP] rdy=1 act=1 h=138 p=53 | X=135 Y=25 Z=954 dx=118 dy=-25 lat=0 | R=917 mm dt=40
+ir: RAW L=643 C=251 R=271 | cal white=147 black=3143 | L dark=165 (white)
+[HUMP] rdy=1 act=1 h=139 p=33 | X=131 Y=29 Z=960 dx=120 dy=-16 lat=0 | R=920 mm dt=30
+[HUMP] rdy=1 act=1 h=137 p=46 | X=106 Y=35 Z=942 dx=117 dy=-22 lat=0 | R=924 mm dt=20
+[HUMP] rdy=1 act=1 h=135 p=52 | X=115 Y=33 Z=932 dx=113 dy=-24 lat=0 | R=927 mm dt=40
+ir: state=1 sensors=1 junction=0 line_pos=-432 lost=0
+[HUMP] rdy=1 act=1 h=138 p=111 | X=99 Y=-17 Z=927 dx=117 dy=-52 lat=0 | R=931 mm dt=30
+[HUMP] rdy=1 act=1 h=138 p=40 | X=118 Y=0 Z=932 dx=117 dy=-19 lat=0 | R=936 mm dt=30
+ir: RAW L=996 C=194 R=2188 | cal white=147 black=3143 | L dark=283 (white)
+[HUMP] rdy=1 act=1 h=146 p=103 | X=119 Y=19 Z=957 dx=125 dy=-49 lat=0 | R=941 mm dt=30
+[HUMP] rdy=1 act=1 h=125 p=88 | X=70 Y=-20 Z=934 dx=105 dy=-41 lat=0 | R=945 mm dt=40
+[HUMP] rdy=1 act=1 h=106 p=55 | X=124 Y=32 Z=969 dx=91 dy=-26 lat=0 | R=948 mm dt=40
+[HUMP] rdy=1 act=1 h=129 p=83 | X=75 Y=-39 Z=937 dx=110 dy=-39 lat=0 | R=952 mm dt=40
+ir: RAW L=616 C=146 R=2246 | cal white=147 black=3143 | L dark=156 (white)
+[HUMP] rdy=1 act=1 h=98 p=68 | X=69 Y=51 Z=977 dx=85 dy=-33 lat=0 | R=956 mm dt=20
+[HUMP] rdy=1 act=1 h=101 p=61 | X=123 Y=6 Z=938 dx=86 dy=-29 lat=0 | R=961 mm dt=40
+[HUMP] rdy=1 act=1 h=120 p=83 | X=109 Y=14 Z=951 dx=101 dy=-39 lat=0 | R=965 mm dt=30
+[HUMP] rdy=1 act=1 h=79 p=70 | X=59 Y=15 Z=961 dx=67 dy=-33 lat=0 | R=969 mm dt=30
+[HUMP] rdy=1 act=1 h=83 p=43 | X=51 Y=17 Z=944 dx=70 dy=-20 lat=0 | R=973 mm dt=30
+ir: RAW L=301 C=150 R=1066 | cal white=147 black=3143 | L dark=51 (white)
+[HUMP] rdy=1 act=1 h=108 p=38 | X=102 Y=9 Z=958 dx=93 dy=-18 lat=0 | R=978 mm dt=40
+[HUMP] rdy=1 act=1 h=107 p=6 | X=111 Y=48 Z=921 dx=92 dy=-3 lat=0 | R=983 mm dt=40
+[HUMP] rdy=1 act=1 h=99 p=15 | X=72 Y=70 Z=953 dx=84 dy=-7 lat=0 | R=986 mm dt=40
+[HUMP] rdy=1 act=1 h=76 p=-29 | X=57 Y=71 Z=942 dx=65 dy=14 lat=0 | R=991 mm dt=40
+ir: RAW L=194 C=150 R=2245 | cal white=147 black=3143 | L dark=15 (white)
+[HUMP] rdy=1 act=1 h=61 p=6 | X=31 Y=14 Z=940 dx=52 dy=-3 lat=0 | R=995 mm dt=40
+[HUMP] rdy=1 act=1 h=61 p=40 | X=72 Y=23 Z=915 dx=52 dy=-19 lat=0 | R=997 mm dt=40
+[HUMP] rdy=1 act=1 h=88 p=-13 | X=58 Y=52 Z=938 dx=74 dy=6 lat=0 | R=1001 mm dt=20
+[HUMP] rdy=1 act=1 h=59 p=10 | X=113 Y=58 Z=977 dx=51 dy=-5 lat=0 | R=1005 mm dt=30
+[HUMP] rdy=1 act=1 h=69 p=23 | X=78 Y=15 Z=938 dx=59 dy=-11 lat=0 | R=1008 mm dt=40
+ir: RAW L=162 C=159 R=2181 | cal white=147 black=3143 | L dark=5 (white)
+[HUMP] rdy=1 act=1 h=66 p=26 | X=16 Y=26 Z=934 dx=56 dy=-12 lat=0 | R=1011 mm dt=40
+[HUMP] rdy=1 act=1 h=33 p=-28 | X=26 Y=45 Z=924 dx=28 dy=13 lat=0 | R=1015 mm dt=30
+[HUMP] rdy=1 act=1 h=74 p=34 | X=67 Y=13 Z=956 dx=63 dy=-16 lat=0 | R=1018 mm dt=20
+[HUMP] rdy=1 act=1 h=11 p=-59 | X=6 Y=38 Z=966 dx=9 dy=28 lat=0 | R=1022 mm dt=50
+ir: RAW L=207 C=180 R=2490 | cal white=147 black=3143 | L dark=20 (white)
+[B4-IMU] HUMP #5: height=15.5 mm (pitch check 9.9 mm), right wheel travel=158 mm
+[HUMP] rdy=1 act=0 h=11 p=-13 | X=7 Y=76 Z=958 dx=9 dy=6 lat=0 | R=1025 mm dt=30
+[HUMP] rdy=1 act=0 h=35 p=-52 | X=30 Y=47 Z=954 dx=30 dy=25 lat=0 | R=1028 mm dt=40
+[HUMP] rdy=1 act=0 h=16 p=-82 | X=18 Y=77 Z=956 dx=14 dy=39 lat=0 | R=1030 mm dt=40
+[HUMP] rdy=1 act=0 h=7 p=13 | X=9 Y=66 Z=949 dx=6 dy=-6 lat=0 | R=1033 mm dt=40
+ir: RAW L=195 C=201 R=2534 | cal white=147 black=3143 | L dark=16 (white)
+[HUMP] rdy=1 act=0 h=38 p=-15 | X=63 Y=99 Z=972 dx=32 dy=7 lat=0 | R=1035 mm dt=20
+[HUMP] start: roll height=52 x0.1mm travel=1036 mm
+[HUMP] rdy=1 act=1 h=52 p=-46 | X=66 Y=51 Z=943 dx=45 dy=22 lat=0 | R=1037 mm dt=40
+[HUMP] rdy=1 act=1 h=26 p=-21 | X=59 Y=67 Z=952 dx=22 dy=10 lat=0 | R=1039 mm dt=40
+ir: state=3 sensors=0 junction=0 line_pos=401 lost=0
+[HUMP] rdy=1 act=1 h=34 p=-19 | X=20 Y=35 Z=933 dx=29 dy=9 lat=0 | R=1041 mm dt=40
+ir: state=1 sensors=2 junction=0 line_pos=401 lost=0
+[HUMP] rdy=1 act=1 h=6 p=-19 | X=18 Y=76 Z=948 dx=5 dy=9 lat=0 | R=1044 mm dt=20
+ir: RAW L=167 C=2153 R=153 | cal white=147 black=3143 | L dark=6 (white)
+[HUMP] rdy=1 act=1 h=30 p=-28 | X=55 Y=90 Z=953 dx=25 dy=13 lat=0 | R=1046 mm dt=40
+[HUMP] rdy=1 act=1 h=19 p=-31 | X=-4 Y=43 Z=956 dx=16 dy=15 lat=0 | R=1049 mm dt=40
+[HUMP] rdy=1 act=1 h=29 p=-17 | X=14 Y=9 Z=931 dx=25 dy=8 lat=0 | R=1052 mm dt=40
+[HUMP] rdy=1 act=1 h=14 p=-25 | X=5 Y=81 Z=955 dx=12 dy=12 lat=0 | R=1054 mm dt=40
+[HUMP] rdy=1 act=1 h=32 p=-15 | X=28 Y=51 Z=935 dx=28 dy=7 lat=0 | R=1058 mm dt=30
+ir: RAW L=201 C=1182 R=175 | cal white=147 black=3143 | L dark=18 (white)
+[HUMP] rdy=1 act=1 h=39 p=-29 | X=25 Y=30 Z=985 dx=34 dy=14 lat=0 | R=1061 mm dt=40
+ir: state=3 sensors=0 junction=0 line_pos=-453 lost=0
+[HUMP] rdy=1 act=1 h=45 p=-35 | X=9 Y=26 Z=961 dx=39 dy=17 lat=0 | R=1064 mm dt=20
+[HUMP] rdy=1 act=1 h=38 p=-40 | X=41 Y=63 Z=953 dx=33 dy=19 lat=0 | R=1067 mm dt=30
+[HUMP] rdy=1 act=1 h=39 p=-23 | X=22 Y=24 Z=910 dx=33 dy=11 lat=0 | R=1070 mm dt=20
+ir: RAW L=170 C=252 R=169 | cal white=147 black=3143 | L dark=7 (white)
+[HUMP] rdy=1 act=1 h=38 p=-61 | X=9 Y=58 Z=948 dx=33 dy=29 lat=0 | R=1072 mm dt=40
+[HUMP] rdy=1 act=1 h=22 p=-44 | X=50 Y=38 Z=940 dx=19 dy=21 lat=0 | R=1075 mm dt=40
+[HUMP] rdy=1 act=1 h=34 p=6 | X=22 Y=43 Z=924 dx=29 dy=-3 lat=0 | R=1078 mm dt=30
+[HUMP] rdy=1 act=1 h=40 p=-65 | X=13 Y=58 Z=909 dx=34 dy=31 lat=0 | R=1082 mm dt=40
+[HUMP] rdy=1 act=1 h=43 p=-34 | X=81 Y=17 Z=939 dx=37 dy=16 lat=0 | R=1084 mm dt=40
+ir: RAW L=178 C=198 R=153 | cal white=147 black=3143 | L dark=10 (white)
+[HUMP] rdy=1 act=1 h=53 p=-36 | X=27 Y=19 Z=932 dx=45 dy=17 lat=0 | R=1088 mm dt=40
+[HUMP] rdy=1 act=1 h=34 p=-44 | X=10 Y=41 Z=935 dx=29 dy=21 lat=0 | R=1091 mm dt=40
+[B4-IMU] lift peak=5609 (trigger 30000) | longest loop=50 ms
+[B4-IMU] CAL X=13 Y=30 Z=929 mg | Motion=21 mg | Lift acc=-603 Peak=5609 | Lifted=0 Overturned=0 | Vertical delta=-71 mg | Hump now=32 (pitch 0) x0.1 mm | Event=0x01 | State=1
+vc: line lost, searching left
+vc: motion cmd=0 arg=0
+vc: motion cmd=3 arg=6
+[HUMP] rdy=1 act=1 h=28 p=-2 | X=1 Y=43 Z=948 dx=24 dy=1 lat=0 | R=1094 mm dt=30
+[HUMP] rdy=1 act=1 h=29 p=76 | X=43 Y=-27 Z=927 dx=25 dy=-36 lat=0 | R=1095 mm dt=30
+ir: RAW L=146 C=298 R=176 | cal white=147 black=3143 | L dark=0 (white)
+vc: motion cmd=0 arg=0
+[HUMP] rdy=1 act=1 h=61 p=24 | X=54 Y=12 Z=948 dx=51 dy=-11 lat=0 | R=1098 mm dt=30
+[HUMP] rdy=1 act=1 h=4 p=-28 | X=42 Y=68 Z=947 dx=3 dy=13 lat=0 | R=1098 mm dt=30
+vc: motion cmd=3 arg=6
+[HUMP] rdy=1 act=1 h=29 p=-23 | X=45 Y=36 Z=942 dx=25 dy=11 lat=0 | R=1098 mm dt=30
+ir: state=1 sensors=2 junction=0 line_pos=-453 lost=0
+vc: motion cmd=0 arg=0
+[HUMP] rdy=1 act=1 h=54 p=-8 | X=7 Y=-14 Z=960 dx=46 dy=4 lat=0 | R=1100 mm dt=30
+vc: state FOLLOWING -> STOPPED
+[HUMP] rdy=1 act=1 h=41 p=-19 | X=33 Y=62 Z=948 dx=35 dy=9 lat=0 | R=1100 mm dt=30
+ir: RAW L=173 C=1491 R=131 | cal white=147 black=3143 | L dark=8 (white)
+[HUMP] rdy=1 act=1 h=28 p=-15 | X=22 Y=47 Z=944 dx=24 dy=7 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=27 p=-34 | X=27 Y=53 Z=946 dx=23 dy=16 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=29 p=-25 | X=28 Y=45 Z=941 dx=25 dy=12 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=36 p=-19 | X=34 Y=53 Z=964 dx=31 dy=9 lat=0 | R=1100 mm dt=30
+ir: RAW L=178 C=1490 R=168 | cal white=147 black=3143 | L dark=10 (white)
+[HUMP] rdy=1 act=1 h=27 p=-25 | X=15 Y=68 Z=960 dx=23 dy=12 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=32 p=-17 | X=37 Y=50 Z=957 dx=27 dy=8 lat=0 | R=1100 mm dt=20
+[HUMP] rdy=1 act=1 h=28 p=-30 | X=17 Y=56 Z=947 dx=24 dy=14 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=28 p=-25 | X=31 Y=44 Z=948 dx=24 dy=12 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=7 p=-36 | X=0 Y=75 Z=938 dx=6 dy=17 lat=0 | R=1100 mm dt=20
+ir: RAW L=191 C=1470 R=140 | cal white=147 black=3143 | L dark=14 (white)
+[HUMP] rdy=1 act=1 h=29 p=-6 | X=29 Y=20 Z=926 dx=25 dy=3 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=31 p=-27 | X=39 Y=44 Z=951 dx=27 dy=13 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=37 p=-19 | X=41 Y=48 Z=945 dx=32 dy=9 lat=0 | R=1100 mm dt=40
+[HUMP] rdy=1 act=1 h=33 p=-11 | X=34 Y=39 Z=948 dx=28 dy=5 lat=0 | R=1100 mm dt=30
+ir: RAW L=166 C=1473 R=168 | cal white=147 black=3143 | L dark=6 (white)
+[HUMP] rdy=1 act=1 h=23 p=-25 | X=25 Y=56 Z=951 dx=20 dy=12 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=17 p=-48 | X=35 Y=62 Z=974 dx=15 dy=23 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=34 p=-21 | X=23 Y=58 Z=962 dx=29 dy=10 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=31 p=-36 | X=41 Y=44 Z=948 dx=27 dy=17 lat=0 | R=1100 mm dt=20
+[HUMP] rdy=1 act=1 h=29 p=-23 | X=30 Y=53 Z=953 dx=25 dy=11 lat=0 | R=1100 mm dt=30
+ir: RAW L=161 C=1499 R=141 | cal white=147 black=3143 | L dark=4 (white)
+[HUMP] rdy=1 act=1 h=29 p=-30 | X=27 Y=54 Z=951 dx=25 dy=14 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=27 p=-32 | X=18 Y=52 Z=943 dx=23 dy=15 lat=0 | R=1100 mm dt=20
+[HUMP] rdy=1 act=1 h=30 p=-29 | X=45 Y=37 Z=953 dx=26 dy=14 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=42 p=-2 | X=41 Y=40 Z=954 dx=36 dy=1 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=33 p=-11 | X=28 Y=58 Z=961 dx=28 dy=5 lat=0 | R=1100 mm dt=30
+ir: RAW L=147 C=1501 R=159 | cal white=147 black=3143 | L dark=0 (white)
+[HUMP] rdy=1 act=1 h=28 p=-30 | X=18 Y=58 Z=954 dx=24 dy=14 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=32 p=-23 | X=29 Y=49 Z=957 dx=27 dy=11 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=30 p=0 | X=31 Y=30 Z=930 dx=25 dy=0 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=1 h=37 p=-15 | X=29 Y=44 Z=939 dx=32 dy=7 lat=0 | R=1100 mm dt=30
+ir: RAW L=192 C=1470 R=128 | cal white=147 black=3143 | L dark=15 (white)
+[HUMP] discarded: tilted > 6 s (peak=68 x0.1mm, right wheel moved 0 mm)
+[HUMP] rdy=1 act=0 h=31 p=-25 | X=25 Y=54 Z=954 dx=27 dy=12 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=0 h=22 p=-36 | X=19 Y=55 Z=947 dx=19 dy=17 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=0 h=40 p=-8 | X=29 Y=49 Z=952 dx=34 dy=4 lat=0 | R=1100 mm dt=20
+[HUMP] rdy=1 act=0 h=25 p=-34 | X=18 Y=58 Z=955 dx=21 dy=16 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=0 h=32 p=-17 | X=33 Y=41 Z=953 dx=27 dy=8 lat=0 | R=1100 mm dt=30
+ir: RAW L=184 C=1494 R=145 | cal white=147 black=3143 | L dark=12 (white)
+[HUMP] rdy=1 act=0 h=29 p=-23 | X=35 Y=45 Z=970 dx=25 dy=11 lat=0 | R=1100 mm dt=20
+[HUMP] rdy=1 act=0 h=25 p=-23 | X=32 Y=53 Z=956 dx=21 dy=11 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=0 h=34 p=-17 | X=32 Y=44 Z=946 dx=29 dy=8 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=0 h=32 p=-11 | X=35 Y=39 Z=949 dx=27 dy=5 lat=0 | R=1100 mm dt=20
+ir: RAW L=158 C=1473 R=173 | cal white=147 black=3143 | L dark=3 (white)
+[HUMP] rdy=1 act=0 h=33 p=-33 | X=28 Y=48 Z=945 dx=28 dy=16 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=0 h=36 p=-4 | X=22 Y=47 Z=941 dx=31 dy=2 lat=0 | R=1100 mm dt=30
+[HUMP] rdy=1 act=0 h=31 p=-23 | X=26 Y=52 Z=945 dx=27 dy=11 lat=0 | R=1100 mm dt=30
+---- Closed the serial port COM5 ----

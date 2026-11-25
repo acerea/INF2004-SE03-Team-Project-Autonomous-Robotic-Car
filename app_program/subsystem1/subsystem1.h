@@ -25,7 +25,7 @@
 #define S1_TLM_BUF_BYTES    (256u)
 #define S1_RAW_MAX_MSG      (4u)
 #define S1_RAW_BUF_BYTES    (32u)
-#define S1_CMD_MAX_MSG      (1u)
+#define S1_CMD_MAX_MSG      (2u)      // MAP / MOVE add one byte.
 #define S1_CMD_BUF_BYTES    (32u)
 #define S1_CMD_FRAME_BYTES  PROTO_CMD_FRAME_BYTES
 
@@ -52,7 +52,15 @@
 #define S1_CMD_STOP         (1u)
 #define S1_CMD_ESTOP        (2u)
 #define S1_CMD_RESET        (3u)
-#define S1_CMD_MODE         (4u)
+#define S1_CMD_MODE         (4u)   // arg 0 = IR recalibrate, 1-15 = cruise cm/s.
+#define S1_CMD_PING         (5u)   // Keep-alive from the laptop station.
+#define S1_CMD_MAP          (6u)   // Barcode letter -> action (arg), letter
+                                   // in PROTO_MAP_LETTER_BITS after arg.
+                                   // Queued as 2 bytes: packed, letter.
+#define S1_CMD_MOVE         (7u)   // Nudge forward / back (arg bit 0 =
+                                   // reverse), cm in PROTO_MOVE_CM_BITS
+                                   // after arg. Queued as: packed, cm.
+                                   // cmd is 3 bits: no codes left after 7.
 #define S1_CMD_BITS         PROTO_CMD_BITS
 #define S1_ARG_BITS         PROTO_ARG_BITS
 
@@ -125,6 +133,10 @@ IMPORT void comms_task(INT stacd, void * exinf);
 /** Queue one frame for MQTT. Task context only, never blocks. Returns E_OK
  *  or a negative error (E_TMOUT means the queue was full: frame dropped). */
 ER s1_publish(uint8_t const * p_frame, uint32_t n_bytes, bool b_ack);
+
+/** Extra field after arg of a MAP (letter) or MOVE (cm) frame already
+ *  accepted by s1_cmd_check; 0 for every other command. */
+uint8_t s1_cmd_ext(uint8_t const * p_raw, uint32_t len);
 
 /** Validate a raw command frame. True if accepted; *p_packed is set. */
 bool s1_cmd_check(uint8_t const * p_raw, uint32_t len,

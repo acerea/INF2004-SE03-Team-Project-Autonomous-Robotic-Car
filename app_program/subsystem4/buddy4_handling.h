@@ -63,8 +63,8 @@
 // Lift detector: Z axis only (Z points up).
 #define B4_LIFT_TAU_MS (320)       // Integrator leak time constant.
 #define B4_LIFT_BASE_TAU_MS (2560) // Z baseline time constant.
-#define B4_LIFT_TRIGGER (30000)    // mg x ms; margin above driving vibration.
-#define B4_LIFT_RUN_MS (80)        // Trigger held 80 ms.
+#define B4_LIFT_TRIGGER (30000)    // mg x ms; catches gentle lifts but requires driving calibration.
+#define B4_LIFT_RUN_MS (150)//(80)        // Trigger held 80 ms.
 #define B4_LIFT_HOLD_MS (2000)     // LIFTED latched 2 s after trigger.
 #define B4_LIFT_ACC_LIMIT (200000) // Integrator clamp, mg x ms.
 
@@ -188,10 +188,19 @@ b4_handling_update_dt(B4_HANDLING *p_h, int16_t x_mg, int16_t y_mg,
     // Start the baseline at the first real reading: calibrated z at rest
     // is ~1060-1090 mg on the robot, not 1000, and starting at 1000 made
     // LIFTED fire for ~2 s after every boot (2026-11-18 log).
-    if (0u == p_h->b_seeded)
+
+    // if (0u == p_h->b_seeded)
+    // {
+    //     p_h->base_q8 = (int32_t)z_mg * 256;
+    //     p_h->b_seeded = 1u;
+    // }
+
+    // Skip the first 5 startup readings so the sensor settles before locking in the baseline.
+    if (p_h->b_seeded < 5u)
     {
         p_h->base_q8 = (int32_t)z_mg * 256;
-        p_h->b_seeded = 1u;
+        p_h->b_seeded++;
+        return;
     }
 
     // ---- Lift: Z only. Driving vibration on Z averages to zero, while

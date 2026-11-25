@@ -1,0 +1,185 @@
+20:41:56.4  mission  NEW RUN: dashboard cleared, humps counted from 0 (car not changed)
+20:41:59.2  cmd  sent RESET  (seq 203)
+20:41:59.4  mission  STOPPED -> IDLE
+20:42:09.0  cmd  sent CALIBRATE  (seq 223)
+20:42:09.1  mission  car: sweep calibration started
+20:42:09.1  mission  IDLE -> CALIBRATING
+20:42:09.1  line  IR calibrating
+20:42:11.1  line  IR calibration sweep: L 163/1996  C 149/1996  R 138/2747
+20:42:11.1  line  IR calibration done, now TRACK
+20:42:11.3  line  TRACK -> LINE_LOST
+20:42:11.3  line  LINE_LOST -> TRACK
+20:42:11.3  line  TRACK -> LINE_LOST
+20:42:11.5  line  LINE_LOST -> TRACK
+20:42:11.7  line  car: calibration done, middle sensor on the line
+20:42:11.7  mission  CALIBRATING -> IDLE
+20:42:13.8  cmd  sent START  (seq 234)
+20:42:14.0  mission  IDLE -> FOLLOWING
+20:42:14.0  line  TRACK -> LINE_LOST
+20:42:14.1  line  LINE_LOST -> TRACK
+20:42:14.7  line  TRACK -> LINE_LOST
+20:42:14.8  line  LINE_LOST -> TRACK
+20:42:15.2  line  TRACK -> LINE_LOST
+20:42:15.3  line  LINE_LOST -> TRACK
+20:42:15.8  line  TRACK -> LINE_LOST
+20:42:15.9  line  LINE_LOST -> TRACK
+20:42:16.4  line  TRACK -> LINE_LOST
+20:42:16.6  line  LINE_LOST -> TRACK
+20:42:17.1  line  TRACK -> LINE_LOST
+20:42:17.3  line  LINE_LOST -> TRACK
+20:42:17.8  line  TRACK -> LINE_LOST
+20:42:18.0  line  LINE_LOST -> TRACK
+20:42:18.4  line  TRACK -> LINE_LOST
+20:42:18.7  line  LINE_LOST -> TRACK
+20:42:19.2  line  TRACK -> LINE_LOST
+20:42:19.3  line  LINE_LOST -> TRACK
+20:42:20.0  line  TRACK -> LINE_LOST
+20:42:20.1  line  LINE_LOST -> TRACK
+20:42:20.8  line  TRACK -> LINE_LOST
+20:42:20.9  line  LINE_LOST -> TRACK
+20:42:21.2  line  TRACK -> LINE_LOST
+20:42:21.4  line  LINE_LOST -> TRACK
+20:42:21.9  line  TRACK -> LINE_LOST
+20:42:21.9  line  LINE_LOST -> TRACK
+20:42:22.6  line  TRACK -> LINE_LOST
+20:42:22.7  line  LINE_LOST -> TRACK
+20:42:23.2  line  TRACK -> LINE_LOST
+20:42:23.4  line  LINE_LOST -> TRACK
+20:42:26.3  line  TRACK -> LINE_LOST
+20:42:26.4  line  LINE_LOST -> TRACK
+20:42:26.9  line  TRACK -> LINE_LOST
+20:42:27.1  line  LINE_LOST -> TRACK
+20:42:27.5  line  TRACK -> LINE_LOST
+20:42:27.7  line  LINE_LOST -> TRACK
+20:42:28.2  line  TRACK -> LINE_LOST
+20:42:28.4  line  LINE_LOST -> TRACK
+20:42:29.4  line  TRACK -> LINE_LOST
+20:42:29.5  line  LINE_LOST -> TRACK
+20:42:29.8  line  TRACK -> LINE_LOST
+20:42:29.9  line  LINE_LOST -> TRACK
+20:42:32.2  line  TRACK -> LINE_LOST
+20:42:32.3  line  LINE_LOST -> TRACK
+20:42:37.4  line  TRACK -> LINE_LOST
+20:42:37.5  line  LINE_LOST -> TRACK
+20:42:37.9  line  TRACK -> LINE_LOST
+20:42:37.9  line  LINE_LOST -> TRACK
+20:42:38.4  line  TRACK -> LINE_LOST
+20:42:38.6  line  LINE_LOST -> TRACK
+20:42:39.1  line  TRACK -> LINE_LOST
+20:42:39.1  line  LINE_LOST -> TRACK
+20:42:39.6  line  TRACK -> LINE_LOST
+20:42:39.7  line  LINE_LOST -> TRACK
+20:42:40.0  line  TRACK -> LINE_LOST
+20:42:40.3  line  LINE_LOST -> TRACK
+20:42:43.0  line  junction BOTH
+20:42:43.2  line  TRACK -> LINE_LOST
+20:42:44.3  line  LINE_LOST -> TRACK
+20:42:44.3  line  junction BOTH
+20:42:45.0  line  TRACK -> LINE_LOST
+20:42:45.0  line  LINE_LOST -> TRACK
+20:42:45.2  line  TRACK -> LINE_LOST
+20:42:46.0  line  LINE_LOST -> TRACK
+20:42:46.2  imu  hump #1 measured, peak height 11 mm
+20:42:47.8  line  TRACK -> LINE_LOST
+20:42:48.0  line  LINE_LOST -> TRACK
+20:42:48.3  line  junction RIGHT
+20:42:50.3  line  TRACK -> LINE_LOST
+20:42:50.4  line  LINE_LOST -> TRACK
+20:42:52.8  line  TRACK -> LINE_LOST
+20:42:52.8  line  LINE_LOST -> TRACK
+20:42:53.3  line  TRACK -> LINE_LOST
+20:42:53.4  line  LINE_LOST -> TRACK
+20:42:53.8  line  TRACK -> LINE_LOST
+20:42:53.8  line  LINE_LOST -> TRACK
+20:42:55.4  line  TRACK -> LINE_LOST
+20:42:55.6  line  LINE_LOST -> TRACK
+20:42:55.8  line  TRACK -> LINE_LOST
+20:42:55.9  line  LINE_LOST -> TRACK
+20:43:02.6  line  TRACK -> LINE_LOST
+20:43:03.2  line  LINE_LOST -> TRACK
+20:43:09.4  line  TRACK -> LINE_LOST
+20:43:09.5  line  LINE_LOST -> TRACK
+20:43:10.0  line  TRACK -> LINE_LOST
+20:43:10.2  line  LINE_LOST -> TRACK
+20:43:10.8  line  TRACK -> LINE_LOST
+20:43:11.0  line  LINE_LOST -> TRACK
+20:43:11.3  line  TRACK -> LINE_LOST
+20:43:11.4  line  LINE_LOST -> TRACK
+20:43:11.8  line  junction RIGHT
+20:43:12.6  line  TRACK -> LINE_LOST
+20:43:12.7  line  LINE_LOST -> TRACK
+20:43:13.1  line  TRACK -> LINE_LOST
+20:43:13.3  line  LINE_LOST -> TRACK
+20:43:13.9  line  TRACK -> LINE_LOST
+20:43:14.0  line  LINE_LOST -> TRACK
+20:43:16.6  line  TRACK -> LINE_LOST
+20:43:16.8  line  LINE_LOST -> TRACK
+20:43:17.4  line  TRACK -> LINE_LOST
+20:43:17.5  line  LINE_LOST -> TRACK
+20:43:18.0  line  TRACK -> LINE_LOST
+20:43:18.2  line  LINE_LOST -> TRACK
+20:43:19.2  line  TRACK -> LINE_LOST
+20:43:19.3  line  LINE_LOST -> TRACK
+20:43:19.9  line  TRACK -> LINE_LOST
+20:43:20.0  line  LINE_LOST -> TRACK
+20:43:22.2  obstacle  EMERGENCY (13 cm)
+20:43:22.2  mission  FOLLOWING -> BLOCKED
+20:43:23.7  obstacle  sweep: width ≥ 16 cm, reaches left past the sweep, right past the sweep -> go RIGHT
+20:43:23.7  obstacle  car: bypass right, sideways 21 cm
+20:43:23.7  obstacle  car: bypass forward leg 43 cm
+20:43:23.8  line  TRACK -> LINE_LOST
+20:43:24.7  mission  BLOCKED -> BYPASSING
+20:43:25.2  obstacle  CLEAR (69 cm)
+20:43:28.2  line  LINE_LOST -> TRACK
+20:43:28.3  line  TRACK -> LINE_LOST
+20:43:36.3  line  LINE_LOST -> TRACK
+20:43:36.4  line  car: bypass done: middle sensor on the line
+20:43:36.6  mission  BYPASSING -> FOLLOWING
+20:43:39.5  line  TRACK -> LINE_LOST
+20:43:39.6  line  LINE_LOST -> TRACK
+20:43:40.9  line  TRACK -> LINE_LOST
+20:43:41.0  line  LINE_LOST -> TRACK
+20:43:41.2  line  TRACK -> LINE_LOST
+20:43:41.3  line  LINE_LOST -> TRACK
+20:43:41.5  line  TRACK -> LINE_LOST
+20:43:42.0  line  LINE_LOST -> TRACK
+20:43:42.2  line  TRACK -> LINE_LOST
+20:43:42.3  line  LINE_LOST -> TRACK
+20:43:42.9  line  TRACK -> LINE_LOST
+20:43:43.0  line  LINE_LOST -> TRACK
+20:43:43.4  line  TRACK -> LINE_LOST
+20:43:43.6  line  LINE_LOST -> TRACK
+20:43:43.9  line  TRACK -> LINE_LOST
+20:43:44.0  line  LINE_LOST -> TRACK
+20:43:44.5  line  TRACK -> LINE_LOST
+20:43:44.5  line  LINE_LOST -> TRACK
+20:43:45.0  line  TRACK -> LINE_LOST
+20:43:45.0  line  LINE_LOST -> TRACK
+20:43:45.5  line  TRACK -> LINE_LOST
+20:43:45.6  line  LINE_LOST -> TRACK
+20:43:45.9  line  TRACK -> LINE_LOST
+20:43:46.1  line  LINE_LOST -> TRACK
+20:43:46.5  line  TRACK -> LINE_LOST
+20:43:46.7  line  LINE_LOST -> TRACK
+20:43:47.1  line  TRACK -> LINE_LOST
+20:43:47.2  line  LINE_LOST -> TRACK
+20:43:47.8  line  TRACK -> LINE_LOST
+20:43:47.9  line  LINE_LOST -> TRACK
+20:43:48.2  line  TRACK -> LINE_LOST
+20:43:48.4  line  LINE_LOST -> TRACK
+20:43:48.9  line  TRACK -> LINE_LOST
+20:43:49.1  line  LINE_LOST -> TRACK
+20:43:49.4  line  TRACK -> LINE_LOST
+20:43:49.4  line  LINE_LOST -> TRACK
+20:43:50.4  line  TRACK -> LINE_LOST
+20:43:50.5  line  LINE_LOST -> TRACK
+20:43:54.9  line  TRACK -> LINE_LOST
+20:43:55.0  line  LINE_LOST -> TRACK
+20:43:55.2  line  TRACK -> LINE_LOST
+20:43:55.3  line  LINE_LOST -> TRACK
+20:43:55.5  line  TRACK -> LINE_LOST
+20:43:56.2  line  LINE_LOST -> TRACK
+20:43:56.4  line  TRACK -> LINE_LOST
+20:43:56.6  line  LINE_LOST -> TRACK
+20:43:56.7  cmd  sent STOP  (seq 183)
+20:43:56.8  mission  FOLLOWING -> STOPPED

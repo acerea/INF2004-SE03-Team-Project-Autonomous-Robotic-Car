@@ -33,6 +33,15 @@
 #define PROTO_CMD_BITS          (3u)
 #define PROTO_ARG_BITS          (4u)
 #define PROTO_CMD_FRAME_BYTES   (3u)
+// MAP command only (cmd 6): seq | ver | cmd | arg | letter, still 3 bytes
+// (22 of 24 bits). arg = action for that barcode letter: PROTO_BC_CMD_xxx
+// (0-4), or PROTO_MAP_DEFAULT = use subsystem 3's built-in table again.
+#define PROTO_MAP_LETTER_BITS   (5u)    // 0-25 = 'A'-'Z'.
+#define PROTO_MAP_DEFAULT       (7u)
+// MOVE command only (cmd 7): seq | ver | cmd | arg | cm, 23 of 24 bits.
+// arg bit 0: 0 = forward, 1 = reverse. Only while IDLE or STOPPED.
+#define PROTO_MOVE_CM_BITS      (6u)    // 1-63 cm.
+#define PROTO_MOVE_REVERSE      (1u)
 
 typedef uint8_t proto_type_t;
 #define PROTO_TYPE_HEARTBEAT    (0u)
@@ -45,12 +54,18 @@ typedef uint8_t proto_type_t;
 #define PROTO_TYPE_OBST_PROFILE (7u)
 
 
-// Vehicle state (type 1, Vehicle Controller): 12 bits. On change and 1 s.
+// Vehicle state (type 1, Vehicle Controller): 16 bits. On change and 1 s.
 #define PROTO_ST_STATE_BITS     (3u)    // 0-7, VC_STATE_xxx.
 #define PROTO_ST_OBSTACLE_BITS  (2u)    // 0 clear, 1 slow down, 2 emergency.
 #define PROTO_ST_LINK_LOST_BITS (1u)    // 1 = remote link lost.
 #define PROTO_ST_SPEED_BITS     (6u)    // Target speed, 0-63 cm/s.
+#define PROTO_ST_CRUISE_BITS    (4u)    // Cruise speed set by MODE, 1-15 cm/s.
 
+// Line (type 3, subsystem 3): 18 bits. On state/junction change and 1 s.
+#define PROTO_LN_STATE_BITS     (2u)    // 0 cali, 1 track, 2 barcode, 3 lost.
+#define PROTO_LN_SENSORS_BITS   (3u)    // Black sensors: L=4, C=2, R=1.
+#define PROTO_LN_JUNCTION_BITS  (2u)    // 0 none, 1 left, 2 right, 3 both.
+#define PROTO_LN_POS_BITS       (11u)   // Line position -1000..1000, signed.
 // Motion (type 2, subsystem 2): 46 bits. Every 200 ms while moving, 1 s idle.
 #define PROTO_MO_MODE_BITS      (2u)    // 0 stopped, 1 speed, 2 distance, 3 turn.
 #define PROTO_MO_TARGET_BITS    (6u)    // Target speed, 0-63 cm/s.
@@ -72,18 +87,19 @@ typedef uint8_t proto_type_t;
 #define PROTO_BC_CMD_UTURN      (4u)
 
 // Terrain (type 5, subsystem 4): 18 bits. Send on change and every 1 s.
-#define PROTO_TER_STATE_BITS    (3u)    // 0-7, B4_STATE_xxx.
-#define PROTO_TER_LIFTED_BITS   (1u)    // 1 = car lifted or overturned.
-#define PROTO_TER_COLLIDE_BITS  PROTO_TER_LIFTED_BITS   // Old name, until S4 switches.
+#define PROTO_TER_STATE_BITS    (3u)    // 0-7, B4_STATE_xxx (6 = LIFTED).
+#define PROTO_TER_FLIP_BITS     (1u)    // 1 = overturned (was collision).
 #define PROTO_TER_FAULT_BITS    (1u)    // 1 = IMU fault.
 #define PROTO_TER_HUMP_OK_BITS  (1u)    // 0 = hump not measured yet.
 #define PROTO_TER_HUMP_MM_BITS  (8u)    // Peak hump height, 0-255 mm.
 #define PROTO_TER_HUMPS_BITS    (4u)    // Hump count, 0-15.
+#define PROTO_TER_LIFT_PEAK_BITS (8u)   // Debug: peak lift_acc, x1000 mg.ms.
 
 // Obstacle (type 6, subsystem 5): 11 bits. Send at 5 Hz.
 #define PROTO_OBS_STATE_BITS    (2u)    // 0 clear, 1 slow down, 2 emergency.
 #define PROTO_OBS_CM_BITS       (9u)    // Distance 1-400 cm; 0 = no echo.
 #define PROTO_OBS_CM_MAX        (400u)
+#define PROTO_OBS_CM_FAULT      (511u)  // Sensor not responding (disconnected).
 
 // Obstacle profile (type 7, subsystem 5): 27 bits. Send once per sweep.
 #define PROTO_PRO_SIDE_BITS     (2u)    // 0 none, 1 left, 2 right.
@@ -91,6 +107,44 @@ typedef uint8_t proto_type_t;
 #define PROTO_PRO_WIDTH_MAX     (100u)
 #define PROTO_PRO_LEFT_BITS     (9u)    // Left clearance, 0-400 cm.
 #define PROTO_PRO_RIGHT_BITS    (9u)    // Right clearance, 0-400 cm.
+
+// IR calibration result (type 8, subsystem 3): 91 bits. Once per calibration.
+// kind, then for L, C, R: white, black (12-bit ADC) and ok (1 = new levels).
+#define PROTO_TYPE_IRCAL        (8u)
+#define PROTO_IRC_KIND_BITS     (2u)    // 0 standing, 1 sweep, 2 sweep cancelled.
+#define PROTO_IRC_LEVEL_BITS    (12u)
+#define PROTO_IRC_OK_BITS       (1u)
+
+// Vehicle event (type 9, Vehicle Controller): 38 bits. The reasons the VC
+// prints on the console, so they can be followed without the serial port.
+#define PROTO_TYPE_EVENT        (9u)
+#define PROTO_EV_CODE_BITS      (8u)    // VC_EVT_xxx (vehicle.c).
+#define PROTO_EV_ARG_BITS       (16u)
+
+// Barcode scan (type 10, subsystem 3): every bar/space of one read attempt
+// and why it failed, so the dashboard can draw it. Up to 4 frames of 15
+// elements: part | last | reason | uneven | scale | count | widths.
+// Element i is black when i is even (a scan starts on a bar).
+// Width in ms = value x scale. 33 + 6 x count bits (<= 123).
+#define PROTO_TYPE_SCAN         (10u)
+#define PROTO_SC_PART_BITS      (2u)    // 0-3.
+#define PROTO_SC_LAST_BITS      (1u)    // 1 = final part of this scan.
+#define PROTO_SC_REASON_BITS    (3u)    // PROTO_SCAN_xxx below.
+#define PROTO_SC_UNEVEN_BITS    (1u)    // 1 = narrow widths differ > 2x.
+#define PROTO_SC_SCALE_BITS     (8u)    // ms per width unit, 1-255.
+#define PROTO_SC_COUNT_BITS     (4u)    // Elements in this part, 0-15.
+#define PROTO_SC_WIDTH_BITS     (6u)    // Width in scale units, 0-63.
+#define PROTO_SC_PER_PART       (15u)
+#define PROTO_SC_MAX_ELEMS      (60u)   // 4 parts.
+#define PROTO_SCAN_OK           (0u)    // Decoded.
+#define PROTO_SCAN_NO_CHAR      (1u)    // < 9 elements: a single bar/noise.
+#define PROTO_SCAN_EXTRA        (2u)    // Count not a multiple of 9:
+                                        // missed or extra bar/space.
+#define PROTO_SCAN_UNCLEAR      (3u)    // Wide and narrow too alike.
+#define PROTO_SCAN_BAD_CHAR     (4u)    // Not a Code 39 character.
+#define PROTO_SCAN_NO_FRAME     (5u)    // No '*' at start and end.
+#define PROTO_SCAN_SOLID        (6u)    // Black > 1 s: junction or pad.
+#define PROTO_SCAN_TIMEOUT      (7u)    // Gave up (too slow / stopped).
 
 typedef struct
 {

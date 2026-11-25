@@ -54,7 +54,8 @@ static uint32_t link_fault_bits(s1_link_t link);
 static void update_link_flag(s1_link_t link);
 static void send_heartbeat(comms_ctx_t const * p_ctx, s1_link_t link,
                            uint32_t now);
-static void forward_command(comms_ctx_t * p_ctx, uint8_t packed);
+static void forward_command(comms_ctx_t * p_ctx, uint8_t packed,
+                            uint8_t letter);
 static void handle_command(comms_ctx_t * p_ctx, uint8_t const * p_raw,
                            uint32_t len);
 static s1_link_t escalate_link(comms_ctx_t * p_ctx, s1_link_t link,
@@ -103,9 +104,30 @@ s1_cmd_check (uint8_t const * p_raw, uint32_t len, s1_seq_state_t * p_seq,
     uint32_t ver = proto_get(&bits, PROTO_VERSION_BITS);
     uint32_t cmd = proto_get(&bits, S1_CMD_BITS);
     uint32_t arg = proto_get(&bits, S1_ARG_BITS);
+    bool     b_map_ok = true;
+
+    if (S1_CMD_MAP == cmd)
+    {
+        uint32_t letter = proto_get(&bits, PROTO_MAP_LETTER_BITS);
+
+        b_map_ok = (letter < 26u)
+                   && ((arg <= PROTO_BC_CMD_UTURN)
+                       || (PROTO_MAP_DEFAULT == arg));
+    }
+    else if (S1_CMD_MOVE == cmd)
+    {
+        uint32_t cm = proto_get(&bits, PROTO_MOVE_CM_BITS);
+
+        b_map_ok = (cm > 0u) && (arg <= PROTO_MOVE_REVERSE);
+    }
+    else
+    {
+        // No extra field.
+    }
 
     bool b_valid = (S1_CMD_FRAME_BYTES == len) && (false == bits.b_error)
-                   && (PROTO_VERSION == ver) && (cmd <= S1_CMD_MODE);
+                   && (PROTO_VERSION == ver) && (cmd <= S1_CMD_MOVE)
+                   && b_map_ok;
 
     uint32_t delta = (seq - (uint32_t) p_seq->last_seq) & SEQ_MASK;
     bool     b_new = (false == p_seq->b_have_seq)
@@ -128,6 +150,29 @@ s1_cmd_check (uint8_t const * p_raw, uint32_t len, s1_seq_state_t * p_seq,
     }
 
     return (b_accept);
+}
+
+uint8_t
+s1_cmd_ext (uint8_t const * p_raw, uint32_t len)
+{
+    proto_bits_t bits;
+    uint32_t     cmd;
+
+    proto_open(&bits, p_raw, len);
+    (void) proto_get(&bits, PROTO_SEQ_BITS + PROTO_VERSION_BITS);
+    cmd = proto_get(&bits, S1_CMD_BITS);
+    (void) proto_get(&bits, S1_ARG_BITS);
+
+    // NOTE: at most 6 bits, so the casts cannot truncate.
+    if (S1_CMD_MAP == cmd)
+    {
+        return ((uint8_t) proto_get(&bits, PROTO_MAP_LETTER_BITS));
+    }
+    if (S1_CMD_MOVE == cmd)
+    {
+        return ((uint8_t) proto_get(&bits, PROTO_MOVE_CM_BITS));
+    }
+    return (0u);
 }
 
 void
@@ -364,10 +409,12 @@ send_heartbeat (comms_ctx_t const * p_ctx, s1_link_t link, uint32_t now)
 }
 
 static void
-forward_command (comms_ctx_t * p_ctx, uint8_t packed)
+forward_command (comms_ctx_t * p_ctx, uint8_t packed, uint8_t letter)
 {
-    uint32_t cmd = s1_cmd_of(packed);
-    ER       err = E_OK;
+    uint32_t cmd    = s1_cmd_of(packed);
+    ER       err    = E_OK;
+    uint8_t  msg[2] = {packed, letter};
+    INT      size   = ((S1_CMD_MAP == cmd) || (S1_CMD_MOVE == cmd)) ? 2 : 1;
 
     // STOP and ESTOP also set a flag, so a full buffer can never lose them.
     if (S1_CMD_ESTOP == cmd)
@@ -388,11 +435,11 @@ forward_command (comms_ctx_t * p_ctx, uint8_t packed)
     }
     else
     {
-        // START and MODE need nothing extra here.
+        // START, MODE, PING, MAP and MOVE need nothing extra here.
     }
 
-    // NOTE: sizeof(packed) is 1, so the cast to INT is safe.
-    err = tk_snd_mbf(g_mbf_remote_cmd, &packed, (INT) sizeof(packed), TMO_POL);
+    // MAP and MOVE are 2 bytes (packed, extra field); the rest are 1.
+    err = tk_snd_mbf(g_mbf_remote_cmd, msg, size, TMO_POL);
 
     if (E_OK == err)
     {
@@ -420,7 +467,7 @@ handle_command (comms_ctx_t * p_ctx, uint8_t const * p_raw, uint32_t len)
         tm_printf((UB*)"s1: cmd accepted cmd=%d arg=%d\n",
                   (int) s1_cmd_of(packed), (int) s1_arg_of(packed));
 #endif
-        forward_command(p_ctx, packed);
+        forward_command(p_ctx, packed, s1_cmd_ext(p_raw, len));
     }
     else
     {

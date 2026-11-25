@@ -37,11 +37,13 @@ EXPORT void subsystem2_test(void)
 		   rmpf.frbcnt <= S2_POOL_COUNT,
 		   "free slots and free blocks within pool size");
 
-	/* S2-U03: Left wheel speed calculation (FR4) */
+	/* S2-U03: Left wheel speed calculation (FR4). The left wheel uses
+	   2576 counts/rev since the 18 Nov tape-test tuning (was 2513.4),
+	   so 100 counts in 1 s is 100 / 2576 x 18.85 cm = 0.732 cm/s. */
 	{
 		float speed = encoder_calculateLeftSpeed(100, 1.0f);
 
-		BOOL speed_ok = (speed > 0.74f && speed < 0.76f);
+		BOOL speed_ok = (speed > 0.72f && speed < 0.74f);
 
 		TEST_CHECK("S2-U03", speed_ok,
 				"Left encoder calculates expected wheel speed");

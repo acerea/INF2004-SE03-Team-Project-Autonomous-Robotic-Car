@@ -12,3 +12,4 @@ build_log.txt
 # Python
 __pycache__/
 *.pyc
+/logs/
