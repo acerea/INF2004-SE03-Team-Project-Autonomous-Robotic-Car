@@ -40,8 +40,17 @@ Define a test here before running it. Test IDs never change.
 | B4-M04 | Verify stationary readings after calibration | Calibrated IMU readings and motion classification | manual | Keep the sensor stationary, observe calibrated X, Y and Z readings, motion activity and impact delta, and check the resulting event. | Readings remain reasonably stable, motion activity and impact delta remain low, and the event is classified as STATIONARY. |
 | B4-M05 | Verify normal lift and gentle lift stop the motors | Lift detection and end-of-run signal | manual | Lift the robot normally and gently 10 times while it is stationary and while following a line. Use brisk and slow but unmistakable upward motion; restore it only after observing the stopped state. | Every normal lift changes TERRAIN to LIFTED, sets the lifted flag, and stops the motors. No false lift occurs during 60 seconds of normal stationary or driving vibration. |
 | B4-M06 | Verify sideways and upside-down orientation stops the motors | Overturn detection | manual | Hold the robot upright, tilt it beyond 60 degrees for more than 200 ms, and repeat on each side and upside down 10 times. Return it upright for 500 ms. | The robot changes to OVERTURNED/FAULT-free state and stops within 200 ms. It clears after about 500 ms while upright. |
-| B4-M07 | Verify hump height measurement | Terrain hump measurement | manual | Cross humps of known measured height (for example 10, 20 and 30 mm) several times at low speed. Use a ruler or blocks for the ground truth. | Hump count increments once per hump; peak height is reported in `hump_mm` and is within 10 mm of ground truth. Normal floor vibration does not create a hump. |
+| B4-M07 | Verify hump height measurement (course hump) | Terrain hump measurement (right-wheel hump, roll based) | manual | 1. Normal build (not TEST=1), B4_HUMP_DEBUG 1. 2. Power up still on flat ground; wait for "[HUMP] level learned". 3. Line-follow over the course hump (10 mm high, 9.5 cm up, 0.5 cm flat, 9.5 cm down) with only the RIGHT wheel on it, at normal (slow) speed. 4. Repeat 5 times, including at least one run where the car stops or searches for the line on the hump. 5. Save the console log. | Each crossing prints exactly one "[B4-IMU] HUMP #n" line with height 10 +/- 1.5 mm (8.5-11.5 mm), and the dashboard shows the same value (whole mm). No HUMP line and no false count while driving on flat floor. |
 | B4-M08 | Verify B4 lift peak driving baseline | Lift false-lift tuning | manual | Drive normally for 60 seconds with the dashboard/TERRAIN lift peak visible. Lift 10 times, and record peak and loop timing. | Largest 60-second driving peak is stable. Trigger is at least 1.5 times that peak. 10 normal lifts trigger and 60 seconds of driving produce no false lifts. |
+| B4-M09 | Verify roll-based hump height on the bench | Terrain hump measurement (right-wheel hump) | manual | 1. Power up on flat ground and wait 1 s. 2. Put a 10 mm spacer under the RIGHT rear wheel only. 3. Read "Hump now" in the 5 s console line. 4. Repeat with 5 mm. | "Hump now" about 100 (10.0 mm) and about 50 (5.0 mm), both within 10 (1 mm). If negative, set B4_HUMP_ROLL_SIGN to -1. |
+| B4-K01 | 10 mm right-wheel hump at 10 cm/s | Hump height (buddy4_hump.h) | auto | subsystem4_test.c | One hump reported, height 9.0–11.0 mm. |
+| B4-K02 | Same hump with +/-150 mg vibration | Hump height (buddy4_hump.h) | auto | subsystem4_test.c | One hump reported, height 9.0–11.0 mm. |
+| B4-K03 | Tilt with no right-wheel travel | Hump false-positive rejection | auto | subsystem4_test.c | No hump reported. |
+| B4-K04 | Flat floor with +/-200 mg vibration | Hump false-positive rejection | auto | subsystem4_test.c | No hump reported. |
+| B4-K05 | 3 mm bump | Hump minimum height | auto | subsystem4_test.c | No hump reported. |
+| B4-K06 | Turn acceleration removed by lat_comp_mg | Hump turn compensation | auto | subsystem4_test.c | Reading stays level, no hump reported. |
+| B4-K07 | Roll ratio to height conversion | Hump height (buddy4_hump.h) | auto | subsystem4_test.c | 90 mg at 1 g on a 111 mm track gives 10.0 mm. |
+| B4-K08 | Car stops halfway up the ramp for 8 s, then continues | Hump measurement during line search | auto | subsystem4_test.c | One hump reported, height 9.0–11.0 mm. |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -52,6 +61,8 @@ Add a new row for every run. Never edit or delete old rows.
 
 | Date | Test ID | Commit | Tester | Result | Log / evidence | Notes |
 |---|---|---|---|---|---|---|
+| 2026-11-25 | B4-M09 | aae7afe + uncommitted hump changes | Thryn | PASS | logs/2026-11-25_hump_bench.txt | 10 mm block under right rear wheel: h = 93-113 (9.3-11.3 mm), roll sign correct. Pitch check read -11 mm (sign flipped since). |
+| 2026-11-25 | B4-M07 | aae7afe + uncommitted hump changes | Thryn | FAIL | logs/2026-11-25_hump_drive_before_fix.txt | Reported 15.5 mm (pitch check 9.9 mm) and count x5. Cause: level baseline ~3 mm off and never re-learned; 6 s timeout too short. Fixed in buddy4_hump.h (baseline follows when moving, pre-hump snapshot, 10 s / 40 cm limits). Retest needed. |
 <!-- | YYYY-MM-DD | S4-U01 | `abc1234` | | PASS / FAIL | `logs/YYYY-MM-DD_….txt` | | -->
 
 | 2026-11-02 | B4-U01–U15, B4-R01–R05 | '60cc1bf' | Jie Xin | PASS | Console test output | 22 passed, 0 failed. |

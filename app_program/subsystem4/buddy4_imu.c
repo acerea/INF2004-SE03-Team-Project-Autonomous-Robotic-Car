@@ -23,6 +23,7 @@
 #include "buddy4_classifier.h"
 #include "buddy4_handling.h"
 #include "buddy4_ramp.h"
+#include "buddy4_hump.h"
 #include "subsystem4.h"
 #include "../subsystem2/wheel_encoder.h"
 
@@ -74,8 +75,25 @@
  * on its Z-axis because of gravity.
  */
 #define B4_GRAVITY_MG 1000
-#define B4_HUMP_TILT_MG 180
-#define B4_HUMP_END_MS 300u
+
+/*
+ * Hump measurement (buddy4_hump.h): the hump is under the right wheel only,
+ * so its height comes from the roll angle. 1 = remove the sideways
+ * acceleration of turning (v * omega from the wheel encoders) first.
+ */
+#define B4_HUMP_TURN_COMP 1
+
+/*
+ * 1 = print the hump detector to the serial monitor every
+ * B4_HUMP_DEBUG_MS, plus a line when a hump starts or is discarded.
+ * Set to 0 for the demo to keep the console quiet.
+ */
+#if APP_TEST
+#define B4_HUMP_DEBUG    0      /* Keep the [TEST] output readable. */
+#else
+#define B4_HUMP_DEBUG    1
+#endif
+#define B4_HUMP_DEBUG_MS 100
 
 LOCAL ID b4_i2c_device = -1;
 LOCAL UINT b4_flag_bits = S4_FLG_IMU_FAULT;   /* Mirror of flg_s4_imu. */
@@ -560,37 +578,86 @@ LOCAL void b4_publish_terrain(B4_EVENT event, int32_t lift_peak)
     (void)s1_publish(frame, proto_end(&bits), false);
 }
 
-LOCAL uint16_t b4_hump_angle_deci_deg(int16_t x_mg, int16_t y_mg,
-                                      int16_t z_mg)
-{
-    int32_t horizontal = (int32_t)x_mg * x_mg
-                       + (int32_t)y_mg * y_mg;
-    int32_t magnitude = b4_accel_magnitude_mg(x_mg, y_mg, z_mg);
-    int32_t z_abs = (z_mg < 0) ? -(int32_t)z_mg : (int32_t)z_mg;
-    int32_t ratio;
+/*
+ * Sideways acceleration caused by turning, in mg, in the sensor X-right
+ * frame. a = v * omega, omega = (v_right - v_left) / track. A left turn
+ * (v_right > v_left) accelerates the car to the left, which the sensor
+ * reads as -X, so the hump detector ADDS this value to X.
+ * Wheel speeds come from the encoder distances, lightly smoothed.
+ */
+typedef struct {
+    float prev_left_cm;
+    float prev_right_cm;
+    float speed_left_cms;
+    float speed_right_cms;
+    uint8_t valid;
+    uint8_t spinning;       /* 1 = spinning or pivoting (line search). */
+} B4_TURN_COMP;
 
-    if ((magnitude <= 0) || (horizontal < (int32_t)B4_HUMP_TILT_MG
-                             * B4_HUMP_TILT_MG))
-    {
-        return 0u;
-    }
-
-    ratio = (z_abs * 1000) / magnitude;
-    if (ratio >= 966) return 0u;
-    if (ratio >= 866) return 300u;
-    if (ratio >= 707) return 450u;
-    if (ratio >= 500) return 600u;
-    return 900u;
-}
-
-LOCAL float b4_encoder_distance_cm(void)
+LOCAL int16_t b4_turn_comp_mg(B4_TURN_COMP *tc, int32_t dt_ms)
 {
     float left = encoder_getLeftDistance();
     float right = encoder_getRightDistance();
+    float dt_s;
+    float v;
+    float omega;
+    float mg;
 
-    if (left < 0.0f) left = -left;
-    if (right < 0.0f) right = -right;
-    return (left + right) * 0.5f;
+    if ((tc->valid == 0u) || (dt_ms <= 0))
+    {
+        tc->prev_left_cm = left;
+        tc->prev_right_cm = right;
+        tc->speed_left_cms = 0.0f;
+        tc->speed_right_cms = 0.0f;
+        tc->valid = 1u;
+        tc->spinning = 0u;
+        return 0;
+    }
+
+    dt_s = (float)dt_ms / 1000.0f;
+
+    /* Exponential smoothing: 3/4 old + 1/4 new. */
+    tc->speed_left_cms += (((left - tc->prev_left_cm) / dt_s)
+                           - tc->speed_left_cms) * 0.25f;
+    tc->speed_right_cms += (((right - tc->prev_right_cm) / dt_s)
+                            - tc->speed_right_cms) * 0.25f;
+    tc->prev_left_cm = left;
+    tc->prev_right_cm = right;
+
+    /*
+     * Spinning or pivoting: the wheels differ by more than the car's
+     * forward speed (turn radius under half the track), plus 1 cm/s so
+     * that standing still does not count.
+     */
+    {
+        float diff = tc->speed_right_cms - tc->speed_left_cms;
+        float fwd = tc->speed_right_cms + tc->speed_left_cms;
+
+        if (diff < 0.0f) diff = -diff;
+        if (fwd < 0.0f)  fwd = -fwd;
+        tc->spinning = (diff > (fwd + 1.0f)) ? 1u : 0u;
+    }
+
+#if B4_HUMP_TURN_COMP
+    v = (tc->speed_left_cms + tc->speed_right_cms) * 0.5f;
+    omega = (tc->speed_right_cms - tc->speed_left_cms)
+          / ((float)B4_HUMP_TRACK_MM / 10.0f);
+    mg = v * omega * (1000.0f / 981.0f);      /* cm/s^2 -> mg */
+
+    if (mg > 500.0f)  mg = 500.0f;
+    if (mg < -500.0f) mg = -500.0f;
+    return (int16_t)mg;
+#else
+    (void)v;
+    (void)omega;
+    (void)mg;
+    return 0;
+#endif
+}
+
+LOCAL int32_t b4_right_travel_mm(void)
+{
+    return (int32_t)(encoder_getRightDistance() * 10.0f);
 }
 
 /* --------------------------------------------------------- */
@@ -673,11 +740,15 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     int32_t dt_ms = (int32_t)B4_IMU_SAMPLE_MS;
     int32_t lift_peak = 0;      /* Largest lift_acc since the last print. */
     int32_t dt_peak = 0;        /* Longest sample interval since then. */
-    uint8_t hump_active = 0u;
-    uint16_t hump_confirm_ms = 0u;
-    uint16_t hump_angle = 0u;
-    uint32_t hump_quiet_ms = 0u;
-    float hump_start_distance = 0.0f;
+    /* static: keep ~280 bytes of hump state off the 2 KB task stack. */
+    static B4_HUMP hump;
+    static B4_TURN_COMP turn_comp = {0.0f, 0.0f, 0.0f, 0.0f, 0u, 0u};
+    int16_t hump_lat_mg = 0;
+    int32_t hump_travel_mm = 0;
+#if B4_HUMP_DEBUG
+    int32_t hump_dbg_ms = 0;
+    uint8_t hump_was_ready = 0u;
+#endif
 
     ER er;
 
@@ -705,6 +776,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
 
     /* Sensor found: clear IMU_FAULT, start the handling detector. */
     b4_handling_init(&handling);
+    b4_hump_init(&hump);
     b4_set_flag_bits(0u);
 
     /*
@@ -791,82 +863,99 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                                   calibrated_mg.z_mg,
                                   dt_ms);
 
+            /*
+             * Hump under the right wheel: height from the roll angle.
+             * Needs ~0.6 s on flat ground after start-up to learn level.
+             */
+            hump_lat_mg = b4_turn_comp_mg(&turn_comp, dt_ms);
+            hump_travel_mm = b4_right_travel_mm();
+            hump.hold = turn_comp.spinning;
+
+            if (b4_hump_update(&hump,
+                               calibrated_mg.x_mg,
+                               calibrated_mg.y_mg,
+                               calibrated_mg.z_mg,
+                               hump_lat_mg,
+                               hump_travel_mm,
+                               dt_ms) != 0u)
             {
-                uint16_t angle = b4_hump_angle_deci_deg(
-                    calibrated_mg.x_mg,
-                    calibrated_mg.y_mg,
-                    calibrated_mg.z_mg);
+                int32_t mm = (hump.result_dmm + 5) / 10;
 
-                if (angle != 0u)
+                b4_hump_ok = 1u;
+                b4_hump_height_mm = (mm > 255) ? 255u
+                                  : (mm < 0)   ? 0u
+                                  : (uint8_t)mm;
+                if (b4_hump_count < 15u)
                 {
-                    if (hump_active == 0u)
-                    {
-                        hump_confirm_ms = (uint16_t)((hump_confirm_ms + dt_ms
-                                                     > 50u)
-                                                    ? 50u
-                                                    : hump_confirm_ms + dt_ms);
-                        if (hump_confirm_ms >= 50u)
-                        {
-                            hump_active = 1u;
-                            hump_start_distance = b4_encoder_distance_cm();
-                            hump_angle = angle;
-                        }
-                    }
-                    else
-                    {
-                        if (angle > hump_angle)
-                        {
-                            hump_angle = angle;
-                        }
-                        hump_quiet_ms = 0u;
-                    }
+                    b4_hump_count++;
                 }
-                else if (hump_active == 0u)
-                {
-                    hump_confirm_ms = 0u;
-                }
-                else
-                {
-                    hump_quiet_ms += (uint32_t)dt_ms;
-                    if (hump_quiet_ms >= B4_HUMP_END_MS)
-                    {
-                        float distance_cm = b4_encoder_distance_cm()
-                                          - hump_start_distance;
-                        B4_RAMP_RESULT result;
-                        uint16_t distance_mm;
 
-                        if (distance_cm < 0.0f)
-                        {
-                            distance_cm = -distance_cm;
-                        }
-                        distance_mm = (distance_cm >= 65535.0f)
-                                     ? 65535u
-                                     : (uint16_t)(distance_cm * 10.0f
-                                                  + 0.5f);
-                        result = b4_estimate_ramp_height(distance_mm,
-                                                         hump_angle);
-                        if ((distance_mm >= 10u) && (result.valid != 0u))
-                        {
-                            uint8_t height = (result.height_mm > 255u)
-                                           ? 255u
-                                           : (uint8_t)result.height_mm;
-                            b4_hump_ok = 1u;
-                            if (height > b4_hump_height_mm)
-                            {
-                                b4_hump_height_mm = height;
-                            }
-                            if (b4_hump_count < 15u)
-                            {
-                                b4_hump_count++;
-                            }
-                        }
-                        hump_active = 0u;
-                        hump_confirm_ms = 0u;
-                        hump_angle = 0u;
-                        hump_quiet_ms = 0u;
-                    }
-                }
+                tm_printf((UB *)"[B4-IMU] HUMP #%u: height=%d.%d mm "
+                                "(pitch check %d.%d mm), right wheel "
+                                "travel=%d mm\n",
+                          (UINT)b4_hump_count,
+                          (INT)(hump.result_dmm / 10),
+                          (INT)(hump.result_dmm % 10),
+                          (INT)(hump.result_pitch_dmm / 10),
+                          (INT)((hump.result_pitch_dmm < 0)
+                                ? -(hump.result_pitch_dmm % 10)
+                                : (hump.result_pitch_dmm % 10)),
+                          (INT)hump.result_travel_mm);
+
+                /* Send the new height at once. */
+                terrain_first_publish = 1u;
             }
+
+#if B4_HUMP_DEBUG
+            if ((hump.ready != 0u) && (hump_was_ready == 0u))
+            {
+                tm_printf((UB *)"[HUMP] level learned: X=%d Y=%d Z=%d mg "
+                                "(keep the car still on flat ground at "
+                                "power-up)\n",
+                          calibrated_mg.x_mg, calibrated_mg.y_mg,
+                          calibrated_mg.z_mg);
+            }
+            hump_was_ready = hump.ready;
+
+            if (hump.started != 0u)
+            {
+                tm_printf((UB *)"[HUMP] start: roll height=%d x0.1mm "
+                                "travel=%d mm\n",
+                          (INT)hump.now_dmm, (INT)hump_travel_mm);
+            }
+
+            if (hump.rejected != B4_HUMP_REJ_NONE)
+            {
+                tm_printf((UB *)"[HUMP] discarded: %s (peak=%d x0.1mm, "
+                                "right wheel moved %d mm)\n",
+                          (hump.rejected == B4_HUMP_REJ_LOW_PEAK)
+                              ? "peak below 6 mm"
+                          : (hump.rejected == B4_HUMP_REJ_NO_TRAVEL)
+                              ? "right wheel moved < 30 mm"
+                              : "tilted > 10 s or rolled > 40 cm",
+                          (INT)hump.reject_peak_dmm,
+                          (INT)hump.reject_travel_mm);
+            }
+
+            hump_dbg_ms += dt_ms;
+            if (hump_dbg_ms >= B4_HUMP_DEBUG_MS)
+            {
+                hump_dbg_ms = 0;
+                /* h = roll height (used), p = pitch check, both x0.1 mm.
+                   dx/dy = X/Y minus level (mg); lat = turn correction. */
+                tm_printf((UB *)"[HUMP] rdy=%u act=%u hold=%u h=%d p=%d | "
+                                "X=%d Y=%d Z=%d dx=%d dy=%d lat=%d | "
+                                "R=%d mm dt=%d\n",
+                          (UINT)hump.ready, (UINT)hump.active,
+                          (UINT)hump.hold,
+                          (INT)hump.now_dmm, (INT)hump.now_pitch_dmm,
+                          calibrated_mg.x_mg, calibrated_mg.y_mg,
+                          calibrated_mg.z_mg,
+                          (INT)hump.now_dev_x_mg, (INT)hump.now_dev_y_mg,
+                          (INT)hump_lat_mg, (INT)hump_travel_mm,
+                          (INT)dt_ms);
+            }
+#endif
 
             if (handling.lift_acc > lift_peak)
             {
@@ -918,6 +1007,8 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
              * stopped), forget the integrator, and report the fault.
              */
             b4_handling_reset_integrator(&handling);
+            b4_hump_abort(&hump);
+            turn_comp.valid = 0u;
             b4_set_flag_bits((b4_flag_bits & (S4_FLG_LIFTED |
                                               S4_FLG_OVERTURNED)) |
                              S4_FLG_IMU_FAULT);
@@ -1002,6 +1093,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                           "Lift acc=%d Peak=%d | "
                           "Lifted=%u Overturned=%u | "
                           "Vertical delta=%d mg | "
+                          "Hump now=%d (pitch %d) x0.1 mm | "
                           "Event=0x%02x | State=%u\n",
                     calibrated_mg.x_mg,
                     calibrated_mg.y_mg,
@@ -1012,6 +1104,8 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
                     (UINT)handling.b_lifted,
                     (UINT)handling.b_overturned,
                     motion_input.vertical_delta_mg,
+                    (INT)hump.now_dmm,
+                    (INT)hump.now_pitch_dmm,
                     (UB)event,
                     (UB)b4_event_state(event));
             }

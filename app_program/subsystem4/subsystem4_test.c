@@ -9,6 +9,7 @@
 #include "buddy4_classifier.h"
 #include "buddy4_ramp.h"
 #include "buddy4_handling.h"
+#include "buddy4_hump.h"
 #include "subsystem4.h"
 #include "../test_report.h"
 
@@ -123,6 +124,142 @@ LOCAL void handling_tests(INT *pass, INT *fail)
 		   b4_isqrt_u32(999999u) == 999u &&
 		   b4_accel_magnitude_mg(-32768, -32768, -32768) == 56755,
 		   "integer square root and magnitude are exact");
+
+	*pass += test_pass_;
+	*fail += test_fail_;
+}
+
+/*
+ * Synthetic right-wheel hump: 10 mm high, 95 mm up, 5 mm flat, 95 mm
+ * down, driven at 1 mm per 10 ms sample (10 cm/s). Returns the hump
+ * height at wheel position pos_mm, in 0.1 mm, scaled by scale_pct.
+ */
+LOCAL int32_t hump_profile_dmm(int32_t pos_mm, int32_t scale_pct)
+{
+	int32_t h;
+
+	if (pos_mm < 0 || pos_mm >= 195) {
+		h = 0;
+	} else if (pos_mm < 95) {
+		h = (pos_mm * 100) / 95;
+	} else if (pos_mm < 100) {
+		h = 100;
+	} else {
+		h = 100 - ((pos_mm - 100) * 100) / 95;
+	}
+	return (h * scale_pct) / 100;
+}
+
+/*
+ * Drive over the synthetic hump (car geometry from buddy4_hump.h).
+ * vib_mg alternates sign every sample; move = 0 keeps the wheel still.
+ * Returns the number of humps reported.
+ */
+LOCAL INT hump_drive(B4_HUMP *h, int32_t scale_pct, int16_t vib_mg,
+		     int32_t move)
+{
+	INT i;
+	INT found = 0;
+	int32_t pos = (move == 0) ? 97 : -100;	/* still: sit on the top */
+	int32_t hd;
+	int16_t v;
+
+	b4_hump_init(h);
+	for (i = 0; i < 100; i++) {		/* 1 s level at start-up */
+		(void)b4_hump_update(h, 20, -10, 1000, 0, 0, 10);
+	}
+	for (i = 0; i < 400; i++) {
+		hd = hump_profile_dmm(pos, scale_pct);
+		v = (int16_t)((i & 1) ? vib_mg : -vib_mg);
+		found += b4_hump_update(h,
+			(int16_t)(20 + (hd * 1000) / (10 * B4_HUMP_TRACK_MM) + v),
+			(int16_t)(-10 + (hd * 1000) / (20 * B4_HUMP_CASTER_MM)),
+			(int16_t)(1000 + v),
+			0, pos + 100, 10);
+		pos += move;
+	}
+	return found;
+}
+
+/* Hump height tests (right-wheel hump, roll based), synthetic data. */
+LOCAL void hump_tests(INT *pass, INT *fail)
+{
+	/* static: B4_HUMP is ~250 bytes and the tests run in the initial
+	   task, whose stack is only 1 KB (INITTASK_STKSZ). */
+	static B4_HUMP h;
+	INT i;
+	INT found;
+	INT test_pass_ = 0, test_fail_ = 0;
+
+	/* B4-K01: 10 mm hump at 10 cm/s is measured as 10 +/- 1 mm */
+	found = hump_drive(&h, 100, 0, 1);
+	TEST_CHECK("B4-K01",
+		   found == 1 && h.result_dmm >= 90 && h.result_dmm <= 110,
+		   "10 mm right-wheel hump measured within 1 mm");
+
+	/* B4-K02: same hump with +/-150 mg vibration */
+	found = hump_drive(&h, 100, 150, 1);
+	TEST_CHECK("B4-K02",
+		   found == 1 && h.result_dmm >= 90 && h.result_dmm <= 110,
+		   "hump measured within 1 mm with motor vibration");
+
+	/* B4-K03: tilt without the wheel moving (held / bench) is not a hump */
+	found = hump_drive(&h, 100, 0, 0);
+	TEST_CHECK("B4-K03", found == 0,
+		   "tilt with no right-wheel travel is not reported");
+
+	/* B4-K04: flat floor with vibration reports no hump */
+	found = hump_drive(&h, 0, 200, 1);
+	TEST_CHECK("B4-K04", found == 0, "flat floor gives no hump");
+
+	/* B4-K05: a 3 mm bump is below the minimum and is ignored */
+	found = hump_drive(&h, 30, 0, 1);
+	TEST_CHECK("B4-K05", found == 0, "3 mm bump is ignored");
+
+	/* B4-K06: a turn adds 60 mg on X; with lat_comp_mg cancelling it the
+	   reading stays level and no hump is reported */
+	b4_hump_init(&h);
+	for (i = 0; i < 100; i++) {
+		(void)b4_hump_update(&h, 20, -10, 1000, 0, 0, 10);
+	}
+	found = 0;
+	for (i = 0; i < 200; i++) {
+		found += b4_hump_update(&h, 20 + 60, -10, 1000, -60, i, 10);
+	}
+	TEST_CHECK("B4-K06", found == 0 && h.now_dmm > -10 && h.now_dmm < 10,
+		   "turn acceleration removed by lat_comp_mg");
+
+	/* B4-K08: car stops halfway up the ramp for 8 s (line search), then
+	   carries on: still one hump, within 1 mm */
+	b4_hump_init(&h);
+	for (i = 0; i < 100; i++) {
+		(void)b4_hump_update(&h, 20, -10, 1000, 0, 0, 10);
+	}
+	{
+		int32_t pos = -100;
+		int32_t hd;
+		INT t;
+
+		found = 0;
+		for (t = 0; t < 1200; t++) {
+			hd = hump_profile_dmm(pos, 100);
+			found += b4_hump_update(&h,
+				(int16_t)(20 + (hd * 1000) / (10 * B4_HUMP_TRACK_MM)),
+				(int16_t)(-10 - (hd * 1000) / (20 * B4_HUMP_CASTER_MM)),
+				1000, 0, pos + 100, 10);
+			if (pos != 50 || t > 950) {
+				pos++;
+			}
+		}
+	}
+	TEST_CHECK("B4-K08",
+		   found == 1 && h.result_dmm >= 90 && h.result_dmm <= 110,
+		   "stopping on the ramp does not lose or skew the hump");
+
+	/* B4-K07: height helper: 90 mg at 1 g on a 111 mm track ~ 10 mm */
+	TEST_CHECK("B4-K07",
+		   b4_hump_height_dmm(B4_HUMP_TRACK_MM, 90, 1000) == 100,
+		   "roll ratio to height conversion");
 
 	*pass += test_pass_;
 	*fail += test_fail_;
@@ -396,6 +533,7 @@ EXPORT void subsystem4_test(void)
 			   "distance beyond supported bound returns invalid result");
 
 	handling_tests(&test_pass_, &test_fail_);
+	hump_tests(&test_pass_, &test_fail_);
 
 	/* S4-U02: IF-13 flag exists and holds only the documented bits */
 	{
