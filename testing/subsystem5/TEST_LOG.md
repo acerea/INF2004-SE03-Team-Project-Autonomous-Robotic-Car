@@ -28,3 +28,16 @@ Add a new row for every run. Never edit or delete old rows.
 | Date | Test ID | Commit | Tester | Result | Log / evidence | Notes |
 |---|---|---|---|---|---|---|
 | YYYY-MM-DD | S5-U01 | `abc1234` | | PASS / FAIL | `logs/YYYY-MM-DD_….txt` | |
+| 2026-11-25 | S5-U01 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Running in a task context. |
+| 2026-11-25 | S5-U02 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Ultrasonic driver initialized. |
+| 2026-11-25 | S5-U03 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Reading falls within operational limits or returns clean -1.0 timeout. |
+| 2026-11-25 | S5-U04 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Reading does not return dead zero / unhandled timeout. |
+| 2026-11-25 | S5-U05 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | 12-bit bit-packed telemetry encodes and decodes cleanly without data loss. |
+| 2026-11-25 | S5-U06 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Servo PWM hardware initialized and centered. |
+| 2026-11-25 | S5-U07 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Servo angles and out-of-bound angles clamped safely. |
+| 2026-11-25 | S5-U08 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Direction arbitration correctly selects side with maximum clearance. |
+| 2026-11-25 | S5-U09 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Obstacle width calculated accurately via triangulation geometry. |
+| 2026-11-25 | S5-U10 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | S5 event flag object valid and published. |
+| 2026-11-25 | S5-U11 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Obstacle on the left: bypass right, small clearance. |
+| 2026-11-25 | S5-U12 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Obstacle on the right: bypass left, far wall ignored. |
+| 2026-11-25 | S5-U13 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Centred 10 cm obstacle: width measured, both edges found. |

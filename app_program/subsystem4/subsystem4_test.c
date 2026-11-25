@@ -77,18 +77,22 @@ LOCAL void handling_tests(INT *pass, INT *fail)
 	seen |= feed_lift_seen(&h, 100, 0, 0, 1000);
 	TEST_CHECK("B4-H03", !seen, "short bump does not trigger LIFTED");
 
-	/* B4-H04: lifting (+0.3 g for 200 ms) sets LIFTED within 200 ms */
+	/* B4-H04: lifting (+0.3 g) sets LIFTED within 300 ms. Since 19 Nov
+	   the trigger (B4_LIFT_TRIGGER 30000) must hold B4_LIFT_RUN_MS
+	   150 ms to avoid false stops while driving: detected at ~270 ms. */
 	b4_handling_init(&h);
 	feed(&h, 50, 0, 0, 1000);
-	seen = feed_lift_seen(&h, 20, 0, 0, 1300);
-	TEST_CHECK("B4-H04", seen, "lift is detected within 200 ms");
+	seen = feed_lift_seen(&h, 30, 0, 0, 1300);
+	TEST_CHECK("B4-H04", seen, "lift is detected within 300 ms");
 
-	/* B4-H05: a gentler lift (+0.1 g for 500 ms) also sets LIFTED */
+	/* B4-H05: a gentler lift (+0.15 g) sets LIFTED within 600 ms
+	   (~500 ms). Below ~+0.13 g it is not detected: a firm pick-up is
+	   needed (accepted limitation, 19 Nov tuning). */
 	b4_handling_init(&h);
 	feed(&h, 50, 0, 0, 1000);
-	seen = feed_lift_seen(&h, 50, 0, 0, 1100);
+	seen = feed_lift_seen(&h, 60, 0, 0, 1150);
 	TEST_CHECK("B4-H05", seen,
-		   "gentle lift is detected without a fast upward motion");
+		   "gentle lift (+0.15 g) is detected within 600 ms");
 
 	/* B4-H06: LIFTED is held while carried, then clears after ~2 s */
 	feed(&h, 100, 0, 0, 1000);

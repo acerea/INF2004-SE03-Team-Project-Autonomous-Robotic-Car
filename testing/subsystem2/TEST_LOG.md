@@ -12,7 +12,7 @@ Define a test here before running it. Test IDs never change.
 |---|---|---|---|---|---|
 | S2-U01 | Sample value range | Existing subsystem test | auto | Run `subsystem2_test.c` | `[TEST] S2-U01 PASS` |
 | S2-U02 | Semaphore and memory pool bounds | IF-02 | auto | Run `subsystem2_test.c` | `[TEST] S2-U02 PASS` |
-| S2-U03 | Left wheel speed calculation | FR4 | auto | Call `encoder_calculateLeftSpeed(100, 1.0f)` and check expected speed | Speed between 0.74 and 0.76 cm/s |
+| S2-U03 | Left wheel speed calculation | FR4 | auto | Call `encoder_calculateLeftSpeed(100, 1.0f)` and check expected speed | Speed between 0.72 and 0.74 cm/s (2576 counts/rev since the 18 Nov tuning; was 0.74-0.76) |
 | S2-U04 | Right wheel speed calculation | FR4 | auto | Call `encoder_calculateRightSpeed(100, 1.0f)` and check expected speed | Speed between 0.74 and 0.76 cm/s |
 | S2-U05 | P controller PWM calculation | FR5 | auto | Call `speed_p_update(15, 12, 40, 2)` | PWM between 45.9% and 46.1% |
 | S2-U06 | PI controller calculation | FR5 | auto | Run two PI updates with target=15 cm/s, measured=12 cm/s, dt=0.2 s | PWM approximately 46.6% then 47.2% |
@@ -93,3 +93,13 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-03 | S2-U07 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | PID controller calculated expected PWM values of 46.6%, 44.5% and 42.7% |
 | 2026-11-03 | S2-U08 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | PID maintains base PWM=40% when target speed equals measured speed |
 | 2026-11-03 | S2-U09 | `40a03ba` | Ying Jing | PASS | `logs/2026-11-03_auto.png` | PID output remains within 0–100% for large positive and negative speed errors |
+| 2026-11-25 | S2-U01 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Sample values stay within 0..100. |
+| 2026-11-25 | S2-U02 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Free slots and free blocks within pool size. |
+| 2026-11-25 | S2-U03 | `f2b1748` | Kathryn | FAIL | `logs/2026-11-25_unit_tests.txt` | Test expects 0.74-0.76 cm/s for 100 counts in 1 s (old LEFT_COUNTS_PER_REV 2513.4). On 18 Nov the left wheel was re-tuned to 2576 counts/rev by a tape test to stop the car drifting left, so the result is now 0.732 cm/s. Encoder is correct; the test range was not updated. Known difference: change the range to 0.72-0.74 if the 2576 tuning stays. |
+| 2026-11-25 | S2-U04 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Right encoder calculates expected wheel speed. |
+| 2026-11-25 | S2-U05 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | P controller calculates expected PWM output. |
+| 2026-11-25 | S2-U06 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | PI controller accumulates speed error correctly. |
+| 2026-11-25 | S2-U07 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | PID controller produces expected PWM outputs. |
+| 2026-11-25 | S2-U08 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | PID maintains base PWM when speed error is zero. |
+| 2026-11-25 | S2-U09 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | PID output remains within valid PWM limits. |
+| 2026-11-25 | S2-U03 | `f2b1748` + updated tests | Kathryn | PASS | `logs/2026-11-25_unit_tests_2.txt` | Retest after changing the expected range to 0.72-0.74 cm/s for the 18 Nov left-wheel tuning (2576 counts/rev). |

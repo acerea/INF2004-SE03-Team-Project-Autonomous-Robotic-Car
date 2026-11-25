@@ -151,3 +151,14 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-11 | S1-U09 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
 | 2026-11-11 | S1-U10 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
 | 2026-11-11 | S1-U11 | `6b2d2e3` + local S3 workaround | Kathryn | PASS | `logs/2026-11-11_unit_merged.png` |  |
+| 2026-11-25 | S1-U01 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Kernel objects exist. |
+| 2026-11-25 | S1-U02 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Pack/unpack round trip at min and max. |
+| 2026-11-25 | S1-U03 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Out-of-range values saturate and flag an error. |
+| 2026-11-25 | S1-U04 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Valid accepted, duplicate rejected, STOP always ok. |
+| 2026-11-25 | S1-U05 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Sequence window edges. |
+| 2026-11-25 | S1-U06 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Bad version, cmd or length rejected. |
+| 2026-11-25 | S1-U07 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Full queue drops frames and never blocks. |
+| 2026-11-25 | S1-U08 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Frame type bits match the MQTT library. |
+| 2026-11-25 | S1-U09 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | 1-byte oversize marker rejected, sequence unchanged. |
+| 2026-11-25 | S1-U10 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Cmd counters wrap 255 -> 0 and fit 8 bits. |
+| 2026-11-25 | S1-U11 | `f2b1748` | Kathryn | PASS | `logs/2026-11-25_unit_tests.txt` | Uptime wraps at 65536 s and fits 16 bits. |

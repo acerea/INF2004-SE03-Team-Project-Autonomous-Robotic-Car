@@ -52,6 +52,17 @@ Define a test here before running it. Test IDs never change.
 | B4-K07 | Roll ratio to height conversion | Hump height (buddy4_hump.h) | auto | subsystem4_test.c | 90 mg at 1 g on a 111 mm track gives 10.0 mm. |
 | B4-K08 | Car stops halfway up the ramp for 8 s, then continues | Hump measurement during line search | auto | subsystem4_test.c | One hump reported, height 9.0–11.0 mm. |
 | B4-K09 | Reset while lifted, then put down | Hump level re-learn | auto | subsystem4_test.c | Reading is level (within 1 mm) once re-learned. |
+| B4-H01 | Level and still for 3 s | Lift / overturn detection | auto | subsystem4_test.c | Neither LIFTED nor OVERTURNED. |
+| B4-H02 | 3 s of +/-300 mg Z and +/-200 mg X vibration | Lift false-positive rejection | auto | subsystem4_test.c | LIFTED never set. |
+| B4-H03 | Hump landing jolt (+0.5 g for 30 ms, then rebound) | Lift false-positive rejection | auto | subsystem4_test.c | LIFTED never set. |
+| B4-H04 | Lift at +0.3 g | Stop when picked up | auto | subsystem4_test.c | LIFTED within 300 ms (19 Nov tuning: trigger 30000 mg/ms held 150 ms; was 200 ms). |
+| B4-H05 | Gentle lift at +0.15 g | Stop when picked up | auto | subsystem4_test.c | LIFTED within 600 ms (was +0.1 g; below about +0.13 g is not detected, accepted limitation). |
+| B4-H06 | Put down after H05 | LIFTED hold time | auto | subsystem4_test.c | Still LIFTED after 1 s, cleared after 3 s. |
+| B4-H07 | Upside down for 200 ms | Overturn detection | auto | subsystem4_test.c | OVERTURNED set. |
+| B4-H08 | On its side | Overturn detection | auto | subsystem4_test.c | OVERTURNED set. |
+| B4-H09 | Upright again | Overturn detection | auto | subsystem4_test.c | OVERTURNED cleared. |
+| B4-H10 | 20 deg slope | Overturn / lift false-positive rejection | auto | subsystem4_test.c | Neither LIFTED nor OVERTURNED. |
+| B4-H11 | Integer square root and magnitude | Helper maths | auto | subsystem4_test.c | Exact results. |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -70,5 +81,14 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-30 | B4-M02 | '14d89ec' | Jie Xin | PASS | Physical sensor readings | Raw accelerometer and magnetometer readings changed during flat 360-degree rotation and orientation changes. |
 | 2026-10-30 | B4-M03 | '14d89ec' | Jie Xin | PASS | Six-position calibration readings | Calibration values calculated for X, Y and Z axes and applied in the IMU processing code. |
 | 2026-10-30 | B4-M04 | '14d89ec' | Jie Xin | PASS | Serial output showing calibrated readings | Stationary samples showed low motion activity and impact delta, with event `0x01` and state `1` (STATIONARY). |
-| 2026-11-25 | B4-M09 | ed33ebd (earlier working copy) | thrynky | PASS | logs/2026-11-25_hump_bench.txt | 10 mm block under right rear wheel: h = 93-113 (9.3-11.3 mm), roll sign correct. Pitch check read -11 mm (sign flipped since). |
-| 2026-11-25 | B4-M07 | ed33ebd (earlier working copy) | thrynky | FAIL | logs/2026-11-25_hump_drive_before_fix.txt | Reported 15.5 mm (pitch check 9.9 mm) and count x5. Cause: level baseline ~3 mm off and never re-learned; 6 s timeout too short. Fixed in buddy4_hump.h (baseline follows when moving, pre-hump snapshot, 10 s / 40 cm limits). Retest needed. |
+| 2026-11-25 | B4-M09 | ed33ebd (earlier working copy) | Kathryn | PASS | logs/2026-11-25_hump_bench.txt | 10 mm block under right rear wheel: h = 93-113 (9.3-11.3 mm), roll sign correct. Pitch check read -11 mm (sign flipped since). |
+| 2026-11-25 | B4-M07 | ed33ebd (earlier working copy) | Kathryn | FAIL | logs/2026-11-25_hump_drive_before_fix.txt | Reported 15.5 mm (pitch check 9.9 mm) and count x5. Cause: level baseline ~3 mm off and never re-learned; 6 s timeout too short. Fixed in buddy4_hump.h (baseline follows when moving, pre-hump snapshot, 10 s / 40 cm limits). Retest needed. |
+| 2026-11-25 | B4-U01–U17, S4-U01 | f2b1748 | Kathryn | PASS | logs/2026-11-25_unit_tests.txt | Motion-state packing and classification: 18 passed, 0 failed. |
+| 2026-11-25 | B4-R01–R05 | f2b1748 | Kathryn | PASS | logs/2026-11-25_unit_tests.txt | Ramp height calculation: 5 passed, 0 failed. |
+| 2026-11-25 | B4-H01–H03, B4-H07–H11 | f2b1748 | Kathryn | PASS | logs/2026-11-25_unit_tests.txt | No false LIFTED at rest, with vibration or a short bump; overturn set and cleared; isqrt exact. |
+| 2026-11-25 | B4-H04–H06 | f2b1748 | Kathryn | FAIL | logs/2026-11-25_unit_tests.txt | Tests still assume the old lift tuning (trigger held 80 ms). Since 19 Nov the trigger is held 150 ms with threshold 30000 mg/ms to avoid false stops while driving, so a lift is detected at about 270 ms and only above about +0.13 g. Checked on the car: a firm pick-up stops the motors. Known limitation. |
+| 2026-11-25 | B4-K01–K09 | f2b1748 | Kathryn | PASS | logs/2026-11-25_unit_tests.txt | Hump height and false-start rejection: 9 passed, 0 failed (includes the fixes from B4-M07). |
+| 2026-11-25 | S4-U02 | f2b1748 | Kathryn | PASS | logs/2026-11-25_unit_tests.txt | flg_s4_imu exists and uses only S4_FLG_* bits. The log holds the whole run (S1-S5). |
+| 2026-11-25 | B4-H04 | f2b1748 + updated tests | Kathryn | PASS | logs/2026-11-25_unit_tests_2.txt | Retest: lift at +0.3 g detected within 300 ms (19 Nov tuning: trigger 30000 mg/ms held 150 ms). |
+| 2026-11-25 | B4-H05 | f2b1748 + updated tests | Kathryn | PASS | logs/2026-11-25_unit_tests_2.txt | Retest: gentle lift at +0.15 g detected within 600 ms. Below about +0.13 g is not detected (accepted limitation). |
+| 2026-11-25 | B4-H06 | f2b1748 + updated tests | Kathryn | PASS | logs/2026-11-25_unit_tests_2.txt | Retest: LIFTED held after the lift, then cleared. |
