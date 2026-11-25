@@ -61,8 +61,6 @@ Add a new row for every run. Never edit or delete old rows.
 
 | Date | Test ID | Commit | Tester | Result | Log / evidence | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-25 | B4-M09 | aae7afe + uncommitted hump changes | Thryn | PASS | logs/2026-11-25_hump_bench.txt | 10 mm block under right rear wheel: h = 93-113 (9.3-11.3 mm), roll sign correct. Pitch check read -11 mm (sign flipped since). |
-| 2026-11-25 | B4-M07 | aae7afe + uncommitted hump changes | Thryn | FAIL | logs/2026-11-25_hump_drive_before_fix.txt | Reported 15.5 mm (pitch check 9.9 mm) and count x5. Cause: level baseline ~3 mm off and never re-learned; 6 s timeout too short. Fixed in buddy4_hump.h (baseline follows when moving, pre-hump snapshot, 10 s / 40 cm limits). Retest needed. |
 <!-- | YYYY-MM-DD | S4-U01 | `abc1234` | | PASS / FAIL | `logs/YYYY-MM-DD_….txt` | | -->
 
 | 2026-11-02 | B4-U01–U15, B4-R01–R05 | '60cc1bf' | Jie Xin | PASS | Console test output | 22 passed, 0 failed. |
@@ -71,3 +69,5 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-30 | B4-M02 | '14d89ec' | Jie Xin | PASS | Physical sensor readings | Raw accelerometer and magnetometer readings changed during flat 360-degree rotation and orientation changes. |
 | 2026-10-30 | B4-M03 | '14d89ec' | Jie Xin | PASS | Six-position calibration readings | Calibration values calculated for X, Y and Z axes and applied in the IMU processing code. |
 | 2026-10-30 | B4-M04 | '14d89ec' | Jie Xin | PASS | Serial output showing calibrated readings | Stationary samples showed low motion activity and impact delta, with event `0x01` and state `1` (STATIONARY). |
+| 2026-11-25 | B4-M09 | ed33ebd (earlier working copy) | thrynky | PASS | logs/2026-11-25_hump_bench.txt | 10 mm block under right rear wheel: h = 93-113 (9.3-11.3 mm), roll sign correct. Pitch check read -11 mm (sign flipped since). |
+| 2026-11-25 | B4-M07 | ed33ebd (earlier working copy) | thrynky | FAIL | logs/2026-11-25_hump_drive_before_fix.txt | Reported 15.5 mm (pitch check 9.9 mm) and count x5. Cause: level baseline ~3 mm off and never re-learned; 6 s timeout too short. Fixed in buddy4_hump.h (baseline follows when moving, pre-hump snapshot, 10 s / 40 cm limits). Retest needed. |
