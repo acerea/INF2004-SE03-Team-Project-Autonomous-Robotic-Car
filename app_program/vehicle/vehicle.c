@@ -109,7 +109,11 @@ typedef uint8_t vc_event_t;
 
 #define VC_STATE_MS         (1000u)
 #define VC_BARCODE_TURN_ANGLE  (90u)
-#define VC_BARCODE_UTURN_ANGLE (180u)
+#define VC_BARCODE_LEFT_ANGLE  (100u)  /* Barcode LEFT came out short at 90 (26 Nov). */
+/* U-turn asks for more than 180: encoder turns come out short and the
+ * shortfall grows with the angle.
+ * Trial and error: still short -> raise, past the line -> lower. */
+#define VC_BARCODE_UTURN_ANGLE (210u)
 #define VC_BARCODE_STRAIGHT_CM (20u)               // STATE frame every 1 s.
 #define VC_SPEED_MAX        (63u)                 // Largest speed field value.
 
@@ -617,12 +621,16 @@ vc_junction_start (void)
 
     if (IR_NAV_STRAIGHT == cmd)
     {
-        vc_motion(S2_MOTION_MOVE_DISTANCE, VC_BARCODE_STRAIGHT_CM);
+        /* At cruise speed: after the STOP above S2's own speed is 0, and
+         * it then used its 10 cm/s default (run 26 Nov 13:57: 11 cm/s). */
+        vc_motion(S2_MOTION_MOVE_DISTANCE,
+                  s2_move_arg(VC_BARCODE_STRAIGHT_CM, g_vc_cruise_cm_s));
     }
     else
     {
         g_vc_junction_turn = cmd;           // Set after vc_set_state.
-        vc_motion(S2_MOTION_MOVE_DISTANCE, VC_JUNCTION_ADVANCE_CM);
+        vc_motion(S2_MOTION_MOVE_DISTANCE,
+                  s2_move_arg(VC_JUNCTION_ADVANCE_CM, g_vc_cruise_cm_s));
     }
 
     return;
@@ -666,14 +674,15 @@ vc_poll_line_following (void)
         return;
     }
 
-    // A barcode action is waiting: the T-junction's bar runs under the
-    // barcode sensor AND the C/R pair (a left bend only reaches the
-    // barcode sensor), or the C+R pair reports a junction. Not straight
-    // after the barcode itself.
+    // A barcode action is waiting: S3 reports a junction (C + R on the
+    // bar, run 26 Nov 14:01:16), or the bar is under the barcode (left)
+    // sensor AND the right sensor together. Not left + centre: on a left
+    // bend the line sits under those two, and that was taken for the
+    // junction (13:57:07). Not straight after the barcode itself.
     if ((IR_NAV_NONE != g_vc_pending_cmd)
         && ((vc_now_ms() - g_vc_pending_ms) >= VC_JUNCTION_GUARD_MS)
         && (((IR_BARCODE == snap.state)
-             && (0u != (snap.sensors & (IR_SENS_CENTRE | IR_SENS_RIGHT))))
+             && (0u != (snap.sensors & IR_SENS_RIGHT)))
             || (IR_JUNC_NONE != snap.junction)))
     {
         vc_junction_start();
@@ -803,7 +812,7 @@ vc_poll_motion_done (void)
             vc_motion(S2_MOTION_STOP, 0u);
             if (IR_NAV_LEFT == turn)
             {
-                vc_motion(S2_MOTION_TURN_LEFT, VC_BARCODE_TURN_ANGLE);
+                vc_motion(S2_MOTION_TURN_LEFT, VC_BARCODE_LEFT_ANGLE);
             }
             else if (IR_NAV_RIGHT == turn)
             {
@@ -1225,26 +1234,25 @@ vc_dispatch (vc_event_t ev)
         }
         else if (VC_BYPASS_ALIGN == g_vc_bypass_step)
         {
-            /* The sensors swing round over the line: wait for the middle
-             * one to be off it first, then stop when it is on it. */
-            if (0u == (snap.sensors & IR_SENS_CENTRE))
+            /* The sensors swing round over the line: wait for the C/R pair
+             * to be off it first, then stop on the FIRST reading of either
+             * C or R on it. The pivot sweeps them across the 18 mm line so
+             * fast that the middle sensor alone saw it for one reading
+             * (run R4, 26 Nov 13:21:46) and the turn ran its full 135 deg.
+             * Line following centres the car from there. */
+            if (0u == (snap.sensors & (IR_SENS_CENTRE | IR_SENS_RIGHT)))
             {
                 g_vc_align_left_line = true;
-                g_vc_see_samples = 0u;
             }
             else if (g_vc_align_left_line)
-            {
-                g_vc_see_samples++;
-            }
-            else
-            {
-                /* Still on the bit it crossed: not yet. */
-            }
-            if (g_vc_see_samples >= VC_BYPASS_SEE_SAMPLES)
             {
                 vc_bypass_cut();
                 vc_finish_bypass(true);
                 return;
+            }
+            else
+            {
+                /* Still on the bit it crossed: not yet. */
             }
         }
         else
