@@ -1,0 +1,246 @@
+13:31:05.0  mission  NEW RUN: dashboard cleared, humps counted from 0 (car not changed)
+13:38:40.9  obstacle  CLEAR (28 cm)
+13:38:41.1  mission  IDLE
+13:38:42.2  link  car link CONNECTED
+13:38:44.5  cmd  sent CALIBRATE  (seq 55)
+13:38:44.6  mission  car: sweep calibration started
+13:38:44.6  mission  IDLE -> CALIBRATING
+13:38:46.7  line  IR calibration sweep: L 132/3162  C 161/2238  R 131/2805
+13:38:47.4  line  TRACK -> LINE_LOST
+13:38:47.6  line  LINE_LOST -> TRACK
+13:38:47.6  line  TRACK -> LINE_LOST
+13:38:47.8  line  LINE_LOST -> TRACK
+13:38:48.0  line  car: calibration done, middle sensor on the line
+13:38:48.0  mission  CALIBRATING -> IDLE
+13:38:48.7  cmd  sent START  (seq 65)
+13:38:48.8  mission  IDLE -> FOLLOWING
+13:38:48.9  line  TRACK -> LINE_LOST
+13:38:49.0  line  LINE_LOST -> TRACK
+13:38:50.2  line  TRACK -> LINE_LOST
+13:38:50.4  line  LINE_LOST -> TRACK
+13:38:50.8  line  TRACK -> LINE_LOST
+13:38:50.9  line  LINE_LOST -> TRACK
+13:38:51.4  line  TRACK -> LINE_LOST
+13:38:52.7  line  LINE_LOST -> TRACK
+13:38:53.1  line  TRACK -> LINE_LOST
+13:38:53.2  line  LINE_LOST -> TRACK
+13:38:53.3  obstacle  EMERGENCY (13 cm)
+13:38:53.3  mission  FOLLOWING -> BLOCKED
+13:38:58.4  obstacle  CLEAR (41 cm)
+13:38:59.1  line  TRACK -> LINE_LOST
+13:38:59.1  mission  BLOCKED -> BYPASSING
+13:39:02.2  line  LINE_LOST -> TRACK
+13:39:02.4  line  TRACK -> LINE_LOST
+13:39:07.6  line  LINE_LOST -> TRACK
+13:39:07.6  line  car: bypass: line seen 9 cm into the way back, driving onto it
+13:39:07.7  line  junction RIGHT
+13:39:07.7  line  TRACK -> LINE_LOST
+13:39:10.1  line  LINE_LOST -> TRACK
+13:39:10.1  line  car: bypass done: middle sensor on the line
+13:39:10.1  mission  BYPASSING -> FOLLOWING
+13:39:10.7  line  TRACK -> LINE_LOST
+13:39:10.8  line  LINE_LOST -> TRACK
+13:39:11.3  line  TRACK -> LINE_LOST
+13:39:11.3  line  LINE_LOST -> TRACK
+13:39:15.9  line  TRACK -> LINE_LOST
+13:39:16.0  line  LINE_LOST -> TRACK
+13:39:20.0  line  TRACK -> LINE_LOST
+13:39:20.1  line  LINE_LOST -> TRACK
+13:39:20.4  line  TRACK -> LINE_LOST
+13:39:20.4  line  LINE_LOST -> TRACK
+13:39:21.0  line  TRACK -> LINE_LOST
+13:39:21.2  line  LINE_LOST -> TRACK
+13:39:21.6  line  TRACK -> LINE_LOST
+13:39:21.6  line  LINE_LOST -> TRACK
+13:39:22.5  line  TRACK -> LINE_LOST
+13:39:22.6  line  LINE_LOST -> TRACK
+13:39:23.4  imu  car: hump started (5.7 mm)
+13:39:25.6  line  TRACK -> LINE_LOST
+13:39:25.7  line  LINE_LOST -> TRACK
+13:39:26.4  line  TRACK -> LINE_LOST
+13:39:27.5  imu  hump #1 measured, peak height 12 mm
+13:39:27.6  line  car: line lost, searching left
+13:39:27.7  line  LINE_LOST -> TRACK
+13:39:27.9  line  car: line found again
+13:39:30.5  line  TRACK -> LINE_LOST
+13:39:30.7  line  LINE_LOST -> TRACK
+13:39:31.3  line  TRACK -> LINE_LOST
+13:39:31.3  line  LINE_LOST -> TRACK
+13:39:31.7  line  TRACK -> LINE_LOST
+13:39:32.2  line  LINE_LOST -> TRACK
+13:39:32.5  line  TRACK -> LINE_LOST
+13:39:32.7  line  LINE_LOST -> TRACK
+13:39:33.0  line  TRACK -> LINE_LOST
+13:39:33.1  line  LINE_LOST -> TRACK
+13:39:42.5  barcode  read 'W' -> NONE
+13:39:42.5  barcode  scan OK 'W' (29 elements)
+13:39:43.0  line  TRACK -> LINE_LOST
+13:39:43.2  line  LINE_LOST -> TRACK
+13:39:43.7  line  TRACK -> LINE_LOST
+13:39:43.8  line  LINE_LOST -> TRACK
+13:39:44.3  line  TRACK -> LINE_LOST
+13:39:44.4  line  LINE_LOST -> TRACK
+13:39:44.9  line  TRACK -> LINE_LOST
+13:39:45.0  line  LINE_LOST -> TRACK
+13:39:45.4  line  TRACK -> LINE_LOST
+13:39:45.5  line  LINE_LOST -> TRACK
+13:39:46.0  line  TRACK -> LINE_LOST
+13:39:46.1  line  LINE_LOST -> TRACK
+13:39:46.6  line  TRACK -> LINE_LOST
+13:39:46.8  line  LINE_LOST -> TRACK
+13:39:47.2  line  TRACK -> LINE_LOST
+13:39:48.4  line  car: line lost, searching right
+13:39:51.9  line  LINE_LOST -> TRACK
+13:39:51.9  line  TRACK -> LINE_LOST
+13:39:55.0  line  LINE_LOST -> TRACK
+13:39:55.2  line  TRACK -> LINE_LOST
+13:39:57.2  line  LINE_LOST -> TRACK
+13:39:57.4  line  car: line found again
+13:39:57.5  line  TRACK -> LINE_LOST
+13:39:57.6  line  LINE_LOST -> TRACK
+13:39:57.9  line  TRACK -> LINE_LOST
+13:39:58.0  line  LINE_LOST -> TRACK
+13:39:59.9  line  TRACK -> LINE_LOST
+13:40:00.0  line  LINE_LOST -> TRACK
+13:40:00.2  line  TRACK -> LINE_LOST
+13:40:00.3  line  LINE_LOST -> TRACK
+13:40:01.4  line  TRACK -> LINE_LOST
+13:40:01.5  line  LINE_LOST -> TRACK
+13:40:02.3  line  TRACK -> LINE_LOST
+13:40:02.4  line  LINE_LOST -> TRACK
+13:40:02.7  line  TRACK -> LINE_LOST
+13:40:02.9  line  LINE_LOST -> TRACK
+13:40:03.3  line  TRACK -> LINE_LOST
+13:40:03.4  line  LINE_LOST -> TRACK
+13:40:03.9  line  TRACK -> LINE_LOST
+13:40:04.0  line  LINE_LOST -> TRACK
+13:40:04.5  line  TRACK -> LINE_LOST
+13:40:04.5  line  LINE_LOST -> TRACK
+13:40:05.0  line  TRACK -> LINE_LOST
+13:40:05.0  line  LINE_LOST -> TRACK
+13:40:05.5  line  TRACK -> LINE_LOST
+13:40:05.7  line  LINE_LOST -> TRACK
+13:40:06.0  line  TRACK -> LINE_LOST
+13:40:06.2  line  LINE_LOST -> TRACK
+13:40:06.6  line  TRACK -> LINE_LOST
+13:40:06.7  line  LINE_LOST -> TRACK
+13:40:07.3  line  TRACK -> LINE_LOST
+13:40:07.4  line  LINE_LOST -> TRACK
+13:40:07.9  line  TRACK -> LINE_LOST
+13:40:08.0  line  LINE_LOST -> TRACK
+13:40:08.5  line  TRACK -> LINE_LOST
+13:40:08.5  line  LINE_LOST -> TRACK
+13:40:09.1  line  TRACK -> LINE_LOST
+13:40:09.2  line  LINE_LOST -> TRACK
+13:40:10.3  line  TRACK -> LINE_LOST
+13:40:10.4  line  LINE_LOST -> TRACK
+13:40:10.9  line  TRACK -> LINE_LOST
+13:40:11.0  line  LINE_LOST -> TRACK
+13:40:11.5  line  TRACK -> LINE_LOST
+13:40:11.7  line  LINE_LOST -> TRACK
+13:40:12.1  line  TRACK -> LINE_LOST
+13:40:12.3  line  LINE_LOST -> TRACK
+13:40:12.7  line  TRACK -> LINE_LOST
+13:40:12.9  line  LINE_LOST -> TRACK
+13:40:13.5  line  TRACK -> LINE_LOST
+13:40:13.6  line  LINE_LOST -> TRACK
+13:40:13.9  line  junction RIGHT
+13:40:14.6  line  TRACK -> LINE_LOST
+13:40:14.7  line  LINE_LOST -> TRACK
+13:40:15.2  line  TRACK -> LINE_LOST
+13:40:15.3  line  LINE_LOST -> TRACK
+13:40:18.1  line  TRACK -> LINE_LOST
+13:40:18.1  line  LINE_LOST -> TRACK
+13:40:18.6  line  TRACK -> LINE_LOST
+13:40:18.7  line  LINE_LOST -> TRACK
+13:40:19.1  line  TRACK -> LINE_LOST
+13:40:19.2  line  LINE_LOST -> TRACK
+13:40:20.0  line  TRACK -> LINE_LOST
+13:40:20.1  line  LINE_LOST -> TRACK
+13:40:20.4  line  TRACK -> LINE_LOST
+13:40:20.6  line  LINE_LOST -> TRACK
+13:40:28.1  line  TRACK -> LINE_LOST
+13:40:28.9  line  LINE_LOST -> TRACK
+13:40:30.6  line  TRACK -> LINE_LOST
+13:40:31.1  line  LINE_LOST -> TRACK
+13:40:31.4  line  TRACK -> LINE_LOST
+13:40:33.1  line  LINE_LOST -> TRACK
+13:40:35.8  line  TRACK -> LINE_LOST
+13:40:37.1  line  LINE_LOST -> TRACK
+13:40:37.4  line  junction RIGHT
+13:40:37.8  line  TRACK -> LINE_LOST
+13:40:37.9  line  LINE_LOST -> TRACK
+13:40:38.0  line  junction RIGHT
+13:40:39.0  line  TRACK -> LINE_LOST
+13:40:40.2  line  LINE_LOST -> TRACK
+13:40:44.4  line  TRACK -> LINE_LOST
+13:40:44.4  line  LINE_LOST -> TRACK
+13:40:45.1  mission  FOLLOWING -> BLOCKED
+13:40:46.9  obstacle  sweep: width ≥ 18 cm, reaches left past the sweep, right past the sweep -> go RIGHT
+13:40:47.0  obstacle  car: bypass right, sideways 22 cm
+13:40:47.0  obstacle  car: bypass forward leg 44 cm
+13:40:47.1  line  TRACK -> LINE_LOST
+13:40:47.2  mission  BLOCKED -> BYPASSING
+13:40:47.2  obstacle  EMERGENCY (13 cm)
+13:40:48.5  obstacle  CLEAR (41 cm)
+13:40:52.4  line  LINE_LOST -> TRACK
+13:40:52.4  line  TRACK -> LINE_LOST
+13:40:52.5  line  LINE_LOST -> TRACK
+13:40:52.6  line  TRACK -> LINE_LOST
+13:40:57.9  line  LINE_LOST -> TRACK
+13:40:57.9  line  car: bypass: line seen 9 cm into the way back, driving onto it
+13:40:58.0  line  junction RIGHT
+13:40:58.0  line  TRACK -> LINE_LOST
+13:41:00.3  line  LINE_LOST -> TRACK
+13:41:00.3  line  car: bypass done: middle sensor on the line
+13:41:00.7  line  TRACK -> LINE_LOST
+13:41:00.8  line  LINE_LOST -> TRACK
+13:41:01.2  mission  BYPASSING -> FOLLOWING
+13:41:05.5  line  TRACK -> LINE_LOST
+13:41:05.7  line  LINE_LOST -> TRACK
+13:41:06.0  line  TRACK -> LINE_LOST
+13:41:06.0  line  LINE_LOST -> TRACK
+13:41:07.8  line  junction RIGHT
+13:41:08.3  line  TRACK -> LINE_LOST
+13:41:08.4  line  car: line lost, searching right
+13:41:08.5  line  LINE_LOST -> TRACK
+13:41:08.6  line  car: line found again
+13:41:09.1  line  TRACK -> LINE_LOST
+13:41:09.2  line  LINE_LOST -> TRACK
+13:41:09.6  line  TRACK -> LINE_LOST
+13:41:09.6  line  LINE_LOST -> TRACK
+13:41:10.4  line  TRACK -> LINE_LOST
+13:41:10.4  line  LINE_LOST -> TRACK
+13:41:10.8  line  TRACK -> LINE_LOST
+13:41:10.9  line  LINE_LOST -> TRACK
+13:41:11.6  line  TRACK -> LINE_LOST
+13:41:11.8  line  LINE_LOST -> TRACK
+13:41:12.2  line  TRACK -> LINE_LOST
+13:41:12.2  line  LINE_LOST -> TRACK
+13:41:12.7  line  TRACK -> LINE_LOST
+13:41:12.8  line  LINE_LOST -> TRACK
+13:41:13.0  imu  car: hump started (6.0 mm)
+13:41:15.1  line  TRACK -> LINE_LOST
+13:41:15.1  line  LINE_LOST -> TRACK
+13:41:16.1  line  TRACK -> LINE_LOST
+13:41:17.2  imu  hump #2 measured, peak height 11 mm
+13:41:17.3  line  car: line lost, searching left
+13:41:17.5  line  LINE_LOST -> TRACK
+13:41:17.7  line  car: line found again
+13:41:18.8  line  TRACK -> LINE_LOST
+13:41:19.1  line  LINE_LOST -> TRACK
+13:41:19.4  line  TRACK -> LINE_LOST
+13:41:19.6  imu  MOVING
+13:41:19.8  imu  LIFTED
+13:41:19.8  imu  car: robot lifted, motors stopped
+13:41:19.8  mission  FOLLOWING -> STOPPED
+13:41:20.1  imu  OVERTURNED
+13:41:20.8  imu  LIFTED
+13:41:21.9  imu  STATIONARY
+13:41:21.9  line  LINE_LOST -> TRACK
+13:41:23.0  line  junction BOTH
+13:41:23.0  line  junction RIGHT
+13:41:23.4  imu  LIFTED
+13:41:23.5  line  TRACK -> LINE_LOST
+13:41:25.6  imu  STATIONARY
+13:41:25.7  line  LINE_LOST -> TRACK

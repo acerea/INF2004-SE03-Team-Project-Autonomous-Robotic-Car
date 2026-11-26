@@ -1,0 +1,2126 @@
+[14:49:00.966] station      event=broker connected
+[14:49:00.988] obstacle     seq=164 state=CLEAR cm=52 fault=False
+[14:49:00.989] line         seq=165 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:01.092] line         seq=166 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:01.146] motion       seq=167 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:01.224] line         seq=168 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:01.382] line         seq=169 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:01.449] obstacle     seq=170 state=CLEAR cm=151 fault=False
+[14:49:01.485] line         seq=171 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:01.543] terrain      seq=172 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:01.608] line         seq=173 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:01.786] line         seq=174 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:01.787] obstacle     seq=175 state=CLEAR cm=52 fault=False
+[14:49:01.862] line         seq=176 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:01.944] state        seq=177 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:02.015] line         seq=178 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:02.087] obstacle     seq=179 state=CLEAR cm=52 fault=False
+[14:49:02.168] motion       seq=180 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:02.243] line         seq=181 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:02.244] line         seq=182 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:02.323] obstacle     seq=183 state=CLEAR cm=57 fault=False
+[14:49:02.396] line         seq=184 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:02.497] line         seq=185 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:02.565] terrain      seq=186 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:02.649] line         seq=187 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:02.649] obstacle     seq=188 state=CLEAR cm=52 fault=False
+[14:49:02.728] line         seq=189 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:02.729] cmd          event=map resend (car started) entries=1
+[14:49:02.731] hb           seq=169 link=CONNECTED uptime_s=326 drops=255 cmd_ok=33 cmd_bad=0 last_will=False
+[14:49:02.733] cmd          sent=map arg=1 seq=136 letter=W
+[14:49:02.765] line         seq=190 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:02.907] state        seq=191 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:02.981] obstacle     seq=192 state=CLEAR cm=53 fault=False
+[14:49:03.044] line         seq=193 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:03.143] line         seq=194 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:03.143] motion       seq=195 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:03.221] obstacle     seq=196 state=CLEAR cm=53 fault=False
+[14:49:03.221] line         seq=197 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:03.321] line         seq=198 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:03.653] terrain      seq=199 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:03.654] obstacle     seq=200 state=CLEAR cm=57 fault=False
+[14:49:03.655] line         seq=201 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:03.725] line         seq=202 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:03.862] line         seq=203 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:03.983] state        seq=204 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:03.985] obstacle     seq=205 state=CLEAR cm=53 fault=False
+[14:49:03.986] line         seq=206 state=TRACK sensors=1 junction=NONE line_pos=495
+[14:49:04.011] cmd          sent=map arg=1 seq=140 letter=W
+[14:49:04.083] line         seq=207 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:04.186] motion       seq=208 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:04.267] line         seq=209 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:04.323] obstacle     seq=210 state=CLEAR cm=57 fault=False
+[14:49:04.404] line         seq=211 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:04.575] terrain      seq=212 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:04.633] line         seq=213 state=TRACK sensors=1 junction=NONE line_pos=490
+[14:49:04.698] obstacle     seq=214 state=CLEAR cm=57 fault=False
+[14:49:04.698] hb           seq=170 link=CONNECTED uptime_s=328 drops=255 cmd_ok=39 cmd_bad=0 last_will=False
+[14:49:04.700] line         seq=215 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:04.884] line         seq=216 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:04.963] obstacle     seq=217 state=CLEAR cm=57 fault=False
+[14:49:04.963] state        seq=218 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:04.964] line         seq=219 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:05.103] line         seq=220 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:05.162] motion       seq=221 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:05.166] obstacle     seq=222 state=CLEAR cm=57 fault=False
+[14:49:05.224] line         seq=223 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:05.470] obstacle     seq=224 state=CLEAR cm=53 fault=False
+[14:49:05.536] line         seq=225 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:05.613] terrain      seq=226 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:05.617] line         seq=227 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:05.703] obstacle     seq=228 state=CLEAR cm=53 fault=False
+[14:49:05.823] line         seq=229 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:05.885] state        seq=230 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:05.943] line         seq=231 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:06.023] obstacle     seq=232 state=CLEAR cm=53 fault=False
+[14:49:06.163] motion       seq=233 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:06.242] line         seq=234 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:06.302] line         seq=235 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:06.363] obstacle     seq=236 state=CLEAR cm=53 fault=False
+[14:49:06.423] line         seq=237 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:06.490] hb           seq=171 link=CONNECTED uptime_s=330 drops=255 cmd_ok=42 cmd_bad=0 last_will=False
+[14:49:06.542] terrain      seq=238 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:06.566] line         seq=239 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:06.677] obstacle     seq=240 state=CLEAR cm=53 fault=False
+[14:49:06.743] line         seq=241 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:06.842] line         seq=242 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:06.902] state        seq=243 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:06.962] line         seq=244 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:07.083] obstacle     seq=245 state=CLEAR cm=53 fault=False
+[14:49:07.147] line         seq=246 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:07.225] motion       seq=247 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:07.225] line         seq=248 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:07.323] obstacle     seq=249 state=CLEAR cm=56 fault=False
+[14:49:07.384] line         seq=250 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:07.517] line         seq=251 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:07.603] terrain      seq=252 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:07.693] line         seq=253 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:07.694] obstacle     seq=254 state=CLEAR cm=53 fault=False
+[14:49:07.803] line         seq=255 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:07.863] state        seq=0 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:07.952] line         seq=1 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:07.953] obstacle     seq=2 state=CLEAR cm=53 fault=False
+[14:49:08.104] line         seq=3 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:08.164] line         seq=4 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:08.165] motion       seq=5 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:08.229] obstacle     seq=6 state=CLEAR cm=57 fault=False
+[14:49:08.403] hb           seq=172 link=CONNECTED uptime_s=332 drops=255 cmd_ok=46 cmd_bad=0 last_will=False
+[14:49:08.464] line         seq=7 state=TRACK sensors=1 junction=NONE line_pos=486
+[14:49:08.540] obstacle     seq=8 state=CLEAR cm=57 fault=False
+[14:49:08.610] line         seq=9 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:08.612] terrain      seq=10 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:08.704] line         seq=11 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:08.823] obstacle     seq=12 state=CLEAR cm=57 fault=False
+[14:49:08.892] line         seq=13 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:08.963] state        seq=14 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:09.125] obstacle     seq=15 state=CLEAR cm=57 fault=False
+[14:49:09.204] motion       seq=16 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:09.305] line         seq=17 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:09.426] line         seq=18 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:09.524] obstacle     seq=19 state=CLEAR cm=57 fault=False
+[14:49:09.524] line         seq=20 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:09.603] terrain      seq=21 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:09.694] line         seq=22 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:09.780] line         seq=23 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:09.780] obstacle     seq=24 state=CLEAR cm=57 fault=False
+[14:49:09.879] line         seq=25 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:09.946] state        seq=26 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:10.023] line         seq=27 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:10.071] obstacle     seq=28 state=CLEAR cm=57 fault=False
+[14:49:10.123] line         seq=29 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:10.210] motion       seq=30 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:10.280] line         seq=31 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:10.353] line         seq=32 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:10.353] hb           seq=173 link=CONNECTED uptime_s=334 drops=255 cmd_ok=50 cmd_bad=0 last_will=False
+[14:49:10.387] line         seq=33 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:10.444] obstacle     seq=34 state=CLEAR cm=57 fault=False
+[14:49:10.520] line         seq=35 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:10.644] terrain      seq=36 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:10.645] line         seq=37 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:10.724] obstacle     seq=38 state=CLEAR cm=53 fault=False
+[14:49:10.724] line         seq=39 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:10.803] line         seq=40 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:10.864] state        seq=41 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:10.944] line         seq=42 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:11.005] line         seq=43 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:11.064] obstacle     seq=44 state=CLEAR cm=57 fault=False
+[14:49:11.167] motion       seq=45 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:11.250] line         seq=46 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:11.332] line         seq=47 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:11.439] line         seq=48 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:11.523] obstacle     seq=49 state=CLEAR cm=151 fault=False
+[14:49:11.587] line         seq=50 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:11.644] terrain      seq=51 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:11.824] line         seq=52 state=TRACK sensors=1 junction=NONE line_pos=493
+[14:49:11.884] obstacle     seq=53 state=CLEAR cm=57 fault=False
+[14:49:11.945] state        seq=54 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:12.026] line         seq=55 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:12.087] line         seq=56 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:12.151] motion       seq=57 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:12.203] obstacle     seq=58 state=CLEAR cm=57 fault=False
+[14:49:12.205] hb           seq=174 link=CONNECTED uptime_s=336 drops=255 cmd_ok=54 cmd_bad=0 last_will=False
+[14:49:12.254] line         seq=59 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:12.378] line         seq=60 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:12.608] obstacle     seq=61 state=CLEAR cm=53 fault=False
+[14:49:12.663] line         seq=62 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:12.663] terrain      seq=63 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:12.741] line         seq=64 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:12.806] line         seq=65 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:12.867] obstacle     seq=66 state=CLEAR cm=57 fault=False
+[14:49:12.946] line         seq=67 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:12.947] state        seq=68 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:13.003] line         seq=69 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:13.091] line         seq=70 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:13.180] obstacle     seq=71 state=CLEAR cm=57 fault=False
+[14:49:13.180] motion       seq=72 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:13.263] line         seq=73 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:13.323] line         seq=74 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:13.385] line         seq=75 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:13.464] obstacle     seq=76 state=CLEAR cm=53 fault=False
+[14:49:13.562] line         seq=77 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:13.661] terrain      seq=78 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:13.662] line         seq=79 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:13.775] obstacle     seq=80 state=CLEAR cm=57 fault=False
+[14:49:13.829] line         seq=81 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:13.904] line         seq=82 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:13.904] state        seq=83 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:13.994] line         seq=84 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:14.103] obstacle     seq=85 state=CLEAR cm=57 fault=False
+[14:49:14.185] line         seq=86 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:14.186] hb           seq=175 link=CONNECTED uptime_s=338 drops=255 cmd_ok=57 cmd_bad=0 last_will=False
+[14:49:14.186] motion       seq=87 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:14.283] line         seq=89 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:14.405] line         seq=90 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:14.479] obstacle     seq=91 state=CLEAR cm=53 fault=False
+[14:49:14.546] line         seq=92 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:14.629] terrain      seq=93 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:14.667] line         seq=94 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:14.743] line         seq=95 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:14.840] line         seq=96 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:14.903] obstacle     seq=97 state=CLEAR cm=151 fault=False
+[14:49:14.904] state        seq=98 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:14.963] line         seq=99 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:15.063] line         seq=100 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:15.123] motion       seq=101 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:15.194] obstacle     seq=102 state=CLEAR cm=53 fault=False
+[14:49:15.196] line         seq=103 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:15.368] line         seq=104 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:15.444] line         seq=105 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:15.507] obstacle     seq=106 state=CLEAR cm=57 fault=False
+[14:49:15.622] line         seq=107 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:15.684] terrain      seq=108 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:15.685] line         seq=109 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:15.846] line         seq=110 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:15.909] obstacle     seq=111 state=CLEAR cm=57 fault=False
+[14:49:15.969] state        seq=112 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:15.970] line         seq=113 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:16.024] hb           seq=176 link=CONNECTED uptime_s=340 drops=255 cmd_ok=61 cmd_bad=0 last_will=False
+[14:49:16.047] line         seq=114 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:16.143] motion       seq=115 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:16.218] line         seq=116 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:16.218] obstacle     seq=117 state=CLEAR cm=55 fault=False
+[14:49:16.529] obstacle     seq=118 state=CLEAR cm=57 fault=False
+[14:49:16.838] line         seq=119 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:16.838] terrain      seq=120 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:16.839] line         seq=121 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:16.904] line         seq=123 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:16.905] obstacle     seq=124 state=CLEAR cm=57 fault=False
+[14:49:16.906] state        seq=125 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:16.983] line         seq=126 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:17.105] line         seq=127 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:17.170] motion       seq=128 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:17.288] line         seq=129 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:17.365] obstacle     seq=130 state=CLEAR cm=151 fault=False
+[14:49:17.365] line         seq=131 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:17.465] line         seq=132 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:17.583] line         seq=133 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:17.656] terrain      seq=134 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:17.763] line         seq=135 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:17.763] obstacle     seq=136 state=CLEAR cm=57 fault=False
+[14:49:17.898] line         seq=137 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:17.989] line         seq=138 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:17.989] state        seq=139 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:17.991] hb           seq=177 link=CONNECTED uptime_s=342 drops=255 cmd_ok=65 cmd_bad=0 last_will=False
+[14:49:18.004] line         seq=140 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:18.106] line         seq=141 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:18.192] motion       seq=142 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:18.243] obstacle     seq=143 state=CLEAR cm=151 fault=False
+[14:49:18.310] line         seq=144 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:18.424] line         seq=145 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:18.545] line         seq=146 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:18.678] terrain      seq=147 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:18.707] line         seq=148 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:18.708] obstacle     seq=149 state=CLEAR cm=151 fault=False
+[14:49:18.806] line         seq=150 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:18.886] line         seq=151 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:18.949] state        seq=152 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:19.011] line         seq=153 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:19.104] line         seq=154 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:19.165] motion       seq=155 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:19.294] obstacle     seq=156 state=CLEAR cm=151 fault=False
+[14:49:19.294] line         seq=157 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:19.344] line         seq=158 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:19.443] line         seq=159 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:19.602] line         seq=160 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:19.666] obstacle     seq=161 state=CLEAR cm=151 fault=False
+[14:49:19.666] line         seq=162 state=TRACK sensors=1 junction=NONE line_pos=493
+[14:49:19.719] terrain      seq=163 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:19.785] line         seq=164 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:19.871] hb           seq=178 link=CONNECTED uptime_s=343 drops=255 cmd_ok=69 cmd_bad=0 last_will=False
+[14:49:19.884] state        seq=165 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:20.044] line         seq=166 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:20.111] line         seq=167 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:20.162] motion       seq=168 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:20.168] obstacle     seq=169 state=CLEAR cm=151 fault=False
+[14:49:20.283] line         seq=170 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:20.346] line         seq=171 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:20.527] line         seq=172 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:20.622] line         seq=173 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:20.685] obstacle     seq=174 state=CLEAR cm=151 fault=False
+[14:49:20.752] terrain      seq=175 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:20.752] line         seq=176 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:20.830] line         seq=177 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:20.945] state        seq=178 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:21.003] line         seq=179 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:21.083] obstacle     seq=180 state=CLEAR cm=29 fault=False
+[14:49:21.085] line         seq=181 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:21.148] motion       seq=182 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:21.237] line         seq=183 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:21.367] obstacle     seq=184 state=CLEAR cm=32 fault=False
+[14:49:21.367] line         seq=185 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:21.457] line         seq=186 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:21.547] line         seq=187 state=TRACK sensors=1 junction=NONE line_pos=492
+[14:49:21.621] obstacle     seq=188 state=CLEAR cm=36 fault=False
+[14:49:21.685] line         seq=189 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:21.685] terrain      seq=190 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:21.749] hb           seq=179 link=CONNECTED uptime_s=345 drops=255 cmd_ok=72 cmd_bad=0 last_will=False
+[14:49:21.754] line         seq=191 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:21.851] line         seq=192 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:21.932] obstacle     seq=193 state=CLEAR cm=33 fault=False
+[14:49:21.932] state        seq=194 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:22.005] line         seq=195 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:22.095] line         seq=196 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:22.168] motion       seq=197 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:22.168] obstacle     seq=198 state=CLEAR cm=33 fault=False
+[14:49:22.311] line         seq=199 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:22.390] line         seq=200 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:22.447] obstacle     seq=201 state=CLEAR cm=39 fault=False
+[14:49:22.626] line         seq=202 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:22.704] terrain      seq=203 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:22.823] line         seq=204 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:22.824] obstacle     seq=205 state=CLEAR cm=37 fault=False
+[14:49:22.824] line         seq=206 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:22.907] state        seq=207 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:23.045] obstacle     seq=208 state=CLEAR cm=37 fault=False
+[14:49:23.112] motion       seq=209 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:23.211] line         seq=210 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:23.335] line         seq=211 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:23.417] obstacle     seq=212 state=CLEAR cm=35 fault=False
+[14:49:23.489] line         seq=213 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:23.543] line         seq=214 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:23.624] hb           seq=180 link=CONNECTED uptime_s=347 drops=255 cmd_ok=76 cmd_bad=0 last_will=False
+[14:49:23.644] obstacle     seq=215 state=CLEAR cm=36 fault=False
+[14:49:23.723] terrain      seq=216 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:23.724] line         seq=217 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:23.823] line         seq=218 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:23.884] state        seq=219 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:23.966] obstacle     seq=220 state=CLEAR cm=36 fault=False
+[14:49:23.966] line         seq=221 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:24.063] line         seq=222 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:24.131] motion       seq=223 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:24.208] line         seq=224 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:24.208] obstacle     seq=225 state=CLEAR cm=18 fault=False
+[14:49:24.337] line         seq=226 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:24.427] line         seq=227 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:24.519] obstacle     seq=228 state=CLEAR cm=32 fault=False
+[14:49:24.626] line         seq=229 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:24.704] line         seq=230 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:24.704] terrain      seq=231 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:24.763] line         seq=232 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:24.827] obstacle     seq=233 state=CLEAR cm=27 fault=False
+[14:49:24.903] line         seq=234 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:24.963] state        seq=235 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:25.029] line         seq=236 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:25.106] obstacle     seq=237 state=CLEAR cm=30 fault=False
+[14:49:25.184] motion       seq=238 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:25.243] line         seq=239 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:25.343] line         seq=240 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:25.403] obstacle     seq=241 state=CLEAR cm=38 fault=False
+[14:49:25.506] hb           seq=181 link=CONNECTED uptime_s=349 drops=255 cmd_ok=80 cmd_bad=0 last_will=False
+[14:49:25.576] line         seq=242 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:25.649] obstacle     seq=243 state=CLEAR cm=29 fault=False
+[14:49:25.724] line         seq=244 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:25.724] terrain      seq=245 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:25.872] line         seq=246 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:25.963] state        seq=247 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:25.964] obstacle     seq=248 state=CLEAR cm=32 fault=False
+[14:49:25.964] line         seq=249 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:26.083] line         seq=250 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:26.198] line         seq=251 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:26.304] motion       seq=252 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:26.304] obstacle     seq=253 state=CLEAR cm=52 fault=False
+[14:49:26.305] line         seq=254 state=TRACK sensors=1 junction=NONE line_pos=493
+[14:49:26.305] line         seq=255 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:26.463] obstacle     seq=0 state=CLEAR cm=51 fault=False
+[14:49:26.525] line         seq=1 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:26.618] line         seq=2 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:26.708] line         seq=3 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:26.784] terrain      seq=4 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:26.787] obstacle     seq=5 state=CLEAR cm=52 fault=False
+[14:49:26.788] line         seq=6 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:26.904] state        seq=7 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:26.968] line         seq=8 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:27.072] line         seq=9 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:27.123] obstacle     seq=10 state=CLEAR cm=52 fault=False
+[14:49:27.185] motion       seq=11 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:27.379] obstacle     seq=12 state=CLEAR cm=52 fault=False
+[14:49:27.449] hb           seq=182 link=CONNECTED uptime_s=351 drops=255 cmd_ok=84 cmd_bad=0 last_will=False
+[14:49:27.452] line         seq=13 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:27.546] line         seq=14 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:27.667] obstacle     seq=15 state=CLEAR cm=52 fault=False
+[14:49:27.732] line         seq=16 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:27.819] terrain      seq=17 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:27.820] line         seq=18 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:27.924] state        seq=19 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:27.999] obstacle     seq=20 state=CLEAR cm=52 fault=False
+[14:49:27.999] line         seq=21 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:28.097] line         seq=22 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:28.164] motion       seq=23 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:28.229] line         seq=24 state=TRACK sensors=1 junction=NONE line_pos=498
+[14:49:28.285] obstacle     seq=25 state=CLEAR cm=52 fault=False
+[14:49:28.286] line         seq=26 state=TRACK sensors=1 junction=NONE line_pos=496
+[14:49:28.449] line         seq=27 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:28.559] line         seq=28 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:28.649] obstacle     seq=29 state=CLEAR cm=51 fault=False
+[14:49:28.649] line         seq=30 state=TRACK sensors=1 junction=NONE line_pos=497
+[14:49:28.718] cmd          sent=mode arg=0 seq=189
+[14:49:28.723] terrain      seq=31 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:28.815] line         seq=32 state=TRACK sensors=1 junction=NONE line_pos=500
+[14:49:28.864] event        seq=33 code=12 arg=0 text=sweep calibration started
+[14:49:28.865] state        seq=34 state=CALIBRATING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:28.866] state        seq=35 state=CALIBRATING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:28.868] motion       seq=36 mode=TURN target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=-10 right_pwm=10
+[14:49:28.945] obstacle     seq=38 state=CLEAR cm=52 fault=False
+[14:49:28.945] state        seq=39 state=CALIBRATING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:29.025] motion       seq=40 mode=TURN target_cm_s=0 left_cm_s=-3.8 right_cm_s=3.1 left_pwm=-25 right_pwm=25
+[14:49:29.165] obstacle     seq=41 state=CLEAR cm=52 fault=False
+[14:49:29.253] motion       seq=42 mode=TURN target_cm_s=0 left_cm_s=-5.8 right_cm_s=8.9 left_pwm=-25 right_pwm=25
+[14:49:29.305] hb           seq=183 link=CONNECTED uptime_s=353 drops=255 cmd_ok=88 cmd_bad=0 last_will=False
+[14:49:29.439] motion       seq=43 mode=TURN target_cm_s=0 left_cm_s=-4.8 right_cm_s=9.3 left_pwm=10 right_pwm=-10
+[14:49:29.503] obstacle     seq=44 state=CLEAR cm=73 fault=False
+[14:49:29.585] motion       seq=45 mode=TURN target_cm_s=0 left_cm_s=5.0 right_cm_s=-4.5 left_pwm=25 right_pwm=-25
+[14:49:29.705] obstacle     seq=46 state=CLEAR cm=73 fault=False
+[14:49:29.768] terrain      seq=47 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:49:29.804] motion       seq=48 mode=TURN target_cm_s=0 left_cm_s=6.7 right_cm_s=-9.3 left_pwm=25 right_pwm=-25
+[14:49:29.885] state        seq=49 state=CALIBRATING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:30.002] obstacle     seq=50 state=CLEAR cm=51 fault=False
+[14:49:30.087] motion       seq=51 mode=TURN target_cm_s=0 left_cm_s=6.7 right_cm_s=-9.3 left_pwm=25 right_pwm=-25
+[14:49:30.191] motion       seq=52 mode=TURN target_cm_s=0 left_cm_s=6.3 right_cm_s=-8.5 left_pwm=25 right_pwm=-25
+[14:49:30.266] obstacle     seq=53 state=CLEAR cm=86 fault=False
+[14:49:30.364] motion       seq=54 mode=TURN target_cm_s=0 left_cm_s=6.5 right_cm_s=-7.8 left_pwm=-15 right_pwm=15
+[14:49:30.558] obstacle     seq=55 state=CLEAR cm=57 fault=False
+[14:49:30.623] motion       seq=56 mode=TURN target_cm_s=0 left_cm_s=-5.0 right_cm_s=6.5 left_pwm=-25 right_pwm=25
+[14:49:30.772] terrain      seq=57 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=5
+[14:49:30.826] motion       seq=58 mode=TURN target_cm_s=0 left_cm_s=-4.8 right_cm_s=9.7 left_pwm=-25 right_pwm=25
+[14:49:30.912] obstacle     seq=59 state=CLEAR cm=66 fault=False
+[14:49:30.994] state        seq=60 state=CALIBRATING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:30.995] ircal        seq=61 kind=sweep L={'white': 143, 'black': 2034, 'new': True} C={'white': 109, 'black': 2034, 'new': True} R={'white': 134, 'black': 2721, 'new': True}
+[14:49:30.995] line         seq=62 state=TRACK sensors=1 junction=NONE line_pos=459
+[14:49:31.065] motion       seq=63 mode=TURN target_cm_s=0 left_cm_s=-3.5 right_cm_s=7.0 left_pwm=15 right_pwm=-15
+[14:49:31.071] line         seq=64 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:49:31.172] obstacle     seq=65 state=CLEAR cm=50 fault=False
+[14:49:31.270] line         seq=66 state=LINE_LOST sensors=0 junction=NONE line_pos=428
+[14:49:31.271] line         seq=67 state=TRACK sensors=2 junction=NONE line_pos=428
+[14:49:31.271] hb           seq=184 link=CONNECTED uptime_s=355 drops=255 cmd_ok=92 cmd_bad=0 last_will=False
+[14:49:31.331] line         seq=68 state=TRACK sensors=2 junction=NONE line_pos=-480
+[14:49:31.346] event        seq=69 code=17 arg=0 text=calibration done, middle sensor on the line
+[14:49:31.348] state        seq=70 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:31.424] line         seq=71 state=TRACK sensors=2 junction=NONE line_pos=-470
+[14:49:31.484] obstacle     seq=72 state=CLEAR cm=52 fault=False
+[14:49:31.592] line         seq=73 state=TRACK sensors=2 junction=NONE line_pos=-482
+[14:49:31.646] line         seq=74 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:49:31.725] line         seq=75 state=TRACK sensors=2 junction=NONE line_pos=-489
+[14:49:31.813] obstacle     seq=76 state=CLEAR cm=52 fault=False
+[14:49:31.814] terrain      seq=77 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:31.851] line         seq=78 state=TRACK sensors=2 junction=NONE line_pos=-471
+[14:49:31.932] line         seq=79 state=TRACK sensors=2 junction=NONE line_pos=-468
+[14:49:31.933] state        seq=80 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:32.004] line         seq=81 state=TRACK sensors=2 junction=NONE line_pos=-495
+[14:49:32.005] motion       seq=82 mode=STOP target_cm_s=0 left_cm_s=0.7 right_cm_s=-0.7 left_pwm=0 right_pwm=0
+[14:49:32.064] obstacle     seq=83 state=CLEAR cm=52 fault=False
+[14:49:32.124] line         seq=84 state=TRACK sensors=2 junction=NONE line_pos=-492
+[14:49:32.223] line         seq=85 state=TRACK sensors=2 junction=NONE line_pos=-476
+[14:49:32.293] line         seq=86 state=TRACK sensors=2 junction=NONE line_pos=-486
+[14:49:32.344] obstacle     seq=87 state=CLEAR cm=52 fault=False
+[14:49:32.436] line         seq=88 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:49:32.484] line         seq=89 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:49:32.583] obstacle     seq=90 state=CLEAR cm=52 fault=False
+[14:49:32.644] line         seq=91 state=TRACK sensors=2 junction=NONE line_pos=-481
+[14:49:32.750] line         seq=92 state=TRACK sensors=2 junction=NONE line_pos=-477
+[14:49:32.751] terrain      seq=93 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:32.847] line         seq=94 state=TRACK sensors=2 junction=NONE line_pos=-485
+[14:49:32.923] obstacle     seq=95 state=CLEAR cm=52 fault=False
+[14:49:32.923] state        seq=96 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:32.924] line         seq=97 state=TRACK sensors=2 junction=NONE line_pos=-476
+[14:49:32.998] cmd          sent=start arg=0 seq=199
+[14:49:33.012] motion       seq=98 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:49:33.073] line         seq=99 state=TRACK sensors=2 junction=NONE line_pos=-489
+[14:49:33.146] state        seq=100 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:33.147] line         seq=101 state=TRACK sensors=2 junction=NONE line_pos=-470
+[14:49:33.147] hb           seq=185 link=CONNECTED uptime_s=357 drops=255 cmd_ok=97 cmd_bad=0 last_will=False
+[14:49:33.153] obstacle     seq=102 state=CLEAR cm=52 fault=False
+[14:49:33.183] motion       seq=103 mode=SPEED target_cm_s=3 left_cm_s=0.1 right_cm_s=0.9 left_pwm=18 right_pwm=13
+[14:49:33.248] line         seq=104 state=TRACK sensors=2 junction=NONE line_pos=-490
+[14:49:33.322] line         seq=105 state=LINE_LOST sensors=0 junction=NONE line_pos=-449
+[14:49:33.424] obstacle     seq=106 state=CLEAR cm=52 fault=False
+[14:49:33.425] line         seq=107 state=TRACK sensors=1 junction=NONE line_pos=-449
+[14:49:33.483] motion       seq=108 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=4.6 left_pwm=13 right_pwm=15
+[14:49:33.554] line         seq=109 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:49:33.630] line         seq=110 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:49:33.630] motion       seq=111 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=4.0 left_pwm=18 right_pwm=13
+[14:49:33.631] obstacle     seq=112 state=CLEAR cm=50 fault=False
+[14:49:33.711] line         seq=113 state=TRACK sensors=1 junction=NONE line_pos=457
+[14:49:33.764] terrain      seq=114 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:33.832] line         seq=115 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:49:33.832] motion       seq=116 mode=SPEED target_cm_s=3 left_cm_s=3.6 right_cm_s=3.1 left_pwm=18 right_pwm=13
+[14:49:33.935] line         seq=117 state=TRACK sensors=1 junction=NONE line_pos=446
+[14:49:33.935] state        seq=118 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:33.936] obstacle     seq=119 state=CLEAR cm=50 fault=False
+[14:49:34.003] line         seq=120 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:49:34.083] motion       seq=121 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=3.0 left_pwm=17 right_pwm=12
+[14:49:34.143] line         seq=122 state=TRACK sensors=1 junction=NONE line_pos=431
+[14:49:34.205] line         seq=123 state=TRACK sensors=1 junction=NONE line_pos=389
+[14:49:34.270] motion       seq=124 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.8 left_pwm=19 right_pwm=12
+[14:49:34.272] obstacle     seq=125 state=CLEAR cm=49 fault=False
+[14:49:34.272] line         seq=126 state=LINE_LOST sensors=0 junction=NONE line_pos=371
+[14:49:34.463] line         seq=127 state=TRACK sensors=2 junction=NONE line_pos=371
+[14:49:34.463] motion       seq=128 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=2.6 left_pwm=16 right_pwm=11
+[14:49:34.464] line         seq=129 state=TRACK sensors=2 junction=NONE line_pos=-488
+[14:49:34.524] obstacle     seq=130 state=CLEAR cm=48 fault=False
+[14:49:34.609] line         seq=131 state=TRACK sensors=2 junction=NONE line_pos=-487
+[14:49:34.683] motion       seq=132 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=3.3 left_pwm=15 right_pwm=14
+[14:49:34.764] line         seq=133 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:49:34.764] line         seq=134 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:49:34.765] terrain      seq=135 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:34.832] obstacle     seq=136 state=CLEAR cm=46 fault=False
+[14:49:34.833] motion       seq=137 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=3.9 left_pwm=14 right_pwm=15
+[14:49:34.885] line         seq=138 state=LINE_LOST sensors=0 junction=NONE line_pos=-428
+[14:49:34.885] state        seq=139 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:34.986] motion       seq=140 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=4.4 left_pwm=12 right_pwm=15
+[14:49:35.061] line         seq=141 state=TRACK sensors=1 junction=NONE line_pos=-428
+[14:49:35.062] hb           seq=186 link=CONNECTED uptime_s=359 drops=255 cmd_ok=101 cmd_bad=0 last_will=False
+[14:49:35.089] obstacle     seq=142 state=CLEAR cm=45 fault=False
+[14:49:35.166] line         seq=143 state=TRACK sensors=1 junction=NONE line_pos=440
+[14:49:35.230] motion       seq=144 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=3.4 left_pwm=17 right_pwm=12
+[14:49:35.309] line         seq=145 state=TRACK sensors=1 junction=NONE line_pos=441
+[14:49:35.310] line         seq=146 state=TRACK sensors=1 junction=NONE line_pos=438
+[14:49:35.385] obstacle     seq=147 state=CLEAR cm=44 fault=False
+[14:49:35.444] motion       seq=148 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.8 left_pwm=17 right_pwm=12
+[14:49:35.444] line         seq=149 state=TRACK sensors=1 junction=NONE line_pos=430
+[14:49:35.524] line         seq=150 state=TRACK sensors=1 junction=NONE line_pos=397
+[14:49:35.622] line         seq=151 state=LINE_LOST sensors=0 junction=NONE line_pos=384
+[14:49:35.623] motion       seq=152 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.9 left_pwm=17 right_pwm=9
+[14:49:35.684] obstacle     seq=153 state=CLEAR cm=44 fault=False
+[14:49:35.743] line         seq=154 state=TRACK sensors=2 junction=NONE line_pos=384
+[14:49:35.823] terrain      seq=155 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:35.885] motion       seq=156 mode=SPEED target_cm_s=3 left_cm_s=4.0 right_cm_s=2.3 left_pwm=16 right_pwm=11
+[14:49:35.887] line         seq=157 state=TRACK sensors=2 junction=NONE line_pos=-488
+[14:49:35.887] obstacle     seq=158 state=CLEAR cm=43 fault=False
+[14:49:35.963] state        seq=159 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:35.964] line         seq=160 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:49:36.027] motion       seq=161 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=3.0 left_pwm=13 right_pwm=15
+[14:49:36.028] line         seq=162 state=TRACK sensors=2 junction=NONE line_pos=-475
+[14:49:36.134] obstacle     seq=163 state=CLEAR cm=43 fault=False
+[14:49:36.203] line         seq=164 state=TRACK sensors=2 junction=NONE line_pos=-458
+[14:49:36.203] line         seq=165 state=LINE_LOST sensors=0 junction=NONE line_pos=-462
+[14:49:36.204] motion       seq=166 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.5 left_pwm=12 right_pwm=15
+[14:49:36.448] line         seq=167 state=TRACK sensors=1 junction=NONE line_pos=-462
+[14:49:36.449] motion       seq=168 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=4.0 left_pwm=15 right_pwm=13
+[14:49:36.449] line         seq=169 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:49:36.449] obstacle     seq=170 state=CLEAR cm=42 fault=False
+[14:49:36.550] line         seq=171 state=TRACK sensors=1 junction=NONE line_pos=439
+[14:49:36.645] motion       seq=172 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=2.8 left_pwm=18 right_pwm=11
+[14:49:36.726] line         seq=173 state=TRACK sensors=1 junction=NONE line_pos=437
+[14:49:36.804] line         seq=174 state=TRACK sensors=1 junction=NONE line_pos=428
+[14:49:36.806] terrain      seq=175 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:49:36.809] motion       seq=176 mode=SPEED target_cm_s=3 left_cm_s=3.1 right_cm_s=2.4 left_pwm=18 right_pwm=12
+[14:49:36.863] line         seq=177 state=TRACK sensors=1 junction=NONE line_pos=427
+[14:49:36.863] obstacle     seq=178 state=CLEAR cm=43 fault=False
+[14:49:36.934] state        seq=179 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:36.934] hb           seq=187 link=CONNECTED uptime_s=361 drops=255 cmd_ok=104 cmd_bad=0 last_will=False
+[14:49:36.964] line         seq=180 state=TRACK sensors=1 junction=NONE line_pos=422
+[14:49:37.024] motion       seq=181 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=2.6 left_pwm=19 right_pwm=10
+[14:49:37.103] line         seq=182 state=TRACK sensors=3 junction=NONE line_pos=-27
+[14:49:37.103] line         seq=183 state=TRACK sensors=1 junction=NONE line_pos=380
+[14:49:37.104] line         seq=184 state=TRACK sensors=3 junction=NONE line_pos=-83
+[14:49:37.162] line         seq=185 state=TRACK sensors=1 junction=NONE line_pos=118
+[14:49:37.163] line         seq=186 state=LINE_LOST sensors=0 junction=NONE line_pos=-64
+[14:49:37.248] motion       seq=187 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.5 left_pwm=17 right_pwm=13
+[14:49:37.324] obstacle     seq=188 state=CLEAR cm=137 fault=False
+[14:49:37.446] motion       seq=189 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=2.7 left_pwm=19 right_pwm=14
+[14:49:37.518] line         seq=190 state=TRACK sensors=1 junction=NONE line_pos=-64
+[14:49:37.673] motion       seq=191 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=2.5 left_pwm=23 right_pwm=12
+[14:49:37.752] line         seq=192 state=TRACK sensors=1 junction=NONE line_pos=432
+[14:49:37.752] obstacle     seq=193 state=CLEAR cm=144 fault=False
+[14:49:37.828] line         seq=194 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:49:37.828] terrain      seq=195 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:49:37.829] motion       seq=196 mode=SPEED target_cm_s=3 left_cm_s=1.6 right_cm_s=2.1 left_pwm=26 right_pwm=12
+[14:49:37.829] line         seq=197 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:49:37.930] state        seq=198 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:37.983] line         seq=199 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:49:40.021] motion       seq=200 mode=SPEED target_cm_s=3 left_cm_s=0.8 right_cm_s=1.3 left_pwm=29 right_pwm=12
+[14:49:40.021] line         seq=201 state=TRACK sensors=1 junction=NONE line_pos=462
+[14:49:40.086] line         seq=202 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:49:40.086] obstacle     seq=203 state=CLEAR cm=146 fault=False
+[14:49:40.087] motion       seq=204 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=2.6 left_pwm=25 right_pwm=8
+[14:49:40.087] line         seq=205 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:49:40.210] motion       seq=235 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.3 left_pwm=15 right_pwm=17
+[14:49:40.323] obstacle     seq=236 state=CLEAR cm=64 fault=False
+[14:49:40.558] motion       seq=237 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=2.9 left_pwm=16 right_pwm=16
+[14:49:40.692] motion       seq=238 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=3.2 left_pwm=15 right_pwm=18
+[14:49:40.693] obstacle     seq=239 state=CLEAR cm=64 fault=False
+[14:49:40.763] hb           seq=189 link=CONNECTED uptime_s=364 drops=255 cmd_ok=112 cmd_bad=0 last_will=False
+[14:49:40.809] motion       seq=240 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=3.1 left_pwm=12 right_pwm=18
+[14:49:40.896] terrain      seq=241 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:40.897] obstacle     seq=242 state=CLEAR cm=65 fault=False
+[14:49:40.899] state        seq=243 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:42.331] motion       seq=244 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=4.7 left_pwm=13 right_pwm=15
+[14:49:42.331] obstacle     seq=245 state=CLEAR cm=61 fault=False
+[14:49:42.332] motion       seq=246 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=3.8 left_pwm=15 right_pwm=14
+[14:49:42.332] motion       seq=247 mode=SPEED target_cm_s=3 left_cm_s=3.6 right_cm_s=3.2 left_pwm=16 right_pwm=13
+[14:49:42.485] motion       seq=2 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=3.2 left_pwm=14 right_pwm=14
+[14:49:42.584] obstacle     seq=3 state=CLEAR cm=58 fault=False
+[14:49:42.667] motion       seq=4 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.7 left_pwm=16 right_pwm=13
+[14:49:42.667] hb           seq=190 link=CONNECTED uptime_s=366 drops=255 cmd_ok=116 cmd_bad=0 last_will=False
+[14:49:42.786] motion       seq=5 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.8 left_pwm=19 right_pwm=11
+[14:49:42.874] obstacle     seq=6 state=CLEAR cm=57 fault=False
+[14:49:42.874] terrain      seq=7 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:42.924] state        seq=8 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:43.023] motion       seq=9 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.2 left_pwm=18 right_pwm=11
+[14:49:43.154] obstacle     seq=10 state=CLEAR cm=57 fault=False
+[14:49:43.223] motion       seq=11 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=2.9 left_pwm=14 right_pwm=14
+[14:49:43.383] motion       seq=12 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=3.5 left_pwm=15 right_pwm=15
+[14:49:43.504] obstacle     seq=13 state=CLEAR cm=116 fault=False
+[14:49:43.623] motion       seq=14 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.8 left_pwm=12 right_pwm=16
+[14:49:43.741] obstacle     seq=15 state=CLEAR cm=115 fault=False
+[14:49:43.816] motion       seq=16 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=4.2 left_pwm=16 right_pwm=13
+[14:49:43.916] terrain      seq=17 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:43.926] state        seq=18 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:44.118] motion       seq=19 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.6 left_pwm=18 right_pwm=11
+[14:49:44.183] obstacle     seq=20 state=CLEAR cm=114 fault=False
+[14:49:44.244] motion       seq=21 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=2.5 left_pwm=17 right_pwm=11
+[14:49:44.410] obstacle     seq=22 state=CLEAR cm=113 fault=False
+[14:49:44.451] motion       seq=23 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.5 left_pwm=20 right_pwm=9
+[14:49:44.527] hb           seq=191 link=CONNECTED uptime_s=368 drops=255 cmd_ok=120 cmd_bad=0 last_will=False
+[14:49:44.596] motion       seq=24 mode=SPEED target_cm_s=3 left_cm_s=4.0 right_cm_s=2.5 left_pwm=16 right_pwm=13
+[14:49:44.704] obstacle     seq=25 state=CLEAR cm=112 fault=False
+[14:49:44.845] motion       seq=26 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.1 left_pwm=15 right_pwm=14
+[14:49:44.925] terrain      seq=27 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:49:44.926] state        seq=28 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:44.968] obstacle     seq=29 state=CLEAR cm=111 fault=False
+[14:49:45.063] motion       seq=30 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.4 left_pwm=15 right_pwm=15
+[14:49:45.184] obstacle     seq=31 state=CLEAR cm=110 fault=False
+[14:49:45.336] motion       seq=32 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.5 left_pwm=14 right_pwm=14
+[14:49:45.432] motion       seq=33 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.5 left_pwm=17 right_pwm=11
+[14:49:45.553] obstacle     seq=34 state=CLEAR cm=109 fault=False
+[14:49:45.623] motion       seq=35 mode=SPEED target_cm_s=3 left_cm_s=3.6 right_cm_s=2.5 left_pwm=18 right_pwm=9
+[14:49:45.723] obstacle     seq=36 state=CLEAR cm=108 fault=False
+[14:49:45.793] motion       seq=37 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.5 left_pwm=17 right_pwm=14
+[14:49:45.947] state        seq=38 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:46.025] terrain      seq=39 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:46.027] obstacle     seq=40 state=CLEAR cm=108 fault=False
+[14:49:46.029] motion       seq=41 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.5 left_pwm=14 right_pwm=17
+[14:49:46.203] motion       seq=42 mode=SPEED target_cm_s=3 left_cm_s=2.0 right_cm_s=3.8 left_pwm=14 right_pwm=15
+[14:49:46.271] obstacle     seq=43 state=CLEAR cm=107 fault=False
+[14:49:46.384] motion       seq=44 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=2.8 left_pwm=17 right_pwm=13
+[14:49:46.591] hb           seq=192 link=CONNECTED uptime_s=370 drops=255 cmd_ok=123 cmd_bad=0 last_will=False
+[14:49:46.682] obstacle     seq=45 state=CLEAR cm=106 fault=False
+[14:49:46.683] motion       seq=46 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.5 left_pwm=18 right_pwm=12
+[14:49:46.803] motion       seq=47 mode=SPEED target_cm_s=3 left_cm_s=3.6 right_cm_s=2.4 left_pwm=20 right_pwm=9
+[14:49:46.956] obstacle     seq=48 state=CLEAR cm=105 fault=False
+[14:49:47.114] state        seq=49 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:47.115] terrain      seq=50 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:47.115] motion       seq=51 mode=SPEED target_cm_s=3 left_cm_s=3.9 right_cm_s=2.3 left_pwm=15 right_pwm=13
+[14:49:47.196] obstacle     seq=52 state=CLEAR cm=104 fault=False
+[14:49:47.298] motion       seq=53 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=3.4 left_pwm=13 right_pwm=15
+[14:49:47.397] barcode      seq=54 letter=W command=NONE mapped=LEFT
+[14:49:47.427] line         seq=55 state=TRACK sensors=2 junction=NONE line_pos=-472
+[14:49:47.428] event        seq=57 code=19 arg=5633 text=barcode W: LEFT at the next junction
+[14:49:47.484] motion       seq=59 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.5 left_pwm=14 right_pwm=15
+[14:49:47.484] obstacle     seq=60 state=CLEAR cm=103 fault=False
+[14:49:47.686] motion       seq=61 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.8 left_pwm=12 right_pwm=15
+[14:49:47.686] line         seq=62 state=TRACK sensors=0 junction=NONE line_pos=-470
+[14:49:47.687] line         seq=63 state=TRACK sensors=1 junction=NONE line_pos=422
+[14:49:47.687] obstacle     seq=64 state=CLEAR cm=71 fault=False
+[14:49:47.803] line         seq=65 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:49:47.874] motion       seq=66 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=3.5 left_pwm=16 right_pwm=13
+[14:49:47.875] line         seq=67 state=TRACK sensors=1 junction=NONE line_pos=445
+[14:49:49.919] state        seq=68 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:49.919] obstacle     seq=69 state=CLEAR cm=101 fault=False
+[14:49:49.920] terrain      seq=70 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:49.923] line         seq=71 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:49:49.962] motion       seq=72 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.7 left_pwm=17 right_pwm=10
+[14:49:49.962] line         seq=73 state=TRACK sensors=1 junction=NONE line_pos=436
+[14:49:49.962] line         seq=74 state=TRACK sensors=1 junction=NONE line_pos=388
+[14:49:49.963] line         seq=75 state=LINE_LOST sensors=0 junction=NONE line_pos=363
+[14:49:50.063] line         seq=112 state=TRACK sensors=2 junction=NONE line_pos=-475
+[14:49:50.064] motion       seq=113 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.6 left_pwm=14 right_pwm=13
+[14:49:50.064] line         seq=114 state=TRACK sensors=2 junction=NONE line_pos=-453
+[14:49:50.162] obstacle     seq=115 state=CLEAR cm=94 fault=False
+[14:49:50.227] line         seq=116 state=TRACK sensors=2 junction=NONE line_pos=-455
+[14:49:50.285] motion       seq=117 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=3.2 left_pwm=14 right_pwm=15
+[14:49:50.285] hb           seq=194 link=CONNECTED uptime_s=374 drops=255 cmd_ok=131 cmd_bad=0 last_will=False
+[14:49:50.320] line         seq=118 state=TRACK sensors=2 junction=NONE line_pos=-467
+[14:49:50.385] line         seq=119 state=TRACK sensors=2 junction=NONE line_pos=-423
+[14:49:50.450] line         seq=120 state=LINE_LOST sensors=0 junction=NONE line_pos=-423
+[14:49:50.451] motion       seq=121 mode=SPEED target_cm_s=3 left_cm_s=3.1 right_cm_s=3.4 left_pwm=11 right_pwm=16
+[14:49:50.451] obstacle     seq=122 state=CLEAR cm=93 fault=False
+[14:49:50.631] line         seq=123 state=TRACK sensors=1 junction=NONE line_pos=-423
+[14:49:50.631] motion       seq=124 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=3.7 left_pwm=17 right_pwm=19
+[14:49:50.704] line         seq=125 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:49:50.773] obstacle     seq=126 state=CLEAR cm=92 fault=False
+[14:49:50.843] line         seq=127 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:49:50.843] motion       seq=128 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=2.5 left_pwm=17 right_pwm=13
+[14:49:50.933] line         seq=129 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:49:50.933] state        seq=130 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:50.984] obstacle     seq=131 state=CLEAR cm=91 fault=False
+[14:49:50.984] terrain      seq=132 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:49:50.984] line         seq=133 state=TRACK sensors=1 junction=NONE line_pos=430
+[14:49:51.083] motion       seq=134 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.8 left_pwm=17 right_pwm=13
+[14:49:51.083] line         seq=135 state=TRACK sensors=1 junction=NONE line_pos=421
+[14:49:51.205] line         seq=136 state=TRACK sensors=1 junction=NONE line_pos=392
+[14:49:51.287] line         seq=137 state=LINE_LOST sensors=0 junction=NONE line_pos=392
+[14:49:51.287] motion       seq=138 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.8 left_pwm=18 right_pwm=12
+[14:49:51.288] obstacle     seq=139 state=CLEAR cm=90 fault=False
+[14:49:51.371] line         seq=140 state=TRACK sensors=2 junction=NONE line_pos=392
+[14:49:51.452] motion       seq=141 mode=SPEED target_cm_s=3 left_cm_s=4.0 right_cm_s=2.4 left_pwm=17 right_pwm=12
+[14:49:51.503] line         seq=142 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:49:51.527] obstacle     seq=143 state=CLEAR cm=89 fault=False
+[14:49:51.578] line         seq=144 state=TRACK sensors=2 junction=NONE line_pos=-475
+[14:49:51.663] motion       seq=145 mode=SPEED target_cm_s=3 left_cm_s=3.1 right_cm_s=3.2 left_pwm=15 right_pwm=14
+[14:49:51.723] line         seq=146 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:49:51.802] obstacle     seq=147 state=CLEAR cm=88 fault=False
+[14:49:51.804] line         seq=148 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:49:51.804] motion       seq=149 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=3.6 left_pwm=14 right_pwm=16
+[14:49:51.864] line         seq=150 state=LINE_LOST sensors=0 junction=NONE line_pos=-433
+[14:49:51.925] state        seq=151 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:52.007] terrain      seq=152 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:52.093] motion       seq=153 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=4.1 left_pwm=12 right_pwm=17
+[14:49:52.094] line         seq=154 state=TRACK sensors=1 junction=NONE line_pos=-433
+[14:49:52.094] obstacle     seq=155 state=CLEAR cm=87 fault=False
+[14:49:52.191] line         seq=156 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:49:52.191] hb           seq=195 link=CONNECTED uptime_s=376 drops=255 cmd_ok=135 cmd_bad=0 last_will=False
+[14:49:52.211] motion       seq=157 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.4 left_pwm=17 right_pwm=13
+[14:49:52.306] line         seq=158 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:49:52.306] obstacle     seq=159 state=CLEAR cm=87 fault=False
+[14:49:52.383] line         seq=160 state=TRACK sensors=1 junction=NONE line_pos=441
+[14:49:52.499] motion       seq=161 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.3 left_pwm=18 right_pwm=12
+[14:49:52.499] line         seq=162 state=TRACK sensors=1 junction=NONE line_pos=422
+[14:49:52.523] line         seq=163 state=TRACK sensors=1 junction=NONE line_pos=380
+[14:49:52.617] line         seq=164 state=LINE_LOST sensors=0 junction=NONE line_pos=379
+[14:49:52.617] obstacle     seq=165 state=CLEAR cm=86 fault=False
+[14:49:52.709] motion       seq=166 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=2.0 left_pwm=20 right_pwm=12
+[14:49:52.809] line         seq=167 state=TRACK sensors=2 junction=NONE line_pos=379
+[14:49:52.879] line         seq=168 state=TRACK sensors=2 junction=NONE line_pos=-475
+[14:49:52.885] motion       seq=169 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.1 left_pwm=15 right_pwm=15
+[14:49:52.886] obstacle     seq=170 state=CLEAR cm=85 fault=False
+[14:49:52.963] line         seq=171 state=TRACK sensors=2 junction=NONE line_pos=-487
+[14:49:52.964] state        seq=172 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:53.046] terrain      seq=173 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:53.048] line         seq=174 state=TRACK sensors=2 junction=NONE line_pos=-479
+[14:49:53.049] motion       seq=175 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=3.4 left_pwm=14 right_pwm=17
+[14:49:53.130] obstacle     seq=176 state=CLEAR cm=84 fault=False
+[14:49:53.130] line         seq=177 state=TRACK sensors=2 junction=NONE line_pos=-370
+[14:49:53.220] line         seq=178 state=TRACK sensors=3 junction=NONE line_pos=-102
+[14:49:53.322] motion       seq=179 mode=SPEED target_cm_s=3 left_cm_s=2.1 right_cm_s=2.6 left_pwm=16 right_pwm=15
+[14:49:53.322] line         seq=180 state=TRACK sensors=3 junction=RIGHT line_pos=-40
+[14:49:53.323] event        seq=181 code=20 arg=1 text=junction: doing LEFT
+[14:49:53.329] state        seq=182 state=TURNING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:53.427] obstacle     seq=184 state=CLEAR cm=84 fault=False
+[14:49:53.509] motion       seq=185 mode=DISTANCE target_cm_s=0 left_cm_s=2.2 right_cm_s=2.7 left_pwm=15 right_pwm=14
+[14:49:53.510] line         seq=186 state=TRACK sensors=3 junction=RIGHT line_pos=0
+[14:49:53.544] line         seq=187 state=TRACK sensors=3 junction=RIGHT line_pos=-35
+[14:49:53.606] line         seq=188 state=TRACK sensors=1 junction=RIGHT line_pos=72
+[14:49:53.607] obstacle     seq=189 state=CLEAR cm=83 fault=False
+[14:49:53.608] line         seq=190 state=LINE_LOST sensors=0 junction=RIGHT line_pos=72
+[14:49:53.610] motion       seq=191 mode=DISTANCE target_cm_s=0 left_cm_s=3.5 right_cm_s=3.8 left_pwm=16 right_pwm=14
+[14:49:53.828] motion       seq=193 mode=DISTANCE target_cm_s=0 left_cm_s=3.4 right_cm_s=3.8 left_pwm=16 right_pwm=14
+[14:49:53.933] obstacle     seq=194 state=CLEAR cm=82 fault=False
+[14:49:54.068] state        seq=195 state=TURNING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:54.068] line         seq=196 state=TRACK sensors=1 junction=NONE line_pos=72
+[14:49:54.069] motion       seq=197 mode=DISTANCE target_cm_s=0 left_cm_s=3.3 right_cm_s=3.5 left_pwm=17 right_pwm=13
+[14:49:54.069] terrain      seq=198 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:54.257] line         seq=200 state=TRACK sensors=1 junction=NONE line_pos=435
+[14:49:54.258] obstacle     seq=201 state=CLEAR cm=81 fault=False
+[14:49:54.259] motion       seq=202 mode=DISTANCE target_cm_s=0 left_cm_s=3.3 right_cm_s=3.5 left_pwm=16 right_pwm=13
+[14:49:54.362] line         seq=203 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:49:54.362] line         seq=204 state=TRACK sensors=1 junction=NONE line_pos=451
+[14:49:54.426] motion       seq=205 mode=DISTANCE target_cm_s=0 left_cm_s=3.2 right_cm_s=3.3 left_pwm=16 right_pwm=13
+[14:49:54.610] obstacle     seq=206 state=CLEAR cm=80 fault=False
+[14:49:54.611] line         seq=207 state=TRACK sensors=1 junction=NONE line_pos=459
+[14:49:54.686] line         seq=208 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:49:54.686] motion       seq=209 mode=DISTANCE target_cm_s=0 left_cm_s=3.1 right_cm_s=3.2 left_pwm=16 right_pwm=14
+[14:49:54.688] line         seq=210 state=TRACK sensors=1 junction=NONE line_pos=461
+[14:49:54.688] obstacle     seq=211 state=CLEAR cm=79 fault=False
+[14:49:54.751] line         seq=212 state=TRACK sensors=1 junction=NONE line_pos=446
+[14:49:54.804] motion       seq=213 mode=DISTANCE target_cm_s=0 left_cm_s=3.1 right_cm_s=3.2 left_pwm=16 right_pwm=13
+[14:49:54.869] line         seq=214 state=TRACK sensors=1 junction=NONE line_pos=463
+[14:49:54.943] state        seq=215 state=TURNING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:54.945] obstacle     seq=216 state=CLEAR cm=78 fault=False
+[14:49:54.946] line         seq=217 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:49:55.029] motion       seq=218 mode=DISTANCE target_cm_s=0 left_cm_s=3.3 right_cm_s=3.3 left_pwm=14 right_pwm=14
+[14:49:55.182] line         seq=219 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:49:55.182] terrain      seq=220 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:49:55.284] line         seq=221 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:49:55.284] obstacle     seq=222 state=CLEAR cm=78 fault=False
+[14:49:55.285] motion       seq=223 mode=DISTANCE target_cm_s=0 left_cm_s=3.0 right_cm_s=3.2 left_pwm=15 right_pwm=12
+[14:49:55.285] line         seq=224 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:49:55.383] line         seq=225 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:49:55.485] motion       seq=226 mode=DISTANCE target_cm_s=0 left_cm_s=3.0 right_cm_s=3.1 left_pwm=16 right_pwm=13
+[14:49:55.485] line         seq=227 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:49:55.579] obstacle     seq=228 state=CLEAR cm=77 fault=False
+[14:49:55.607] line         seq=229 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:49:55.644] motion       seq=230 mode=DISTANCE target_cm_s=0 left_cm_s=2.9 right_cm_s=3.1 left_pwm=17 right_pwm=14
+[14:49:55.645] line         seq=231 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:49:55.745] line         seq=232 state=TRACK sensors=1 junction=NONE line_pos=463
+[14:49:55.804] obstacle     seq=233 state=CLEAR cm=76 fault=False
+[14:49:55.877] motion       seq=234 mode=DISTANCE target_cm_s=0 left_cm_s=3.0 right_cm_s=3.0 left_pwm=17 right_pwm=14
+[14:49:55.877] line         seq=235 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:49:55.963] state        seq=236 state=TURNING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:55.964] hb           seq=197 link=CONNECTED uptime_s=380 drops=255 cmd_ok=142 cmd_bad=0 last_will=False
+[14:49:55.964] line         seq=237 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:49:55.984] motion       seq=238 mode=DISTANCE target_cm_s=0 left_cm_s=2.9 right_cm_s=2.8 left_pwm=17 right_pwm=14
+[14:49:56.067] terrain      seq=239 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:56.162] line         seq=240 state=TRACK sensors=1 junction=NONE line_pos=461
+[14:49:56.162] obstacle     seq=241 state=CLEAR cm=75 fault=False
+[14:49:56.163] line         seq=242 state=TRACK sensors=1 junction=NONE line_pos=459
+[14:49:56.268] motion       seq=243 mode=DISTANCE target_cm_s=0 left_cm_s=3.0 right_cm_s=3.0 left_pwm=16 right_pwm=13
+[14:49:56.269] line         seq=244 state=TRACK sensors=1 junction=NONE line_pos=456
+[14:49:56.392] obstacle     seq=245 state=CLEAR cm=75 fault=False
+[14:49:56.465] line         seq=246 state=TRACK sensors=1 junction=NONE line_pos=457
+[14:49:56.466] motion       seq=247 mode=DISTANCE target_cm_s=0 left_cm_s=3.1 right_cm_s=2.9 left_pwm=16 right_pwm=13
+[14:49:56.466] line         seq=248 state=TRACK sensors=1 junction=NONE line_pos=466
+[14:49:56.534] line         seq=249 state=TRACK sensors=1 junction=NONE line_pos=459
+[14:49:56.644] obstacle     seq=250 state=CLEAR cm=74 fault=False
+[14:49:56.644] motion       seq=251 mode=DISTANCE target_cm_s=0 left_cm_s=3.0 right_cm_s=3.0 left_pwm=17 right_pwm=11
+[14:49:56.723] line         seq=252 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:49:56.823] line         seq=253 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:49:56.906] motion       seq=254 mode=DISTANCE target_cm_s=0 left_cm_s=3.1 right_cm_s=2.9 left_pwm=16 right_pwm=13
+[14:49:56.906] line         seq=255 state=TRACK sensors=1 junction=NONE line_pos=451
+[14:49:56.907] obstacle     seq=0 state=CLEAR cm=73 fault=False
+[14:49:56.907] state        seq=1 state=TURNING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:56.976] line         seq=2 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:49:58.251] motion       seq=3 mode=DISTANCE target_cm_s=0 left_cm_s=2.9 right_cm_s=2.9 left_pwm=16 right_pwm=15
+[14:49:58.251] terrain      seq=4 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:49:58.283] line         seq=5 state=TRACK sensors=1 junction=NONE line_pos=465
+[14:49:58.284] obstacle     seq=6 state=CLEAR cm=72 fault=False
+[14:49:58.284] line         seq=7 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:49:58.284] motion       seq=8 mode=TURN target_cm_s=0 left_cm_s=-0.9 right_cm_s=2.5 left_pwm=-25 right_pwm=25
+[14:49:58.364] line         seq=22 state=LINE_LOST sensors=0 junction=NONE line_pos=440
+[14:49:58.364] state        seq=23 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:58.423] motion       seq=24 mode=SPEED target_cm_s=3 left_cm_s=-0.5 right_cm_s=5.3 left_pwm=20 right_pwm=14
+[14:49:58.573] obstacle     seq=25 state=CLEAR cm=96 fault=False
+[14:49:58.665] motion       seq=26 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=2.2 left_pwm=21 right_pwm=11
+[14:49:58.818] motion       seq=27 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=2.1 left_pwm=21 right_pwm=9
+[14:49:58.884] obstacle     seq=28 state=CLEAR cm=95 fault=False
+[14:49:58.884] state        seq=29 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:49:58.983] motion       seq=30 mode=SPEED target_cm_s=3 left_cm_s=4.6 right_cm_s=1.8 left_pwm=23 right_pwm=9
+[14:49:59.051] terrain      seq=31 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:49:59.141] event        seq=32 code=41 arg=56 text=hump DISCARDED: peak 5.6 mm is below 6 mm
+[14:49:59.244] obstacle     seq=33 state=CLEAR cm=94 fault=False
+[14:49:59.244] motion       seq=34 mode=SPEED target_cm_s=3 left_cm_s=4.9 right_cm_s=1.8 left_pwm=22 right_pwm=7
+[14:49:59.330] line         seq=35 state=LINE_LOST sensors=0 junction=NONE line_pos=440
+[14:49:59.404] motion       seq=36 mode=SPEED target_cm_s=3 left_cm_s=5.2 right_cm_s=1.7 left_pwm=22 right_pwm=7
+[14:49:59.483] obstacle     seq=37 state=CLEAR cm=93 fault=False
+[14:49:59.484] event        seq=38 code=2 arg=1 text=line lost, searching right
+[14:49:59.582] motion       seq=39 mode=TURN target_cm_s=0 left_cm_s=3.5 right_cm_s=-0.4 left_pwm=25 right_pwm=-25
+[14:49:59.709] obstacle     seq=40 state=CLEAR cm=36 fault=False
+[14:49:59.786] hb           seq=199 link=CONNECTED uptime_s=383 drops=255 cmd_ok=150 cmd_bad=0 last_will=False
+[14:49:59.890] motion       seq=41 mode=TURN target_cm_s=0 left_cm_s=1.3 right_cm_s=-1.7 left_pwm=10 right_pwm=-10
+[14:49:59.972] state        seq=42 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:49:59.972] obstacle     seq=43 state=CLEAR cm=93 fault=False
+[14:50:00.063] terrain      seq=44 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:00.123] motion       seq=45 mode=TURN target_cm_s=0 left_cm_s=2.2 right_cm_s=-2.5 left_pwm=25 right_pwm=-25
+[14:50:01.387] obstacle     seq=46 state=CLEAR cm=79 fault=False
+[14:50:01.495] motion       seq=47 mode=TURN target_cm_s=0 left_cm_s=0.6 right_cm_s=-1.3 left_pwm=10 right_pwm=-10
+[14:50:01.495] obstacle     seq=48 state=CLEAR cm=41 fault=False
+[14:50:01.496] motion       seq=49 mode=TURN target_cm_s=0 left_cm_s=1.4 right_cm_s=-2.0 left_pwm=10 right_pwm=-10
+[14:50:01.584] motion       seq=56 mode=TURN target_cm_s=0 left_cm_s=1.6 right_cm_s=-2.1 left_pwm=10 right_pwm=-10
+[14:50:01.665] obstacle     seq=57 state=CLEAR cm=48 fault=False
+[14:50:01.665] hb           seq=200 link=CONNECTED uptime_s=385 drops=255 cmd_ok=153 cmd_bad=0 last_will=False
+[14:50:01.745] obstacle     seq=58 state=CLEAR cm=49 fault=False
+[14:50:01.833] motion       seq=59 mode=TURN target_cm_s=0 left_cm_s=1.4 right_cm_s=-2.1 left_pwm=10 right_pwm=-10
+[14:50:01.903] state        seq=60 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:02.043] obstacle     seq=61 state=CLEAR cm=50 fault=False
+[14:50:02.143] terrain      seq=62 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=3
+[14:50:02.249] motion       seq=63 mode=TURN target_cm_s=0 left_cm_s=1.5 right_cm_s=-1.9 left_pwm=-10 right_pwm=10
+[14:50:02.402] obstacle     seq=64 state=CLEAR cm=50 fault=False
+[14:50:02.540] motion       seq=65 mode=TURN target_cm_s=0 left_cm_s=-1.9 right_cm_s=2.5 left_pwm=-10 right_pwm=10
+[14:50:02.643] obstacle     seq=66 state=CLEAR cm=49 fault=False
+[14:50:02.882] state        seq=67 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:02.963] motion       seq=68 mode=TURN target_cm_s=0 left_cm_s=-1.4 right_cm_s=2.2 left_pwm=-10 right_pwm=10
+[14:50:02.964] obstacle     seq=69 state=CLEAR cm=48 fault=False
+[14:50:03.065] terrain      seq=70 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:03.351] obstacle     seq=71 state=CLEAR cm=41 fault=False
+[14:50:03.351] motion       seq=72 mode=TURN target_cm_s=0 left_cm_s=-0.7 right_cm_s=2.5 left_pwm=-10 right_pwm=10
+[14:50:03.352] line         seq=73 state=TRACK sensors=0 junction=NONE line_pos=440
+[14:50:03.352] scan         seq=74 ok=False reason=single bar / noise (junction bar?) uneven=False elements=3 incomplete=False ms=[342, 42, 318] scale=6
+[14:50:03.483] hb           seq=201 link=CONNECTED uptime_s=387 drops=255 cmd_ok=157 cmd_bad=0 last_will=False
+[14:50:03.548] obstacle     seq=76 state=CLEAR cm=43 fault=False
+[14:50:03.663] motion       seq=77 mode=TURN target_cm_s=0 left_cm_s=-1.2 right_cm_s=2.2 left_pwm=-10 right_pwm=10
+[14:50:03.782] obstacle     seq=78 state=CLEAR cm=44 fault=False
+[14:50:03.903] state        seq=79 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:04.087] motion       seq=80 mode=TURN target_cm_s=0 left_cm_s=-1.2 right_cm_s=2.3 left_pwm=-10 right_pwm=10
+[14:50:04.197] obstacle     seq=81 state=CLEAR cm=38 fault=False
+[14:50:04.197] terrain      seq=82 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:04.392] obstacle     seq=83 state=CLEAR cm=38 fault=False
+[14:50:04.465] motion       seq=84 mode=TURN target_cm_s=0 left_cm_s=-1.2 right_cm_s=2.3 left_pwm=-10 right_pwm=10
+[14:50:04.646] obstacle     seq=85 state=CLEAR cm=38 fault=False
+[14:50:04.872] motion       seq=86 mode=TURN target_cm_s=0 left_cm_s=-1.4 right_cm_s=2.5 left_pwm=-10 right_pwm=10
+[14:50:04.926] obstacle     seq=87 state=CLEAR cm=92 fault=False
+[14:50:04.926] state        seq=88 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:05.109] terrain      seq=89 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:05.183] obstacle     seq=90 state=CLEAR cm=91 fault=False
+[14:50:05.245] motion       seq=91 mode=TURN target_cm_s=0 left_cm_s=-1.1 right_cm_s=2.5 left_pwm=-10 right_pwm=10
+[14:50:05.404] hb           seq=202 link=CONNECTED uptime_s=389 drops=255 cmd_ok=161 cmd_bad=0 last_will=False
+[14:50:05.423] obstacle     seq=92 state=CLEAR cm=91 fault=False
+[14:50:05.600] motion       seq=93 mode=TURN target_cm_s=0 left_cm_s=-1.2 right_cm_s=2.1 left_pwm=-10 right_pwm=10
+[14:50:05.764] obstacle     seq=94 state=CLEAR cm=91 fault=False
+[14:50:05.891] line         seq=95 state=TRACK sensors=0 junction=NONE line_pos=440
+[14:50:05.963] state        seq=96 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:05.964] line         seq=97 state=LINE_LOST sensors=0 junction=NONE line_pos=440
+[14:50:05.964] obstacle     seq=98 state=CLEAR cm=91 fault=False
+[14:50:06.033] motion       seq=99 mode=TURN target_cm_s=0 left_cm_s=-1.1 right_cm_s=2.3 left_pwm=-10 right_pwm=10
+[14:50:06.133] terrain      seq=100 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:06.219] line         seq=101 state=TRACK sensors=2 junction=NONE line_pos=440
+[14:50:07.596] obstacle     seq=102 state=CLEAR cm=91 fault=False
+[14:50:07.671] line         seq=103 state=TRACK sensors=2 junction=NONE line_pos=-477
+[14:50:07.673] event        seq=104 code=3 arg=0 text=line found again
+[14:50:07.674] motion       seq=105 mode=SPEED target_cm_s=3 left_cm_s=-1.0 right_cm_s=2.4 left_pwm=5 right_pwm=5
+[14:50:07.674] line         seq=106 state=TRACK sensors=2 junction=NONE line_pos=-482
+[14:50:07.777] line         seq=133 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:50:07.777] motion       seq=134 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.4 left_pwm=18 right_pwm=13
+[14:50:07.863] line         seq=135 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:50:07.943] state        seq=136 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:08.003] obstacle     seq=137 state=CLEAR cm=87 fault=False
+[14:50:08.003] line         seq=138 state=TRACK sensors=1 junction=NONE line_pos=419
+[14:50:08.004] motion       seq=139 mode=SPEED target_cm_s=3 left_cm_s=4.0 right_cm_s=2.3 left_pwm=19 right_pwm=12
+[14:50:08.004] line         seq=140 state=LINE_LOST sensors=0 junction=NONE line_pos=387
+[14:50:08.107] line         seq=141 state=TRACK sensors=2 junction=NONE line_pos=387
+[14:50:08.185] terrain      seq=142 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:08.186] motion       seq=143 mode=SPEED target_cm_s=3 left_cm_s=4.0 right_cm_s=1.9 left_pwm=19 right_pwm=12
+[14:50:08.186] obstacle     seq=144 state=CLEAR cm=86 fault=False
+[14:50:09.706] line         seq=145 state=TRACK sensors=2 junction=NONE line_pos=-474
+[14:50:09.707] line         seq=146 state=TRACK sensors=2 junction=NONE line_pos=-487
+[14:50:09.707] motion       seq=147 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.8 left_pwm=17 right_pwm=14
+[14:50:09.724] line         seq=148 state=TRACK sensors=2 junction=NONE line_pos=-479
+[14:50:09.724] obstacle     seq=149 state=CLEAR cm=85 fault=False
+[14:50:09.725] line         seq=150 state=LINE_LOST sensors=0 junction=NONE line_pos=-416
+[14:50:09.726] motion       seq=151 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.7 left_pwm=14 right_pwm=17
+[14:50:09.807] motion       seq=175 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.7 left_pwm=16 right_pwm=13
+[14:50:09.808] line         seq=176 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:09.926] obstacle     seq=177 state=CLEAR cm=80 fault=False
+[14:50:09.926] line         seq=178 state=TRACK sensors=1 junction=NONE line_pos=460
+[14:50:09.927] state        seq=179 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:10.030] motion       seq=180 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.6 left_pwm=19 right_pwm=12
+[14:50:10.030] line         seq=181 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:50:10.115] line         seq=182 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:10.115] obstacle     seq=183 state=CLEAR cm=79 fault=False
+[14:50:10.219] motion       seq=184 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.6 left_pwm=18 right_pwm=12
+[14:50:10.219] line         seq=185 state=TRACK sensors=1 junction=NONE line_pos=429
+[14:50:10.267] terrain      seq=186 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:10.363] line         seq=187 state=TRACK sensors=1 junction=NONE line_pos=392
+[14:50:10.364] line         seq=188 state=LINE_LOST sensors=0 junction=NONE line_pos=373
+[14:50:10.364] obstacle     seq=189 state=CLEAR cm=78 fault=False
+[14:50:10.443] motion       seq=190 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.6 left_pwm=20 right_pwm=10
+[14:50:10.503] line         seq=191 state=TRACK sensors=2 junction=NONE line_pos=373
+[14:50:10.603] line         seq=192 state=TRACK sensors=2 junction=NONE line_pos=-492
+[14:50:10.707] motion       seq=193 mode=SPEED target_cm_s=3 left_cm_s=3.9 right_cm_s=2.5 left_pwm=16 right_pwm=13
+[14:50:10.707] obstacle     seq=194 state=CLEAR cm=77 fault=False
+[14:50:10.708] line         seq=195 state=TRACK sensors=2 junction=NONE line_pos=-479
+[14:50:10.769] line         seq=196 state=TRACK sensors=2 junction=NONE line_pos=-467
+[14:50:10.769] motion       seq=197 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=3.4 left_pwm=15 right_pwm=14
+[14:50:10.832] line         seq=198 state=TRACK sensors=2 junction=NONE line_pos=-430
+[14:50:10.956] line         seq=199 state=LINE_LOST sensors=0 junction=NONE line_pos=-430
+[14:50:10.956] obstacle     seq=200 state=CLEAR cm=76 fault=False
+[14:50:10.957] state        seq=201 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:11.031] motion       seq=202 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=3.7 left_pwm=14 right_pwm=17
+[14:50:11.031] line         seq=203 state=TRACK sensors=1 junction=NONE line_pos=-430
+[14:50:12.264] line         seq=204 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:50:12.285] hb           seq=205 link=CONNECTED uptime_s=395 drops=255 cmd_ok=172 cmd_bad=0 last_will=False
+[14:50:12.286] obstacle     seq=205 state=CLEAR cm=75 fault=False
+[14:50:12.291] motion       seq=206 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=3.4 left_pwm=18 right_pwm=12
+[14:50:12.297] line         seq=207 state=TRACK sensors=1 junction=NONE line_pos=459
+[14:50:12.303] line         seq=230 state=TRACK sensors=1 junction=NONE line_pos=456
+[14:50:12.383] motion       seq=231 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.8 left_pwm=17 right_pwm=12
+[14:50:12.482] line         seq=232 state=TRACK sensors=1 junction=NONE line_pos=460
+[14:50:12.591] obstacle     seq=233 state=CLEAR cm=71 fault=False
+[14:50:12.592] line         seq=234 state=TRACK sensors=1 junction=NONE line_pos=438
+[14:50:12.595] motion       seq=235 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.6 left_pwm=16 right_pwm=11
+[14:50:12.687] line         seq=236 state=TRACK sensors=1 junction=NONE line_pos=412
+[14:50:12.775] line         seq=237 state=LINE_LOST sensors=0 junction=NONE line_pos=357
+[14:50:12.875] motion       seq=238 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=2.5 left_pwm=21 right_pwm=10
+[14:50:12.875] obstacle     seq=239 state=CLEAR cm=70 fault=False
+[14:50:12.960] line         seq=240 state=TRACK sensors=2 junction=NONE line_pos=357
+[14:50:12.960] state        seq=241 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:13.023] line         seq=242 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:50:13.023] motion       seq=243 mode=SPEED target_cm_s=3 left_cm_s=3.9 right_cm_s=2.3 left_pwm=15 right_pwm=13
+[14:50:13.085] hb           seq=206 link=CONNECTED uptime_s=397 drops=255 cmd_ok=176 cmd_bad=0 last_will=False
+[14:50:13.086] line         seq=244 state=TRACK sensors=2 junction=NONE line_pos=-495
+[14:50:13.165] obstacle     seq=245 state=CLEAR cm=68 fault=False
+[14:50:13.285] line         seq=246 state=TRACK sensors=2 junction=NONE line_pos=-468
+[14:50:13.285] motion       seq=247 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=3.3 left_pwm=15 right_pwm=15
+[14:50:13.286] terrain      seq=248 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:13.327] line         seq=249 state=TRACK sensors=2 junction=NONE line_pos=-467
+[14:50:13.388] line         seq=250 state=LINE_LOST sensors=0 junction=NONE line_pos=-427
+[14:50:13.388] motion       seq=251 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=3.3 left_pwm=13 right_pwm=16
+[14:50:13.389] obstacle     seq=252 state=CLEAR cm=68 fault=False
+[14:50:13.580] line         seq=253 state=TRACK sensors=1 junction=NONE line_pos=-427
+[14:50:13.643] motion       seq=254 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=4.2 left_pwm=11 right_pwm=15
+[14:50:13.643] obstacle     seq=255 state=CLEAR cm=67 fault=False
+[14:50:13.643] line         seq=0 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:13.780] line         seq=1 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:50:13.828] motion       seq=2 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=3.3 left_pwm=16 right_pwm=12
+[14:50:13.885] line         seq=3 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:13.885] obstacle     seq=4 state=CLEAR cm=66 fault=False
+[14:50:13.886] state        seq=5 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:13.948] line         seq=6 state=TRACK sensors=1 junction=NONE line_pos=442
+[14:50:14.023] motion       seq=7 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.6 left_pwm=18 right_pwm=11
+[14:50:14.107] line         seq=8 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:50:14.193] line         seq=9 state=TRACK sensors=1 junction=NONE line_pos=434
+[14:50:14.325] motion       seq=10 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=2.8 left_pwm=16 right_pwm=10
+[14:50:14.325] obstacle     seq=11 state=CLEAR cm=65 fault=False
+[14:50:14.327] terrain      seq=12 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:14.430] motion       seq=15 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.2 left_pwm=19 right_pwm=10
+[14:50:14.536] line         seq=16 state=TRACK sensors=2 junction=NONE line_pos=396
+[14:50:14.537] obstacle     seq=17 state=CLEAR cm=64 fault=False
+[14:50:14.644] line         seq=18 state=TRACK sensors=2 junction=NONE line_pos=-475
+[14:50:14.644] motion       seq=19 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.1 left_pwm=15 right_pwm=14
+[14:50:14.723] line         seq=20 state=TRACK sensors=2 junction=NONE line_pos=-482
+[14:50:14.723] obstacle     seq=21 state=CLEAR cm=63 fault=False
+[14:50:14.724] line         seq=22 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:50:14.823] motion       seq=23 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.3 left_pwm=15 right_pwm=14
+[14:50:14.944] line         seq=24 state=TRACK sensors=2 junction=NONE line_pos=-470
+[14:50:14.944] state        seq=25 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:14.945] hb           seq=207 link=CONNECTED uptime_s=399 drops=255 cmd_ok=180 cmd_bad=0 last_will=False
+[14:50:14.965] line         seq=26 state=TRACK sensors=2 junction=NONE line_pos=-432
+[14:50:14.967] obstacle     seq=27 state=CLEAR cm=62 fault=False
+[14:50:14.967] line         seq=28 state=LINE_LOST sensors=0 junction=NONE line_pos=-432
+[14:50:15.132] line         seq=30 state=TRACK sensors=1 junction=NONE line_pos=-432
+[14:50:15.542] motion       seq=31 mode=SPEED target_cm_s=3 left_cm_s=2.1 right_cm_s=3.7 left_pwm=16 right_pwm=13
+[14:50:15.543] obstacle     seq=32 state=CLEAR cm=62 fault=False
+[14:50:15.543] line         seq=33 state=TRACK sensors=1 junction=NONE line_pos=441
+[14:50:15.613] motion       seq=40 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.7 left_pwm=17 right_pwm=11
+[14:50:15.687] line         seq=41 state=TRACK sensors=1 junction=NONE line_pos=381
+[14:50:15.687] line         seq=42 state=LINE_LOST sensors=0 junction=NONE line_pos=381
+[14:50:15.783] motion       seq=43 mode=SPEED target_cm_s=3 left_cm_s=3.6 right_cm_s=2.4 left_pwm=20 right_pwm=10
+[14:50:15.863] obstacle     seq=44 state=CLEAR cm=60 fault=False
+[14:50:15.863] line         seq=45 state=TRACK sensors=2 junction=NONE line_pos=381
+[14:50:15.948] line         seq=46 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:50:15.948] state        seq=47 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:16.004] motion       seq=48 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.6 left_pwm=17 right_pwm=15
+[14:50:16.004] line         seq=49 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:50:16.083] obstacle     seq=50 state=CLEAR cm=59 fault=False
+[14:50:16.152] line         seq=51 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:50:16.243] motion       seq=52 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.5 left_pwm=15 right_pwm=15
+[14:50:16.245] line         seq=53 state=LINE_LOST sensors=0 junction=NONE line_pos=-456
+[14:50:16.346] terrain      seq=54 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:16.402] obstacle     seq=55 state=CLEAR cm=58 fault=False
+[14:50:16.403] line         seq=56 state=TRACK sensors=1 junction=NONE line_pos=-456
+[14:50:16.403] motion       seq=57 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=3.9 left_pwm=14 right_pwm=14
+[14:50:16.463] line         seq=58 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:16.532] line         seq=59 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:50:16.582] motion       seq=60 mode=SPEED target_cm_s=3 left_cm_s=3.1 right_cm_s=3.1 left_pwm=17 right_pwm=12
+[14:50:16.666] line         seq=61 state=TRACK sensors=1 junction=NONE line_pos=438
+[14:50:16.666] obstacle     seq=62 state=CLEAR cm=57 fault=False
+[14:50:16.751] line         seq=63 state=TRACK sensors=1 junction=NONE line_pos=418
+[14:50:16.855] motion       seq=64 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=2.6 left_pwm=17 right_pwm=11
+[14:50:16.856] line         seq=65 state=LINE_LOST sensors=0 junction=NONE line_pos=362
+[14:50:16.856] hb           seq=208 link=CONNECTED uptime_s=400 drops=255 cmd_ok=183 cmd_bad=0 last_will=False
+[14:50:16.955] state        seq=66 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:16.970] obstacle     seq=67 state=CLEAR cm=56 fault=False
+[14:50:16.971] line         seq=68 state=TRACK sensors=2 junction=NONE line_pos=362
+[14:50:16.976] motion       seq=69 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=2.1 left_pwm=19 right_pwm=10
+[14:50:17.073] line         seq=70 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:50:17.163] line         seq=71 state=TRACK sensors=2 junction=NONE line_pos=-476
+[14:50:17.306] motion       seq=72 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.9 left_pwm=15 right_pwm=13
+[14:50:17.306] obstacle     seq=73 state=CLEAR cm=56 fault=False
+[14:50:17.307] line         seq=74 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:50:17.403] line         seq=76 state=TRACK sensors=2 junction=NONE line_pos=-294
+[14:50:17.421] motion       seq=77 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.5 left_pwm=17 right_pwm=15
+[14:50:17.482] line         seq=78 state=TRACK sensors=3 junction=NONE line_pos=-94
+[14:50:17.483] line         seq=79 state=TRACK sensors=3 junction=RIGHT line_pos=-44
+[14:50:17.557] obstacle     seq=80 state=CLEAR cm=55 fault=False
+[14:50:17.557] line         seq=81 state=TRACK sensors=3 junction=RIGHT line_pos=-1
+[14:50:17.625] motion       seq=82 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=2.8 left_pwm=16 right_pwm=14
+[14:50:17.687] line         seq=83 state=TRACK sensors=3 junction=RIGHT line_pos=-4
+[14:50:17.763] line         seq=84 state=TRACK sensors=3 junction=RIGHT line_pos=-12
+[14:50:17.823] motion       seq=85 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=2.9 left_pwm=17 right_pwm=14
+[14:50:17.823] obstacle     seq=86 state=CLEAR cm=54 fault=False
+[14:50:17.865] line         seq=87 state=TRACK sensors=1 junction=RIGHT line_pos=222
+[14:50:17.923] state        seq=88 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:17.983] line         seq=89 state=TRACK sensors=1 junction=RIGHT line_pos=394
+[14:50:17.983] motion       seq=90 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=2.9 left_pwm=18 right_pwm=11
+[14:50:18.044] line         seq=91 state=LINE_LOST sensors=0 junction=RIGHT line_pos=371
+[14:50:18.044] line         seq=92 state=LINE_LOST sensors=0 junction=NONE line_pos=371
+[14:50:18.102] obstacle     seq=93 state=CLEAR cm=53 fault=False
+[14:50:18.104] line         seq=94 state=TRACK sensors=2 junction=NONE line_pos=371
+[14:50:18.187] line         seq=95 state=TRACK sensors=2 junction=RIGHT line_pos=-458
+[14:50:18.187] line         seq=96 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:50:18.243] motion       seq=97 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.3 left_pwm=16 right_pwm=14
+[14:50:18.323] line         seq=98 state=TRACK sensors=2 junction=NONE line_pos=-485
+[14:50:18.323] terrain      seq=99 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:18.403] line         seq=100 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:50:18.404] motion       seq=101 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=3.3 left_pwm=14 right_pwm=13
+[14:50:18.404] obstacle     seq=102 state=CLEAR cm=52 fault=False
+[14:50:18.479] line         seq=103 state=TRACK sensors=2 junction=NONE line_pos=-461
+[14:50:18.546] line         seq=104 state=LINE_LOST sensors=0 junction=NONE line_pos=-424
+[14:50:18.609] motion       seq=105 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=3.6 left_pwm=11 right_pwm=17
+[14:50:18.663] obstacle     seq=106 state=CLEAR cm=51 fault=False
+[14:50:18.690] cmd          sent=stop arg=0 seq=34
+[14:50:18.711] line         seq=107 state=TRACK sensors=1 junction=NONE line_pos=-424
+[14:50:18.785] hb           seq=209 link=CONNECTED uptime_s=402 drops=255 cmd_ok=187 cmd_bad=0 last_will=False
+[14:50:18.788] line         seq=108 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:18.789] state        seq=109 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:18.903] line         seq=110 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:50:18.928] state        seq=111 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:19.003] obstacle     seq=112 state=CLEAR cm=50 fault=False
+[14:50:19.004] line         seq=113 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:50:19.095] line         seq=114 state=TRACK sensors=1 junction=NONE line_pos=446
+[14:50:19.230] line         seq=115 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:50:19.306] obstacle     seq=116 state=CLEAR cm=50 fault=False
+[14:50:19.306] terrain      seq=117 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:19.308] line         seq=118 state=TRACK sensors=1 junction=NONE line_pos=445
+[14:50:19.530] line         seq=119 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:50:19.532] line         seq=120 state=TRACK sensors=1 junction=NONE line_pos=446
+[14:50:19.635] motion       seq=121 mode=STOP target_cm_s=0 left_cm_s=0.5 right_cm_s=0.8 left_pwm=0 right_pwm=0
+[14:50:19.635] obstacle     seq=122 state=CLEAR cm=50 fault=False
+[14:50:19.636] line         seq=123 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:50:19.713] line         seq=124 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:19.811] line         seq=125 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:50:19.863] obstacle     seq=126 state=CLEAR cm=50 fault=False
+[14:50:19.943] line         seq=127 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:50:19.943] state        seq=128 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:20.044] line         seq=129 state=TRACK sensors=1 junction=NONE line_pos=445
+[14:50:21.827] cmd          sent=start arg=0 seq=41
+[14:50:22.680] line         seq=130 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:22.749] obstacle     seq=131 state=CLEAR cm=50 fault=False
+[14:50:22.751] line         seq=132 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:50:22.751] line         seq=133 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:50:22.863] motion       seq=178 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=2.8 left_pwm=15 right_pwm=12
+[14:50:22.914] state        seq=179 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:23.013] obstacle     seq=180 state=CLEAR cm=47 fault=False
+[14:50:23.063] motion       seq=181 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=3.8 left_pwm=15 right_pwm=15
+[14:50:23.291] obstacle     seq=182 state=CLEAR cm=46 fault=False
+[14:50:23.343] motion       seq=183 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=3.9 left_pwm=15 right_pwm=15
+[14:50:23.424] terrain      seq=184 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:50:23.494] motion       seq=185 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=4.0 left_pwm=15 right_pwm=14
+[14:50:23.578] obstacle     seq=186 state=CLEAR cm=45 fault=False
+[14:50:23.644] motion       seq=187 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=3.0 left_pwm=18 right_pwm=12
+[14:50:23.832] obstacle     seq=188 state=CLEAR cm=45 fault=False
+[14:50:23.909] motion       seq=189 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.6 left_pwm=20 right_pwm=9
+[14:50:23.909] state        seq=190 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:24.063] motion       seq=191 mode=SPEED target_cm_s=3 left_cm_s=4.0 right_cm_s=2.5 left_pwm=17 right_pwm=13
+[14:50:24.144] obstacle     seq=192 state=CLEAR cm=43 fault=False
+[14:50:24.242] motion       seq=193 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=3.5 left_pwm=14 right_pwm=14
+[14:50:24.316] line         seq=194 state=TRACK sensors=2 junction=NONE line_pos=-489
+[14:50:24.385] obstacle     seq=195 state=CLEAR cm=43 fault=False
+[14:50:24.385] terrain      seq=196 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:24.386] line         seq=197 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:50:24.486] hb           seq=212 link=CONNECTED uptime_s=408 drops=255 cmd_ok=200 cmd_bad=0 last_will=False
+[14:50:24.521] motion       seq=198 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=3.5 left_pwm=15 right_pwm=16
+[14:50:24.522] line         seq=199 state=TRACK sensors=2 junction=NONE line_pos=-468
+[14:50:24.627] line         seq=200 state=LINE_LOST sensors=0 junction=NONE line_pos=-440
+[14:50:24.627] obstacle     seq=201 state=CLEAR cm=42 fault=False
+[14:50:24.682] motion       seq=202 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.7 left_pwm=12 right_pwm=17
+[14:50:24.761] line         seq=203 state=TRACK sensors=1 junction=NONE line_pos=-440
+[14:50:24.834] line         seq=204 state=TRACK sensors=1 junction=NONE line_pos=445
+[14:50:24.883] obstacle     seq=205 state=CLEAR cm=41 fault=False
+[14:50:24.883] motion       seq=206 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.8 left_pwm=16 right_pwm=11
+[14:50:24.932] state        seq=207 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:24.933] line         seq=208 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:25.031] line         seq=209 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:50:25.104] motion       seq=210 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.8 left_pwm=18 right_pwm=11
+[14:50:25.104] line         seq=211 state=TRACK sensors=1 junction=NONE line_pos=440
+[14:50:25.164] obstacle     seq=212 state=CLEAR cm=41 fault=False
+[14:50:25.239] line         seq=213 state=TRACK sensors=1 junction=NONE line_pos=418
+[14:50:25.315] motion       seq=214 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=2.7 left_pwm=18 right_pwm=12
+[14:50:25.384] line         seq=215 state=LINE_LOST sensors=0 junction=NONE line_pos=378
+[14:50:25.423] terrain      seq=216 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:25.424] obstacle     seq=217 state=CLEAR cm=39 fault=False
+[14:50:25.487] line         seq=218 state=TRACK sensors=2 junction=NONE line_pos=378
+[14:50:25.488] motion       seq=219 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.3 left_pwm=18 right_pwm=10
+[14:50:25.587] line         seq=220 state=TRACK sensors=2 junction=NONE line_pos=-479
+[14:50:25.663] line         seq=221 state=TRACK sensors=2 junction=NONE line_pos=-493
+[14:50:25.724] motion       seq=222 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.9 left_pwm=14 right_pwm=13
+[14:50:25.724] obstacle     seq=223 state=CLEAR cm=38 fault=False
+[14:50:25.783] line         seq=224 state=TRACK sensors=2 junction=NONE line_pos=-461
+[14:50:25.852] line         seq=225 state=LINE_LOST sensors=0 junction=NONE line_pos=-427
+[14:50:25.903] motion       seq=226 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.3 left_pwm=13 right_pwm=16
+[14:50:25.904] state        seq=227 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:26.003] obstacle     seq=228 state=CLEAR cm=38 fault=False
+[14:50:26.003] line         seq=229 state=TRACK sensors=1 junction=NONE line_pos=-427
+[14:50:26.084] motion       seq=230 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.8 left_pwm=16 right_pwm=12
+[14:50:26.084] line         seq=231 state=TRACK sensors=1 junction=NONE line_pos=446
+[14:50:26.172] obstacle     seq=232 state=CLEAR cm=37 fault=False
+[14:50:26.226] line         seq=233 state=TRACK sensors=1 junction=NONE line_pos=445
+[14:50:26.314] motion       seq=234 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.4 left_pwm=16 right_pwm=13
+[14:50:26.315] line         seq=235 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:26.315] hb           seq=213 link=CONNECTED uptime_s=410 drops=255 cmd_ok=204 cmd_bad=0 last_will=False
+[14:50:26.378] terrain      seq=236 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:26.424] line         seq=237 state=TRACK sensors=1 junction=NONE line_pos=432
+[14:50:26.424] obstacle     seq=238 state=CLEAR cm=36 fault=False
+[14:50:26.483] motion       seq=239 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.1 left_pwm=17 right_pwm=11
+[14:50:26.483] line         seq=240 state=TRACK sensors=1 junction=NONE line_pos=426
+[14:50:26.586] line         seq=241 state=TRACK sensors=1 junction=NONE line_pos=418
+[14:50:26.674] motion       seq=242 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.3 left_pwm=18 right_pwm=11
+[14:50:26.675] line         seq=243 state=TRACK sensors=1 junction=NONE line_pos=410
+[14:50:26.723] obstacle     seq=244 state=CLEAR cm=36 fault=False
+[14:50:26.786] line         seq=245 state=TRACK sensors=1 junction=NONE line_pos=396
+[14:50:26.846] line         seq=246 state=LINE_LOST sensors=0 junction=NONE line_pos=365
+[14:50:26.910] motion       seq=247 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.2 left_pwm=20 right_pwm=12
+[14:50:26.911] state        seq=248 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:27.012] obstacle     seq=249 state=CLEAR cm=36 fault=False
+[14:50:27.135] motion       seq=250 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=1.7 left_pwm=21 right_pwm=9
+[14:50:27.135] line         seq=251 state=TRACK sensors=2 junction=NONE line_pos=365
+[14:50:27.228] line         seq=252 state=TRACK sensors=2 junction=NONE line_pos=-469
+[14:50:27.315] motion       seq=253 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.6 left_pwm=16 right_pwm=14
+[14:50:27.315] line         seq=254 state=TRACK sensors=2 junction=NONE line_pos=-479
+[14:50:27.391] obstacle     seq=255 state=CLEAR cm=34 fault=False
+[14:50:27.392] line         seq=0 state=TRACK sensors=2 junction=NONE line_pos=-402
+[14:50:27.392] line         seq=1 state=LINE_LOST sensors=0 junction=NONE line_pos=-402
+[14:50:27.392] terrain      seq=2 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:27.543] motion       seq=3 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=3.5 left_pwm=12 right_pwm=15
+[14:50:27.543] line         seq=4 state=TRACK sensors=1 junction=NONE line_pos=-402
+[14:50:27.622] obstacle     seq=5 state=CLEAR cm=33 fault=False
+[14:50:27.623] line         seq=6 state=TRACK sensors=1 junction=NONE line_pos=463
+[14:50:27.696] motion       seq=7 mode=SPEED target_cm_s=3 left_cm_s=3.1 right_cm_s=3.2 left_pwm=18 right_pwm=12
+[14:50:27.696] line         seq=8 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:50:27.795] line         seq=9 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:50:27.961] obstacle     seq=10 state=CLEAR cm=32 fault=False
+[14:50:27.961] motion       seq=11 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.4 left_pwm=19 right_pwm=10
+[14:50:27.963] line         seq=12 state=TRACK sensors=1 junction=NONE line_pos=465
+[14:50:28.029] line         seq=14 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:28.082] obstacle     seq=15 state=CLEAR cm=31 fault=False
+[14:50:28.083] motion       seq=16 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.4 left_pwm=18 right_pwm=10
+[14:50:28.143] line         seq=17 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:50:28.224] line         seq=18 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:28.225] hb           seq=214 link=CONNECTED uptime_s=412 drops=255 cmd_ok=208 cmd_bad=0 last_will=False
+[14:50:28.279] motion       seq=19 mode=SPEED target_cm_s=3 left_cm_s=3.9 right_cm_s=2.3 left_pwm=18 right_pwm=10
+[14:50:28.344] line         seq=20 state=TRACK sensors=1 junction=NONE line_pos=462
+[14:50:28.344] obstacle     seq=21 state=CLEAR cm=30 fault=False
+[14:50:28.448] terrain      seq=22 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:50:28.452] line         seq=23 state=TRACK sensors=1 junction=NONE line_pos=466
+[14:50:28.464] motion       seq=24 mode=SPEED target_cm_s=3 left_cm_s=3.9 right_cm_s=2.1 left_pwm=18 right_pwm=10
+[14:50:28.524] line         seq=25 state=TRACK sensors=1 junction=NONE line_pos=457
+[14:50:28.624] line         seq=26 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:28.692] obstacle     seq=27 state=CLEAR cm=29 fault=False
+[14:50:28.764] motion       seq=28 mode=SPEED target_cm_s=3 left_cm_s=4.1 right_cm_s=2.2 left_pwm=20 right_pwm=11
+[14:50:28.765] line         seq=29 state=TRACK sensors=1 junction=NONE line_pos=460
+[14:50:28.848] line         seq=30 state=TRACK sensors=1 junction=NONE line_pos=457
+[14:50:28.957] motion       seq=31 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.0 left_pwm=21 right_pwm=9
+[14:50:28.957] obstacle     seq=32 state=CLEAR cm=29 fault=False
+[14:50:28.957] state        seq=33 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:28.958] line         seq=34 state=TRACK sensors=1 junction=NONE line_pos=451
+[14:50:29.083] line         seq=35 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:29.084] motion       seq=36 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=1.9 left_pwm=21 right_pwm=9
+[14:50:29.144] line         seq=37 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:50:29.239] obstacle     seq=38 state=CLEAR cm=28 fault=False
+[14:50:29.284] line         seq=39 state=TRACK sensors=1 junction=NONE line_pos=469
+[14:50:29.285] motion       seq=40 mode=SPEED target_cm_s=3 left_cm_s=4.0 right_cm_s=2.0 left_pwm=19 right_pwm=9
+[14:50:29.344] line         seq=41 state=TRACK sensors=1 junction=NONE line_pos=459
+[14:50:29.403] terrain      seq=42 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:50:29.483] line         seq=43 state=TRACK sensors=1 junction=NONE line_pos=456
+[14:50:29.484] motion       seq=44 mode=SPEED target_cm_s=3 left_cm_s=4.1 right_cm_s=2.1 left_pwm=20 right_pwm=10
+[14:50:29.485] obstacle     seq=45 state=CLEAR cm=27 fault=False
+[14:50:29.567] line         seq=46 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:50:29.669] line         seq=47 state=TRACK sensors=1 junction=NONE line_pos=456
+[14:50:29.682] motion       seq=48 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=2.0 left_pwm=19 right_pwm=8
+[14:50:29.775] line         seq=49 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:50:29.775] obstacle     seq=50 state=CLEAR cm=27 fault=False
+[14:50:29.845] line         seq=51 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:50:29.904] motion       seq=52 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=2.0 left_pwm=19 right_pwm=9
+[14:50:29.905] state        seq=53 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:29.990] line         seq=54 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:50:30.063] obstacle     seq=55 state=CLEAR cm=26 fault=False
+[14:50:30.064] line         seq=56 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:50:30.124] motion       seq=57 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=1.8 left_pwm=19 right_pwm=11
+[14:50:30.183] hb           seq=215 link=CONNECTED uptime_s=414 drops=255 cmd_ok=212 cmd_bad=0 last_will=False
+[14:50:30.184] line         seq=58 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:50:30.299] line         seq=59 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:30.364] motion       seq=60 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=1.6 left_pwm=19 right_pwm=9
+[14:50:30.364] obstacle     seq=61 state=CLEAR cm=26 fault=False
+[14:50:30.425] line         seq=62 state=TRACK sensors=1 junction=NONE line_pos=464
+[14:50:30.425] terrain      seq=63 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:50:30.490] line         seq=64 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:50:30.491] motion       seq=65 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=1.5 left_pwm=19 right_pwm=9
+[14:50:30.563] line         seq=66 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:30.677] obstacle     seq=67 state=CLEAR cm=27 fault=False
+[14:50:32.026] line         seq=68 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:32.027] motion       seq=69 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=1.6 left_pwm=20 right_pwm=8
+[14:50:32.027] line         seq=70 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:50:32.129] line         seq=71 state=TRACK sensors=1 junction=NONE line_pos=446
+[14:50:32.130] motion       seq=72 mode=SPEED target_cm_s=3 left_cm_s=4.3 right_cm_s=1.7 left_pwm=20 right_pwm=11
+[14:50:32.130] obstacle     seq=73 state=CLEAR cm=50 fault=False
+[14:50:32.130] state        seq=74 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:32.230] line         seq=99 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:32.315] obstacle     seq=100 state=CLEAR cm=44 fault=False
+[14:50:32.315] line         seq=101 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:50:32.316] motion       seq=102 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.7 left_pwm=20 right_pwm=8
+[14:50:32.417] line         seq=103 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:32.561] terrain      seq=104 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:50:32.561] line         seq=105 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:32.562] motion       seq=106 mode=SPEED target_cm_s=3 left_cm_s=4.3 right_cm_s=1.6 left_pwm=20 right_pwm=8
+[14:50:32.562] obstacle     seq=107 state=CLEAR cm=36 fault=False
+[14:50:32.655] line         seq=108 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:50:32.727] line         seq=109 state=TRACK sensors=1 junction=NONE line_pos=457
+[14:50:32.727] motion       seq=110 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=1.7 left_pwm=20 right_pwm=8
+[14:50:32.821] line         seq=111 state=TRACK sensors=1 junction=NONE line_pos=464
+[14:50:32.821] obstacle     seq=112 state=CLEAR cm=34 fault=False
+[14:50:32.942] line         seq=113 state=TRACK sensors=1 junction=NONE line_pos=460
+[14:50:32.942] motion       seq=114 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=1.6 left_pwm=20 right_pwm=7
+[14:50:32.943] state        seq=115 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:33.074] line         seq=116 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:50:33.075] obstacle     seq=117 state=CLEAR cm=31 fault=False
+[14:50:33.171] line         seq=118 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:50:33.172] motion       seq=119 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=1.6 left_pwm=21 right_pwm=9
+[14:50:33.172] line         seq=120 state=TRACK sensors=1 junction=NONE line_pos=451
+[14:50:33.256] line         seq=121 state=TRACK sensors=1 junction=NONE line_pos=459
+[14:50:33.337] motion       seq=122 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=1.6 left_pwm=19 right_pwm=8
+[14:50:33.338] obstacle     seq=123 state=CLEAR cm=29 fault=False
+[14:50:33.441] line         seq=124 state=TRACK sensors=1 junction=NONE line_pos=456
+[14:50:33.442] terrain      seq=125 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:33.504] motion       seq=126 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=1.6 left_pwm=20 right_pwm=10
+[14:50:33.505] line         seq=127 state=TRACK sensors=1 junction=NONE line_pos=461
+[14:50:33.635] line         seq=128 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:50:33.713] obstacle     seq=129 state=CLEAR cm=28 fault=False
+[14:50:33.713] motion       seq=130 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=1.6 left_pwm=20 right_pwm=8
+[14:50:33.713] line         seq=131 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:50:33.785] line         seq=132 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:50:33.900] motion       seq=133 mode=SPEED target_cm_s=3 left_cm_s=4.3 right_cm_s=1.6 left_pwm=20 right_pwm=9
+[14:50:33.968] obstacle     seq=134 state=CLEAR cm=27 fault=False
+[14:50:33.969] line         seq=135 state=TRACK sensors=1 junction=NONE line_pos=446
+[14:50:33.969] state        seq=136 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:33.970] hb           seq=217 link=CONNECTED uptime_s=418 drops=255 cmd_ok=219 cmd_bad=0 last_will=False
+[14:50:33.989] line         seq=137 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:34.084] motion       seq=138 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.5 left_pwm=20 right_pwm=8
+[14:50:34.203] line         seq=139 state=TRACK sensors=1 junction=NONE line_pos=461
+[14:50:34.263] obstacle     seq=140 state=CLEAR cm=26 fault=False
+[14:50:34.263] line         seq=141 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:50:34.349] motion       seq=142 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.6 left_pwm=20 right_pwm=10
+[14:50:34.350] line         seq=143 state=TRACK sensors=1 junction=NONE line_pos=428
+[14:50:34.404] line         seq=144 state=TRACK sensors=1 junction=NONE line_pos=402
+[14:50:34.404] terrain      seq=145 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:34.405] line         seq=146 state=LINE_LOST sensors=0 junction=NONE line_pos=402
+[14:50:34.490] motion       seq=147 mode=SPEED target_cm_s=3 left_cm_s=4.6 right_cm_s=1.8 left_pwm=22 right_pwm=8
+[14:50:34.491] obstacle     seq=148 state=CLEAR cm=24 fault=False
+[14:50:34.686] motion       seq=149 mode=SPEED target_cm_s=3 left_cm_s=5.0 right_cm_s=1.2 left_pwm=22 right_pwm=4
+[14:50:34.760] obstacle     seq=150 state=CLEAR cm=23 fault=False
+[14:50:34.822] line         seq=151 state=TRACK sensors=1 junction=NONE line_pos=402
+[14:50:34.890] motion       seq=152 mode=SPEED target_cm_s=3 left_cm_s=5.2 right_cm_s=0.3 left_pwm=20 right_pwm=10
+[14:50:34.890] state        seq=153 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:34.966] line         seq=154 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:35.027] obstacle     seq=155 state=CLEAR cm=22 fault=False
+[14:50:35.083] line         seq=156 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:35.083] motion       seq=157 mode=SPEED target_cm_s=3 left_cm_s=4.7 right_cm_s=1.6 left_pwm=21 right_pwm=7
+[14:50:35.144] line         seq=158 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:35.223] line         seq=159 state=TRACK sensors=1 junction=NONE line_pos=429
+[14:50:35.288] motion       seq=160 mode=SPEED target_cm_s=3 left_cm_s=4.6 right_cm_s=1.6 left_pwm=21 right_pwm=8
+[14:50:35.343] obstacle     seq=161 state=CLEAR cm=23 fault=False
+[14:50:35.423] line         seq=162 state=TRACK sensors=1 junction=NONE line_pos=435
+[14:50:35.423] line         seq=163 state=LINE_LOST sensors=0 junction=NONE line_pos=403
+[14:50:35.424] terrain      seq=164 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:35.505] motion       seq=165 mode=SPEED target_cm_s=3 left_cm_s=4.6 right_cm_s=1.3 left_pwm=22 right_pwm=6
+[14:50:35.594] obstacle     seq=166 state=CLEAR cm=24 fault=False
+[14:50:35.681] motion       seq=167 mode=SPEED target_cm_s=3 left_cm_s=5.2 right_cm_s=0.6 left_pwm=23 right_pwm=8
+[14:50:35.681] line         seq=168 state=TRACK sensors=1 junction=NONE line_pos=403
+[14:50:35.799] line         seq=169 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:35.867] hb           seq=218 link=CONNECTED uptime_s=419 drops=255 cmd_ok=223 cmd_bad=0 last_will=False
+[14:50:35.867] obstacle     seq=170 state=CLEAR cm=57 fault=False
+[14:50:35.894] motion       seq=171 mode=SPEED target_cm_s=3 left_cm_s=4.7 right_cm_s=0.9 left_pwm=21 right_pwm=7
+[14:50:36.005] line         seq=172 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:36.006] state        seq=173 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:36.006] line         seq=174 state=TRACK sensors=1 junction=NONE line_pos=440
+[14:50:36.127] motion       seq=175 mode=SPEED target_cm_s=3 left_cm_s=4.7 right_cm_s=1.6 left_pwm=19 right_pwm=7
+[14:50:36.128] obstacle     seq=176 state=CLEAR cm=56 fault=False
+[14:50:36.128] line         seq=177 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:36.204] line         seq=178 state=TRACK sensors=1 junction=NONE line_pos=426
+[14:50:36.296] motion       seq=179 mode=SPEED target_cm_s=3 left_cm_s=4.8 right_cm_s=1.7 left_pwm=19 right_pwm=9
+[14:50:36.364] line         seq=180 state=TRACK sensors=1 junction=NONE line_pos=429
+[14:50:36.426] obstacle     seq=181 state=CLEAR cm=56 fault=False
+[14:50:36.428] line         seq=182 state=TRACK sensors=1 junction=NONE line_pos=437
+[14:50:36.500] terrain      seq=183 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:36.501] motion       seq=184 mode=SPEED target_cm_s=3 left_cm_s=4.7 right_cm_s=1.6 left_pwm=19 right_pwm=9
+[14:50:36.544] line         seq=185 state=TRACK sensors=1 junction=NONE line_pos=430
+[14:50:36.632] line         seq=186 state=TRACK sensors=1 junction=NONE line_pos=404
+[14:50:36.632] obstacle     seq=187 state=CLEAR cm=94 fault=False
+[14:50:36.685] motion       seq=188 mode=SPEED target_cm_s=3 left_cm_s=4.6 right_cm_s=1.7 left_pwm=20 right_pwm=8
+[14:50:36.685] line         seq=189 state=TRACK sensors=1 junction=NONE line_pos=411
+[14:50:36.750] line         seq=190 state=LINE_LOST sensors=0 junction=NONE line_pos=404
+[14:50:36.843] motion       seq=191 mode=SPEED target_cm_s=3 left_cm_s=4.7 right_cm_s=1.4 left_pwm=21 right_pwm=7
+[14:50:36.945] obstacle     seq=192 state=CLEAR cm=57 fault=False
+[14:50:36.947] state        seq=193 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:37.015] line         seq=194 state=TRACK sensors=1 junction=NONE line_pos=404
+[14:50:37.064] line         seq=195 state=TRACK sensors=1 junction=NONE line_pos=441
+[14:50:37.123] motion       seq=196 mode=SPEED target_cm_s=3 left_cm_s=5.2 right_cm_s=1.1 left_pwm=19 right_pwm=8
+[14:50:37.183] obstacle     seq=197 state=CLEAR cm=91 fault=False
+[14:50:37.183] line         seq=198 state=TRACK sensors=1 junction=NONE line_pos=448
+[14:50:37.263] line         seq=199 state=TRACK sensors=1 junction=NONE line_pos=440
+[14:50:37.356] motion       seq=200 mode=SPEED target_cm_s=3 left_cm_s=4.8 right_cm_s=1.6 left_pwm=19 right_pwm=8
+[14:50:37.356] line         seq=201 state=TRACK sensors=1 junction=NONE line_pos=433
+[14:50:37.443] obstacle     seq=202 state=CLEAR cm=57 fault=False
+[14:50:37.503] line         seq=203 state=TRACK sensors=1 junction=NONE line_pos=446
+[14:50:37.504] motion       seq=204 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=1.7 left_pwm=20 right_pwm=8
+[14:50:37.504] terrain      seq=205 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:37.662] line         seq=206 state=TRACK sensors=1 junction=NONE line_pos=435
+[14:50:37.662] line         seq=207 state=LINE_LOST sensors=0 junction=NONE line_pos=435
+[14:50:37.663] obstacle     seq=208 state=CLEAR cm=55 fault=False
+[14:50:37.760] motion       seq=209 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.5 left_pwm=22 right_pwm=4
+[14:50:37.760] hb           seq=219 link=CONNECTED uptime_s=421 drops=255 cmd_ok=227 cmd_bad=0 last_will=False
+[14:50:37.863] motion       seq=210 mode=SPEED target_cm_s=3 left_cm_s=5.2 right_cm_s=0.9 left_pwm=22 right_pwm=4
+[14:50:37.938] obstacle     seq=211 state=CLEAR cm=54 fault=False
+[14:50:37.938] state        seq=212 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:38.048] motion       seq=213 mode=SPEED target_cm_s=3 left_cm_s=5.5 right_cm_s=1.0 left_pwm=22 right_pwm=6
+[14:50:38.125] obstacle     seq=214 state=CLEAR cm=55 fault=False
+[14:50:39.835] motion       seq=215 mode=SPEED target_cm_s=3 left_cm_s=5.2 right_cm_s=1.2 left_pwm=23 right_pwm=3
+[14:50:39.911] line         seq=216 state=TRACK sensors=1 junction=NONE line_pos=435
+[14:50:39.911] obstacle     seq=217 state=CLEAR cm=51 fault=False
+[14:50:39.912] line         seq=218 state=TRACK sensors=1 junction=NONE line_pos=433
+[14:50:39.987] state        seq=248 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:40.045] obstacle     seq=249 state=CLEAR cm=47 fault=False
+[14:50:40.145] motion       seq=250 mode=SPEED target_cm_s=3 left_cm_s=5.4 right_cm_s=0.3 left_pwm=23 right_pwm=6
+[14:50:40.145] line         seq=251 state=TRACK sensors=1 junction=NONE line_pos=394
+[14:50:40.205] line         seq=252 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:50:40.271] motion       seq=253 mode=SPEED target_cm_s=3 left_cm_s=5.0 right_cm_s=0.0 left_pwm=22 right_pwm=10
+[14:50:40.343] line         seq=254 state=TRACK sensors=1 junction=NONE line_pos=438
+[14:50:40.343] obstacle     seq=255 state=CLEAR cm=50 fault=False
+[14:50:40.429] line         seq=0 state=TRACK sensors=1 junction=NONE line_pos=442
+[14:50:40.529] terrain      seq=1 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:40.530] motion       seq=2 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.3 left_pwm=20 right_pwm=8
+[14:50:40.531] line         seq=3 state=TRACK sensors=1 junction=NONE line_pos=454
+[14:50:40.627] line         seq=4 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:50:40.735] obstacle     seq=5 state=CLEAR cm=84 fault=False
+[14:50:40.736] motion       seq=6 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.4 left_pwm=21 right_pwm=8
+[14:50:40.783] line         seq=7 state=TRACK sensors=1 junction=NONE line_pos=457
+[14:50:40.851] line         seq=8 state=TRACK sensors=1 junction=NONE line_pos=445
+[14:50:40.935] motion       seq=9 mode=SPEED target_cm_s=3 left_cm_s=4.7 right_cm_s=1.4 left_pwm=20 right_pwm=7
+[14:50:40.935] obstacle     seq=10 state=CLEAR cm=85 fault=False
+[14:50:40.936] state        seq=11 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:41.007] line         seq=12 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:50:41.007] line         seq=13 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:50:41.083] motion       seq=14 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.7 left_pwm=21 right_pwm=6
+[14:50:41.175] line         seq=15 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:50:41.243] line         seq=16 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:50:41.383] motion       seq=17 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.7 left_pwm=20 right_pwm=5
+[14:50:41.383] line         seq=18 state=TRACK sensors=1 junction=NONE line_pos=456
+[14:50:41.463] line         seq=19 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:50:41.567] obstacle     seq=20 state=CLEAR cm=0 fault=False
+[14:50:41.567] motion       seq=21 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.6 left_pwm=22 right_pwm=7
+[14:50:41.567] terrain      seq=22 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:41.569] line         seq=23 state=TRACK sensors=1 junction=NONE line_pos=420
+[14:50:41.651] line         seq=24 state=TRACK sensors=1 junction=NONE line_pos=336
+[14:50:41.726] line         seq=25 state=LINE_LOST sensors=0 junction=NONE line_pos=336
+[14:50:41.726] motion       seq=26 mode=SPEED target_cm_s=3 left_cm_s=4.1 right_cm_s=1.5 left_pwm=23 right_pwm=6
+[14:50:41.727] obstacle     seq=27 state=CLEAR cm=45 fault=False
+[14:50:41.783] line         seq=28 state=TRACK sensors=2 junction=NONE line_pos=336
+[14:50:41.857] line         seq=29 state=TRACK sensors=2 junction=NONE line_pos=-477
+[14:50:41.929] motion       seq=30 mode=SPEED target_cm_s=3 left_cm_s=4.8 right_cm_s=1.5 left_pwm=17 right_pwm=10
+[14:50:41.929] state        seq=31 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:41.987] line         seq=32 state=TRACK sensors=2 junction=NONE line_pos=-468
+[14:50:42.065] obstacle     seq=33 state=CLEAR cm=44 fault=False
+[14:50:42.084] line         seq=34 state=TRACK sensors=2 junction=NONE line_pos=-480
+[14:50:42.084] motion       seq=35 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.6 left_pwm=16 right_pwm=13
+[14:50:42.183] line         seq=36 state=TRACK sensors=2 junction=NONE line_pos=-446
+[14:50:42.268] obstacle     seq=37 state=CLEAR cm=43 fault=False
+[14:50:42.268] line         seq=38 state=TRACK sensors=2 junction=NONE line_pos=-434
+[14:50:42.269] motion       seq=39 mode=SPEED target_cm_s=3 left_cm_s=3.1 right_cm_s=2.5 left_pwm=16 right_pwm=12
+[14:50:42.346] line         seq=40 state=LINE_LOST sensors=0 junction=NONE line_pos=-401
+[14:50:42.441] line         seq=41 state=TRACK sensors=1 junction=NONE line_pos=-401
+[14:50:42.503] motion       seq=42 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=2.9 left_pwm=17 right_pwm=12
+[14:50:42.503] terrain      seq=43 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:50:42.504] obstacle     seq=44 state=CLEAR cm=43 fault=False
+[14:50:42.587] line         seq=45 state=TRACK sensors=1 junction=NONE line_pos=439
+[14:50:42.677] line         seq=46 state=TRACK sensors=1 junction=NONE line_pos=436
+[14:50:42.754] motion       seq=47 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.3 left_pwm=18 right_pwm=10
+[14:50:42.754] line         seq=48 state=TRACK sensors=1 junction=NONE line_pos=450
+[14:50:42.822] obstacle     seq=49 state=CLEAR cm=41 fault=False
+[14:50:42.907] line         seq=50 state=TRACK sensors=1 junction=NONE line_pos=438
+[14:50:42.908] motion       seq=51 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.0 left_pwm=19 right_pwm=11
+[14:50:42.984] state        seq=52 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:42.984] line         seq=53 state=TRACK sensors=1 junction=NONE line_pos=414
+[14:50:43.065] line         seq=54 state=TRACK sensors=1 junction=NONE line_pos=356
+[14:50:43.065] line         seq=55 state=LINE_LOST sensors=0 junction=NONE line_pos=356
+[14:50:43.107] motion       seq=56 mode=SPEED target_cm_s=3 left_cm_s=4.1 right_cm_s=2.1 left_pwm=19 right_pwm=8
+[14:50:43.186] obstacle     seq=57 state=CLEAR cm=39 fault=False
+[14:50:43.186] line         seq=58 state=TRACK sensors=2 junction=NONE line_pos=356
+[14:50:43.288] motion       seq=59 mode=SPEED target_cm_s=3 left_cm_s=4.5 right_cm_s=1.9 left_pwm=16 right_pwm=11
+[14:50:43.321] line         seq=60 state=TRACK sensors=2 junction=NONE line_pos=-489
+[14:50:43.390] line         seq=61 state=TRACK sensors=2 junction=NONE line_pos=-488
+[14:50:43.473] hb           seq=222 link=CONNECTED uptime_s=427 drops=255 cmd_ok=238 cmd_bad=0 last_will=False
+[14:50:43.474] obstacle     seq=62 state=CLEAR cm=38 fault=False
+[14:50:43.475] motion       seq=63 mode=SPEED target_cm_s=3 left_cm_s=3.1 right_cm_s=2.8 left_pwm=16 right_pwm=14
+[14:50:43.511] terrain      seq=65 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:43.583] line         seq=66 state=LINE_LOST sensors=0 junction=NONE line_pos=-425
+[14:50:43.687] motion       seq=67 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.1 left_pwm=16 right_pwm=16
+[14:50:43.775] line         seq=68 state=TRACK sensors=1 junction=NONE line_pos=-425
+[14:50:43.777] obstacle     seq=69 state=CLEAR cm=38 fault=False
+[14:50:43.823] line         seq=70 state=TRACK sensors=1 junction=NONE line_pos=452
+[14:50:43.910] motion       seq=71 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=2.9 left_pwm=19 right_pwm=13
+[14:50:43.910] line         seq=72 state=TRACK sensors=1 junction=NONE line_pos=442
+[14:50:43.911] state        seq=73 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:43.983] line         seq=74 state=TRACK sensors=1 junction=NONE line_pos=344
+[14:50:44.044] line         seq=75 state=TRACK sensors=3 junction=NONE line_pos=72
+[14:50:44.109] obstacle     seq=76 state=CLEAR cm=37 fault=False
+[14:50:44.109] motion       seq=77 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=2.2 left_pwm=18 right_pwm=12
+[14:50:44.110] line         seq=78 state=TRACK sensors=3 junction=RIGHT line_pos=-1
+[14:50:44.209] line         seq=79 state=TRACK sensors=3 junction=RIGHT line_pos=0
+[14:50:44.323] motion       seq=80 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.5 left_pwm=18 right_pwm=12
+[14:50:44.386] obstacle     seq=81 state=CLEAR cm=36 fault=False
+[14:50:44.386] line         seq=82 state=TRACK sensors=3 junction=RIGHT line_pos=9
+[14:50:44.443] line         seq=83 state=TRACK sensors=1 junction=RIGHT line_pos=270
+[14:50:44.517] motion       seq=84 mode=SPEED target_cm_s=3 left_cm_s=3.1 right_cm_s=2.6 left_pwm=19 right_pwm=11
+[14:50:44.517] line         seq=85 state=TRACK sensors=1 junction=RIGHT line_pos=441
+[14:50:44.518] terrain      seq=86 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:44.591] line         seq=87 state=TRACK sensors=1 junction=RIGHT line_pos=450
+[14:50:44.707] obstacle     seq=88 state=CLEAR cm=36 fault=False
+[14:50:44.707] motion       seq=89 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.3 left_pwm=19 right_pwm=12
+[14:50:44.763] line         seq=90 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:50:44.845] line         seq=91 state=TRACK sensors=1 junction=NONE line_pos=424
+[14:50:44.927] motion       seq=92 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.3 left_pwm=19 right_pwm=10
+[14:50:44.927] line         seq=93 state=LINE_LOST sensors=0 junction=NONE line_pos=363
+[14:50:44.928] state        seq=94 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:44.928] obstacle     seq=95 state=CLEAR cm=33 fault=False
+[14:50:45.010] line         seq=96 state=TRACK sensors=2 junction=NONE line_pos=363
+[14:50:45.148] motion       seq=97 mode=SPEED target_cm_s=3 left_cm_s=4.4 right_cm_s=2.0 left_pwm=17 right_pwm=10
+[14:50:45.234] line         seq=98 state=TRACK sensors=2 junction=NONE line_pos=-493
+[14:50:45.234] obstacle     seq=99 state=CLEAR cm=33 fault=False
+[14:50:45.337] line         seq=100 state=TRACK sensors=2 junction=NONE line_pos=-496
+[14:50:45.339] motion       seq=101 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.7 left_pwm=16 right_pwm=15
+[14:50:45.424] hb           seq=223 link=CONNECTED uptime_s=429 drops=255 cmd_ok=242 cmd_bad=0 last_will=False
+[14:50:45.425] line         seq=102 state=TRACK sensors=2 junction=NONE line_pos=-471
+[14:50:45.445] line         seq=103 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:50:45.445] motion       seq=104 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=3.2 left_pwm=15 right_pwm=14
+[14:50:45.513] terrain      seq=105 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:45.514] obstacle     seq=106 state=CLEAR cm=31 fault=False
+[14:50:45.584] line         seq=107 state=LINE_LOST sensors=0 junction=NONE line_pos=-439
+[14:50:45.684] line         seq=108 state=TRACK sensors=1 junction=NONE line_pos=-439
+[14:50:45.684] motion       seq=109 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.6 left_pwm=14 right_pwm=15
+[14:50:45.764] line         seq=110 state=TRACK sensors=1 junction=NONE line_pos=449
+[14:50:45.849] obstacle     seq=111 state=CLEAR cm=31 fault=False
+[14:50:45.903] line         seq=112 state=TRACK sensors=1 junction=NONE line_pos=441
+[14:50:45.903] motion       seq=113 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=3.0 left_pwm=17 right_pwm=10
+[14:50:45.977] state        seq=114 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:46.053] line         seq=115 state=TRACK sensors=1 junction=NONE line_pos=434
+[14:50:46.053] line         seq=116 state=TRACK sensors=1 junction=NONE line_pos=404
+[14:50:46.103] motion       seq=117 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.6 left_pwm=18 right_pwm=11
+[14:50:46.104] obstacle     seq=118 state=CLEAR cm=29 fault=False
+[14:50:46.263] motion       seq=119 mode=SPEED target_cm_s=3 left_cm_s=3.8 right_cm_s=2.3 left_pwm=21 right_pwm=9
+[14:50:47.697] obstacle     seq=120 state=CLEAR cm=29 fault=False
+[14:50:47.766] motion       seq=121 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.7 left_pwm=16 right_pwm=13
+[14:50:47.766] terrain      seq=122 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:47.767] obstacle     seq=123 state=CLEAR cm=28 fault=False
+[14:50:47.912] motion       seq=136 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=3.0 left_pwm=15 right_pwm=15
+[14:50:47.984] state        seq=137 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:47.984] obstacle     seq=138 state=CLEAR cm=23 fault=False
+[14:50:48.085] motion       seq=139 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.4 left_pwm=18 right_pwm=10
+[14:50:48.149] line         seq=140 state=TRACK sensors=1 junction=NONE line_pos=427
+[14:50:48.149] line         seq=141 state=LINE_LOST sensors=0 junction=NONE line_pos=369
+[14:50:48.223] obstacle     seq=142 state=CLEAR cm=23 fault=False
+[14:50:50.256] motion       seq=143 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=2.2 left_pwm=20 right_pwm=9
+[14:50:50.354] line         seq=144 state=TRACK sensors=2 junction=NONE line_pos=369
+[14:50:50.354] line         seq=145 state=TRACK sensors=2 junction=NONE line_pos=-491
+[14:50:50.355] motion       seq=146 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=2.5 left_pwm=15 right_pwm=13
+[14:50:50.355] line         seq=147 state=TRACK sensors=2 junction=NONE line_pos=-465
+[14:50:50.430] obstacle     seq=186 state=CLEAR cm=16 fault=False
+[14:50:50.430] line         seq=187 state=TRACK sensors=1 junction=NONE line_pos=441
+[14:50:50.532] motion       seq=188 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=2.5 left_pwm=17 right_pwm=11
+[14:50:50.532] line         seq=189 state=TRACK sensors=1 junction=NONE line_pos=352
+[14:50:50.603] line         seq=190 state=LINE_LOST sensors=0 junction=NONE line_pos=352
+[14:50:50.603] terrain      seq=191 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:50.687] line         seq=192 state=TRACK sensors=2 junction=NONE line_pos=352
+[14:50:50.687] obstacle     seq=193 state=CLEAR cm=15 fault=False
+[14:50:50.688] motion       seq=194 mode=SPEED target_cm_s=3 left_cm_s=3.9 right_cm_s=2.2 left_pwm=18 right_pwm=12
+[14:50:50.767] line         seq=195 state=TRACK sensors=2 junction=NONE line_pos=-489
+[14:50:50.871] line         seq=196 state=TRACK sensors=2 junction=NONE line_pos=-481
+[14:50:52.305] motion       seq=197 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.8 left_pwm=15 right_pwm=15
+[14:50:52.305] state        seq=198 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:50:52.306] obstacle     seq=199 state=CLEAR cm=14 fault=False
+[14:50:52.306] line         seq=200 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:50:52.324] hb           seq=226 link=CONNECTED uptime_s=435 drops=255 cmd_ok=253 cmd_bad=0 last_will=False
+[14:50:52.326] line         seq=201 state=TRACK sensors=2 junction=NONE line_pos=-488
+[14:50:52.326] motion       seq=202 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.3 left_pwm=15 right_pwm=15
+[14:50:52.328] line         seq=203 state=TRACK sensors=2 junction=NONE line_pos=-413
+[14:50:52.511] terrain      seq=211 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:52.989] state        seq=212 state=BLOCKED obstacle=EMERGENCY link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:52.990] hb           seq=227 link=CONNECTED uptime_s=437 drops=255 cmd_ok=1 cmd_bad=0 last_will=False
+[14:50:53.055] motion       seq=213 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:50:53.343] line         seq=214 state=LINE_LOST sensors=0 junction=NONE line_pos=-413
+[14:50:53.530] terrain      seq=215 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:50:53.911] state        seq=216 state=BLOCKED obstacle=EMERGENCY link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:54.064] motion       seq=217 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:50:54.125] line         seq=218 state=LINE_LOST sensors=0 junction=NONE line_pos=-413
+[14:50:54.551] terrain      seq=219 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:50:54.743] obst_profile seq=220 side=RIGHT width_cm=16 left_cm=None right_cm=None width_min=True
+[14:50:54.744] event        seq=221 code=8 arg=533 text=bypass right, sideways 21 cm
+[14:50:54.744] event        seq=222 code=9 arg=43 text=bypass forward leg 43 cm
+[14:50:54.745] state        seq=223 state=BYPASSING obstacle=EMERGENCY link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:54.802] hb           seq=228 link=CONNECTED uptime_s=438 drops=255 cmd_ok=5 cmd_bad=0 last_will=False
+[14:50:54.843] line         seq=225 state=TRACK sensors=2 junction=NONE line_pos=-413
+[14:50:54.904] state        seq=226 state=BYPASSING obstacle=EMERGENCY link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:54.964] line         seq=227 state=LINE_LOST sensors=0 junction=NONE line_pos=-492
+[14:50:54.964] motion       seq=228 mode=TURN target_cm_s=0 left_cm_s=3.1 right_cm_s=-4.5 left_pwm=25 right_pwm=-25
+[14:50:55.043] obstacle     seq=229 state=EMERGENCY cm=12 fault=False
+[14:50:55.148] motion       seq=230 mode=TURN target_cm_s=0 left_cm_s=6.5 right_cm_s=-8.6 left_pwm=25 right_pwm=-25
+[14:50:55.323] obstacle     seq=231 state=EMERGENCY cm=14 fault=False
+[14:50:55.388] motion       seq=232 mode=TURN target_cm_s=0 left_cm_s=7.5 right_cm_s=-9.1 left_pwm=25 right_pwm=-25
+[14:50:55.563] motion       seq=233 mode=TURN target_cm_s=0 left_cm_s=7.6 right_cm_s=-9.0 left_pwm=25 right_pwm=-25
+[14:50:55.658] terrain      seq=234 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:50:55.751] motion       seq=235 mode=TURN target_cm_s=0 left_cm_s=7.3 right_cm_s=-8.8 left_pwm=25 right_pwm=-25
+[14:50:55.860] obstacle     seq=236 state=EMERGENCY cm=45 fault=False
+[14:50:55.925] state        seq=237 state=BYPASSING obstacle=EMERGENCY link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:56.008] line         seq=238 state=LINE_LOST sensors=0 junction=NONE line_pos=-492
+[14:50:56.009] motion       seq=239 mode=DISTANCE target_cm_s=0 left_cm_s=4.6 right_cm_s=-3.6 left_pwm=30 right_pwm=30
+[14:50:56.087] obstacle     seq=240 state=EMERGENCY cm=44 fault=False
+[14:50:56.165] motion       seq=241 mode=DISTANCE target_cm_s=0 left_cm_s=9.3 right_cm_s=10.9 left_pwm=27 right_pwm=25
+[14:50:57.569] motion       seq=242 mode=DISTANCE target_cm_s=0 left_cm_s=11.0 right_cm_s=11.8 left_pwm=27 right_pwm=24
+[14:50:57.569] obstacle     seq=243 state=CLEAR cm=38 fault=False
+[14:50:57.570] motion       seq=244 mode=DISTANCE target_cm_s=0 left_cm_s=11.0 right_cm_s=11.1 left_pwm=27 right_pwm=25
+[14:50:57.570] terrain      seq=245 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:50:57.624] terrain      seq=1 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=4
+[14:50:57.830] motion       seq=2 mode=DISTANCE target_cm_s=0 left_cm_s=10.6 right_cm_s=10.2 left_pwm=26 right_pwm=23
+[14:50:57.831] obstacle     seq=3 state=CLEAR cm=23 fault=False
+[14:50:57.904] state        seq=4 state=BYPASSING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:50:57.983] line         seq=5 state=LINE_LOST sensors=0 junction=NONE line_pos=-492
+[14:50:57.984] motion       seq=6 mode=TURN target_cm_s=0 left_cm_s=9.3 right_cm_s=9.6 left_pwm=-15 right_pwm=15
+[14:50:58.064] obstacle     seq=7 state=CLEAR cm=20 fault=False
+[14:50:58.143] motion       seq=8 mode=TURN target_cm_s=0 left_cm_s=-4.0 right_cm_s=6.9 left_pwm=-25 right_pwm=25
+[14:50:58.322] motion       seq=9 mode=TURN target_cm_s=0 left_cm_s=-5.8 right_cm_s=8.5 left_pwm=-25 right_pwm=25
+[14:50:58.553] obstacle     seq=10 state=CLEAR cm=21 fault=False
+[14:50:59.003] motion       seq=11 mode=TURN target_cm_s=0 left_cm_s=-6.0 right_cm_s=9.1 left_pwm=-25 right_pwm=25
+[14:50:59.004] hb           seq=230 link=CONNECTED uptime_s=442 drops=255 cmd_ok=12 cmd_bad=0 last_will=False
+[14:50:59.008] terrain      seq=12 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=7
+[14:51:00.681] obstacle     seq=17 state=CLEAR cm=0 fault=False
+[14:51:00.681] motion       seq=18 mode=DISTANCE target_cm_s=0 left_cm_s=-3.3 right_cm_s=7.4 left_pwm=20 right_pwm=20
+[14:51:00.682] motion       seq=19 mode=DISTANCE target_cm_s=0 left_cm_s=8.3 right_cm_s=8.2 left_pwm=28 right_pwm=25
+[14:51:00.682] line         seq=20 state=TRACK sensors=2 junction=NONE line_pos=-492
+[14:51:00.725] terrain      seq=35 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=3
+[14:51:00.803] motion       seq=36 mode=DISTANCE target_cm_s=0 left_cm_s=10.5 right_cm_s=10.4 left_pwm=27 right_pwm=24
+[14:51:00.870] obstacle     seq=37 state=CLEAR cm=0 fault=False
+[14:51:00.943] state        seq=38 state=BYPASSING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:01.003] motion       seq=39 mode=DISTANCE target_cm_s=0 left_cm_s=10.5 right_cm_s=10.4 left_pwm=27 right_pwm=22
+[14:51:01.157] motion       seq=40 mode=DISTANCE target_cm_s=0 left_cm_s=10.4 right_cm_s=10.6 left_pwm=26 right_pwm=20
+[14:51:01.331] motion       seq=41 mode=DISTANCE target_cm_s=0 left_cm_s=10.4 right_cm_s=10.4 left_pwm=26 right_pwm=23
+[14:51:01.413] obstacle     seq=42 state=CLEAR cm=0 fault=False
+[14:51:01.563] motion       seq=43 mode=DISTANCE target_cm_s=0 left_cm_s=10.4 right_cm_s=9.7 left_pwm=27 right_pwm=22
+[14:51:01.623] line         seq=44 state=LINE_LOST sensors=0 junction=NONE line_pos=449
+[14:51:01.704] terrain      seq=45 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=5
+[14:51:01.844] motion       seq=46 mode=DISTANCE target_cm_s=0 left_cm_s=10.2 right_cm_s=10.3 left_pwm=28 right_pwm=23
+[14:51:01.904] state        seq=47 state=BYPASSING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:01.965] motion       seq=48 mode=DISTANCE target_cm_s=0 left_cm_s=9.9 right_cm_s=10.5 left_pwm=27 right_pwm=22
+[14:51:02.052] obstacle     seq=49 state=CLEAR cm=0 fault=False
+[14:51:02.163] motion       seq=50 mode=DISTANCE target_cm_s=0 left_cm_s=10.0 right_cm_s=10.4 left_pwm=27 right_pwm=22
+[14:51:02.351] motion       seq=51 mode=DISTANCE target_cm_s=0 left_cm_s=10.2 right_cm_s=10.0 left_pwm=27 right_pwm=22
+[14:51:02.425] hb           seq=232 link=CONNECTED uptime_s=446 drops=255 cmd_ok=20 cmd_bad=0 last_will=False
+[14:51:02.543] motion       seq=52 mode=DISTANCE target_cm_s=0 left_cm_s=9.9 right_cm_s=10.0 left_pwm=28 right_pwm=21
+[14:51:02.631] line         seq=53 state=LINE_LOST sensors=0 junction=NONE line_pos=449
+[14:51:02.733] obstacle     seq=54 state=CLEAR cm=0 fault=False
+[14:51:02.818] terrain      seq=55 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=8
+[14:51:02.820] motion       seq=56 mode=DISTANCE target_cm_s=0 left_cm_s=10.3 right_cm_s=10.0 left_pwm=27 right_pwm=21
+[14:51:02.885] state        seq=57 state=BYPASSING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:02.966] motion       seq=58 mode=DISTANCE target_cm_s=0 left_cm_s=9.5 right_cm_s=10.0 left_pwm=30 right_pwm=22
+[14:51:03.134] motion       seq=59 mode=DISTANCE target_cm_s=0 left_cm_s=10.4 right_cm_s=9.8 left_pwm=26 right_pwm=22
+[14:51:03.341] obstacle     seq=60 state=CLEAR cm=0 fault=False
+[14:51:03.463] motion       seq=61 mode=TURN target_cm_s=0 left_cm_s=9.3 right_cm_s=9.4 left_pwm=-15 right_pwm=15
+[14:51:03.543] motion       seq=62 mode=TURN target_cm_s=0 left_cm_s=-3.9 right_cm_s=7.1 left_pwm=-25 right_pwm=25
+[14:51:03.653] line         seq=63 state=LINE_LOST sensors=0 junction=NONE line_pos=449
+[14:51:03.779] terrain      seq=64 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:51:03.780] motion       seq=65 mode=TURN target_cm_s=0 left_cm_s=-6.0 right_cm_s=9.7 left_pwm=-25 right_pwm=25
+[14:51:03.873] obstacle     seq=66 state=CLEAR cm=0 fault=False
+[14:51:03.979] state        seq=67 state=BYPASSING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:04.064] motion       seq=68 mode=TURN target_cm_s=0 left_cm_s=-4.0 right_cm_s=9.1 left_pwm=-25 right_pwm=25
+[14:51:04.179] motion       seq=69 mode=TURN target_cm_s=0 left_cm_s=-4.1 right_cm_s=8.4 left_pwm=-25 right_pwm=25
+[14:51:04.354] hb           seq=233 link=CONNECTED uptime_s=448 drops=255 cmd_ok=23 cmd_bad=0 last_will=False
+[14:51:04.355] motion       seq=70 mode=TURN target_cm_s=0 left_cm_s=-5.7 right_cm_s=9.5 left_pwm=-25 right_pwm=25
+[14:51:04.471] obstacle     seq=71 state=CLEAR cm=142 fault=False
+[14:51:04.605] motion       seq=72 mode=DISTANCE target_cm_s=0 left_cm_s=-4.7 right_cm_s=8.3 left_pwm=15 right_pwm=15
+[14:51:04.689] line         seq=73 state=LINE_LOST sensors=0 junction=NONE line_pos=449
+[14:51:05.833] terrain      seq=74 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:51:05.846] motion       seq=75 mode=DISTANCE target_cm_s=0 left_cm_s=7.6 right_cm_s=8.0 left_pwm=29 right_pwm=26
+[14:51:05.846] state        seq=76 state=BYPASSING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:05.847] motion       seq=77 mode=DISTANCE target_cm_s=0 left_cm_s=10.9 right_cm_s=11.7 left_pwm=29 right_pwm=23
+[14:51:05.847] obstacle     seq=78 state=CLEAR cm=0 fault=False
+[14:51:05.904] obstacle     seq=91 state=CLEAR cm=99 fault=False
+[14:51:05.904] state        seq=92 state=BYPASSING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:05.964] motion       seq=93 mode=DISTANCE target_cm_s=0 left_cm_s=10.5 right_cm_s=10.8 left_pwm=28 right_pwm=23
+[14:51:06.128] obstacle     seq=94 state=CLEAR cm=90 fault=False
+[14:51:07.386] motion       seq=95 mode=DISTANCE target_cm_s=0 left_cm_s=10.4 right_cm_s=10.6 left_pwm=28 right_pwm=22
+[14:51:07.386] line         seq=96 state=LINE_LOST sensors=0 junction=NONE line_pos=-90
+[14:51:07.462] hb           seq=234 link=CONNECTED uptime_s=450 drops=255 cmd_ok=27 cmd_bad=0 last_will=False
+[14:51:07.463] motion       seq=97 mode=TURN target_cm_s=0 left_cm_s=8.7 right_cm_s=7.4 left_pwm=25 right_pwm=-25
+[14:51:07.463] obstacle     seq=98 state=CLEAR cm=85 fault=False
+[14:51:07.463] motion       seq=99 mode=TURN target_cm_s=0 left_cm_s=5.7 right_cm_s=-6.5 left_pwm=25 right_pwm=-25
+[14:51:07.576] line         seq=110 state=TRACK sensors=1 junction=NONE line_pos=-90
+[14:51:07.577] event        seq=111 code=25 arg=1 text=bypass done: middle sensor on the line
+[14:51:07.578] state        seq=112 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:07.648] motion       seq=114 mode=SPEED target_cm_s=3 left_cm_s=6.0 right_cm_s=-7.1 left_pwm=19 right_pwm=17
+[14:51:07.648] line         seq=115 state=TRACK sensors=2 junction=NONE line_pos=450
+[14:51:07.788] motion       seq=116 mode=SPEED target_cm_s=3 left_cm_s=3.4 right_cm_s=3.0 left_pwm=16 right_pwm=15
+[14:51:07.864] line         seq=117 state=TRACK sensors=2 junction=NONE line_pos=-472
+[14:51:07.864] terrain      seq=118 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=8
+[14:51:07.936] line         seq=119 state=TRACK sensors=2 junction=NONE line_pos=-485
+[14:51:07.936] obstacle     seq=120 state=CLEAR cm=0 fault=False
+[14:51:07.937] state        seq=121 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:08.020] motion       seq=122 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=4.1 left_pwm=13 right_pwm=18
+[14:51:08.021] line         seq=123 state=TRACK sensors=2 junction=NONE line_pos=-470
+[14:51:08.087] line         seq=124 state=TRACK sensors=2 junction=NONE line_pos=-461
+[14:51:08.171] hb           seq=235 link=CONNECTED uptime_s=452 drops=255 cmd_ok=31 cmd_bad=0 last_will=False
+[14:51:08.191] motion       seq=125 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=4.3 left_pwm=14 right_pwm=16
+[14:51:08.191] line         seq=126 state=TRACK sensors=2 junction=NONE line_pos=-463
+[14:51:08.263] line         seq=127 state=TRACK sensors=2 junction=NONE line_pos=-465
+[14:51:09.592] motion       seq=128 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=4.2 left_pwm=13 right_pwm=17
+[14:51:09.592] line         seq=129 state=TRACK sensors=2 junction=NONE line_pos=-459
+[14:51:09.593] line         seq=130 state=TRACK sensors=2 junction=NONE line_pos=-442
+[14:51:09.593] obstacle     seq=131 state=CLEAR cm=0 fault=False
+[14:51:09.688] line         seq=151 state=TRACK sensors=2 junction=NONE line_pos=-482
+[14:51:09.688] motion       seq=152 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=4.1 left_pwm=12 right_pwm=16
+[14:51:09.689] line         seq=153 state=TRACK sensors=2 junction=NONE line_pos=-467
+[14:51:09.845] obstacle     seq=154 state=CLEAR cm=0 fault=False
+[14:51:09.845] line         seq=155 state=TRACK sensors=2 junction=NONE line_pos=-469
+[14:51:09.846] motion       seq=156 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=4.1 left_pwm=13 right_pwm=17
+[14:51:09.846] terrain      seq=157 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:51:09.933] line         seq=158 state=TRACK sensors=2 junction=NONE line_pos=-477
+[14:51:09.933] state        seq=159 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:10.044] motion       seq=160 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=4.4 left_pwm=11 right_pwm=15
+[14:51:10.044] line         seq=161 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:51:10.045] hb           seq=236 link=CONNECTED uptime_s=454 drops=255 cmd_ok=35 cmd_bad=0 last_will=False
+[14:51:10.045] line         seq=162 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:51:10.145] motion       seq=163 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=4.2 left_pwm=14 right_pwm=16
+[14:51:10.223] line         seq=164 state=TRACK sensors=2 junction=NONE line_pos=-474
+[14:51:10.223] obstacle     seq=165 state=CLEAR cm=0 fault=False
+[14:51:10.324] line         seq=166 state=TRACK sensors=2 junction=NONE line_pos=-465
+[14:51:10.425] motion       seq=167 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=4.2 left_pwm=12 right_pwm=17
+[14:51:10.426] line         seq=168 state=TRACK sensors=2 junction=NONE line_pos=-464
+[14:51:10.512] line         seq=169 state=TRACK sensors=2 junction=NONE line_pos=-481
+[14:51:10.583] motion       seq=170 mode=SPEED target_cm_s=3 left_cm_s=2.0 right_cm_s=4.2 left_pwm=13 right_pwm=17
+[14:51:10.584] line         seq=171 state=TRACK sensors=2 junction=NONE line_pos=-480
+[14:51:10.652] line         seq=172 state=TRACK sensors=2 junction=NONE line_pos=-471
+[14:51:10.755] motion       seq=173 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=4.2 left_pwm=12 right_pwm=16
+[14:51:10.805] line         seq=174 state=TRACK sensors=2 junction=NONE line_pos=-476
+[14:51:10.872] terrain      seq=175 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:51:10.873] obstacle     seq=176 state=CLEAR cm=0 fault=False
+[14:51:10.955] line         seq=177 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:51:10.956] state        seq=178 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:10.957] motion       seq=179 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=4.1 left_pwm=10 right_pwm=17
+[14:51:10.957] line         seq=180 state=TRACK sensors=2 junction=NONE line_pos=-470
+[14:51:11.043] line         seq=181 state=TRACK sensors=2 junction=NONE line_pos=-471
+[14:51:11.163] motion       seq=182 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=4.2 left_pwm=12 right_pwm=16
+[14:51:11.272] line         seq=183 state=TRACK sensors=2 junction=NONE line_pos=-466
+[14:51:11.272] line         seq=184 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:51:12.593] motion       seq=185 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=4.3 left_pwm=11 right_pwm=17
+[14:51:12.593] line         seq=186 state=TRACK sensors=2 junction=NONE line_pos=-471
+[14:51:12.966] obstacle     seq=187 state=CLEAR cm=0 fault=False
+[14:51:12.967] line         seq=188 state=TRACK sensors=2 junction=NONE line_pos=-486
+[14:51:12.967] motion       seq=189 mode=SPEED target_cm_s=3 left_cm_s=2.0 right_cm_s=4.4 left_pwm=11 right_pwm=18
+[14:51:12.967] line         seq=190 state=TRACK sensors=2 junction=NONE line_pos=-472
+[14:51:13.023] motion       seq=216 mode=SPEED target_cm_s=3 left_cm_s=1.4 right_cm_s=4.5 left_pwm=11 right_pwm=17
+[14:51:13.104] line         seq=217 state=TRACK sensors=2 junction=NONE line_pos=-265
+[14:51:13.105] obstacle     seq=218 state=CLEAR cm=144 fault=False
+[14:51:13.190] line         seq=219 state=TRACK sensors=1 junction=NONE line_pos=120
+[14:51:13.190] motion       seq=220 mode=SPEED target_cm_s=3 left_cm_s=1.5 right_cm_s=3.9 left_pwm=15 right_pwm=18
+[14:51:13.299] line         seq=221 state=TRACK sensors=1 junction=NONE line_pos=160
+[14:51:13.384] line         seq=222 state=TRACK sensors=1 junction=NONE line_pos=81
+[14:51:13.384] motion       seq=223 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=3.1 left_pwm=14 right_pwm=17
+[14:51:13.469] obstacle     seq=224 state=CLEAR cm=142 fault=False
+[14:51:13.603] line         seq=225 state=TRACK sensors=1 junction=NONE line_pos=72
+[14:51:13.604] line         seq=226 state=TRACK sensors=1 junction=NONE line_pos=-38
+[14:51:13.719] motion       seq=227 mode=SPEED target_cm_s=3 left_cm_s=2.1 right_cm_s=3.3 left_pwm=14 right_pwm=17
+[14:51:13.719] line         seq=228 state=TRACK sensors=2 junction=NONE line_pos=-140
+[14:51:13.720] line         seq=229 state=TRACK sensors=2 junction=NONE line_pos=0
+[14:51:13.721] line         seq=230 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:13.785] motion       seq=231 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=3.8 left_pwm=12 right_pwm=14
+[14:51:13.785] obstacle     seq=232 state=CLEAR cm=144 fault=False
+[14:51:13.825] hb           seq=238 link=CONNECTED uptime_s=457 drops=255 cmd_ok=42 cmd_bad=0 last_will=False
+[14:51:13.892] terrain      seq=233 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:51:13.948] state        seq=234 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:13.949] motion       seq=235 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=3.6 left_pwm=13 right_pwm=14
+[14:51:14.163] motion       seq=236 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.6 left_pwm=13 right_pwm=15
+[14:51:14.233] line         seq=237 state=TRACK sensors=2 junction=NONE line_pos=0
+[14:51:14.304] obstacle     seq=238 state=CLEAR cm=145 fault=False
+[14:51:14.305] line         seq=239 state=TRACK sensors=2 junction=NONE line_pos=-426
+[14:51:14.424] motion       seq=240 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.7 left_pwm=11 right_pwm=16
+[14:51:14.427] line         seq=241 state=TRACK sensors=2 junction=NONE line_pos=-355
+[14:51:14.498] line         seq=242 state=LINE_LOST sensors=0 junction=NONE line_pos=-223
+[14:51:14.564] motion       seq=243 mode=SPEED target_cm_s=3 left_cm_s=2.1 right_cm_s=4.1 left_pwm=10 right_pwm=18
+[14:51:14.564] line         seq=244 state=TRACK sensors=1 junction=NONE line_pos=-223
+[14:51:14.642] line         seq=245 state=TRACK sensors=1 junction=NONE line_pos=437
+[14:51:14.704] obstacle     seq=246 state=CLEAR cm=140 fault=False
+[14:51:14.766] motion       seq=247 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=3.8 left_pwm=16 right_pwm=14
+[14:51:14.827] line         seq=248 state=TRACK sensors=1 junction=NONE line_pos=425
+[14:51:14.885] line         seq=249 state=TRACK sensors=1 junction=NONE line_pos=373
+[14:51:14.885] terrain      seq=250 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:51:14.949] state        seq=251 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:14.951] line         seq=252 state=LINE_LOST sensors=0 junction=NONE line_pos=327
+[14:51:15.037] motion       seq=253 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=2.8 left_pwm=18 right_pwm=11
+[14:51:15.039] obstacle     seq=254 state=CLEAR cm=146 fault=False
+[14:51:15.040] line         seq=255 state=TRACK sensors=2 junction=NONE line_pos=327
+[14:51:15.124] line         seq=0 state=TRACK sensors=2 junction=NONE line_pos=-463
+[14:51:15.185] motion       seq=1 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=2.9 left_pwm=16 right_pwm=15
+[14:51:15.242] line         seq=2 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:51:15.310] line         seq=3 state=TRACK sensors=2 junction=NONE line_pos=-469
+[14:51:15.344] motion       seq=4 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=3.8 left_pwm=12 right_pwm=14
+[14:51:15.424] line         seq=5 state=LINE_LOST sensors=0 junction=NONE line_pos=-424
+[14:51:15.520] obstacle     seq=6 state=CLEAR cm=152 fault=False
+[14:51:15.521] line         seq=7 state=TRACK sensors=1 junction=NONE line_pos=-424
+[14:51:15.584] motion       seq=8 mode=SPEED target_cm_s=3 left_cm_s=1.6 right_cm_s=3.9 left_pwm=16 right_pwm=14
+[14:51:15.584] line         seq=9 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:51:15.663] line         seq=10 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:51:15.750] hb           seq=239 link=CONNECTED uptime_s=459 drops=255 cmd_ok=46 cmd_bad=0 last_will=False
+[14:51:15.755] motion       seq=11 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=2.9 left_pwm=17 right_pwm=13
+[14:51:15.756] line         seq=12 state=TRACK sensors=1 junction=NONE line_pos=444
+[14:51:15.850] line         seq=13 state=TRACK sensors=1 junction=NONE line_pos=413
+[14:51:15.868] terrain      seq=14 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:51:15.943] line         seq=15 state=LINE_LOST sensors=0 junction=NONE line_pos=369
+[14:51:15.943] state        seq=16 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:15.945] obstacle     seq=17 state=CLEAR cm=149 fault=False
+[14:51:16.005] motion       seq=18 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.6 left_pwm=20 right_pwm=10
+[14:51:16.005] line         seq=19 state=TRACK sensors=2 junction=NONE line_pos=369
+[14:51:16.084] line         seq=20 state=TRACK sensors=2 junction=NONE line_pos=-485
+[14:51:16.159] motion       seq=21 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=3.0 left_pwm=15 right_pwm=16
+[14:51:16.265] line         seq=22 state=TRACK sensors=2 junction=NONE line_pos=-479
+[14:51:16.375] line         seq=23 state=TRACK sensors=2 junction=NONE line_pos=-485
+[14:51:16.375] motion       seq=24 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=3.7 left_pwm=14 right_pwm=17
+[14:51:16.442] line         seq=25 state=TRACK sensors=2 junction=NONE line_pos=-466
+[14:51:16.443] obstacle     seq=26 state=CLEAR cm=136 fault=False
+[14:51:16.510] line         seq=27 state=TRACK sensors=2 junction=NONE line_pos=-464
+[14:51:16.567] motion       seq=28 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.2 left_pwm=12 right_pwm=18
+[14:51:16.624] line         seq=29 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:51:16.718] line         seq=30 state=TRACK sensors=2 junction=NONE line_pos=-456
+[14:51:16.785] motion       seq=31 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.7 left_pwm=13 right_pwm=16
+[14:51:16.785] line         seq=32 state=LINE_LOST sensors=0 junction=NONE line_pos=-408
+[14:51:16.864] line         seq=33 state=TRACK sensors=1 junction=NONE line_pos=-408
+[14:51:16.884] terrain      seq=34 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:51:16.885] state        seq=35 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:16.948] motion       seq=36 mode=SPEED target_cm_s=3 left_cm_s=2.1 right_cm_s=4.3 left_pwm=15 right_pwm=13
+[14:51:16.948] line         seq=37 state=TRACK sensors=1 junction=NONE line_pos=451
+[14:51:17.058] obstacle     seq=38 state=CLEAR cm=0 fault=False
+[14:51:17.154] line         seq=39 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:51:17.235] motion       seq=40 mode=SPEED target_cm_s=3 left_cm_s=2.9 right_cm_s=3.0 left_pwm=17 right_pwm=13
+[14:51:17.236] line         seq=41 state=TRACK sensors=1 junction=NONE line_pos=451
+[14:51:17.302] line         seq=42 state=TRACK sensors=1 junction=NONE line_pos=439
+[14:51:17.386] motion       seq=43 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=2.8 left_pwm=17 right_pwm=13
+[14:51:17.394] line         seq=44 state=TRACK sensors=1 junction=NONE line_pos=381
+[14:51:17.499] line         seq=45 state=LINE_LOST sensors=0 junction=NONE line_pos=362
+[14:51:17.499] line         seq=46 state=TRACK sensors=2 junction=NONE line_pos=362
+[14:51:17.598] motion       seq=47 mode=SPEED target_cm_s=3 left_cm_s=3.3 right_cm_s=2.2 left_pwm=17 right_pwm=15
+[14:51:17.664] obstacle     seq=48 state=CLEAR cm=151 fault=False
+[14:51:17.664] line         seq=49 state=TRACK sensors=2 junction=NONE line_pos=-474
+[14:51:17.665] hb           seq=240 link=CONNECTED uptime_s=461 drops=255 cmd_ok=50 cmd_bad=0 last_will=False
+[14:51:17.708] line         seq=50 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:51:17.766] motion       seq=51 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=2.4 left_pwm=14 right_pwm=17
+[14:51:17.824] line         seq=52 state=TRACK sensors=2 junction=NONE line_pos=-490
+[14:51:17.923] line         seq=53 state=TRACK sensors=2 junction=NONE line_pos=-477
+[14:51:17.924] terrain      seq=54 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=2
+[14:51:17.927] state        seq=55 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:18.003] motion       seq=56 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=3.1 left_pwm=14 right_pwm=17
+[14:51:18.075] line         seq=57 state=TRACK sensors=2 junction=NONE line_pos=-487
+[14:51:18.149] line         seq=58 state=TRACK sensors=2 junction=NONE line_pos=-479
+[14:51:18.149] motion       seq=59 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.2 left_pwm=15 right_pwm=18
+[14:51:18.223] obstacle     seq=60 state=CLEAR cm=0 fault=False
+[14:51:18.223] line         seq=61 state=TRACK sensors=2 junction=NONE line_pos=-489
+[14:51:18.311] line         seq=62 state=TRACK sensors=2 junction=NONE line_pos=-481
+[14:51:18.415] motion       seq=63 mode=SPEED target_cm_s=3 left_cm_s=2.1 right_cm_s=3.4 left_pwm=14 right_pwm=19
+[14:51:18.415] line         seq=64 state=TRACK sensors=2 junction=NONE line_pos=-418
+[14:51:18.444] line         seq=65 state=LINE_LOST sensors=0 junction=NONE line_pos=-418
+[14:51:18.524] line         seq=66 state=TRACK sensors=1 junction=NONE line_pos=-418
+[14:51:18.608] motion       seq=67 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=3.7 left_pwm=13 right_pwm=18
+[14:51:18.696] line         seq=68 state=TRACK sensors=1 junction=NONE line_pos=458
+[14:51:18.777] obstacle     seq=69 state=CLEAR cm=118 fault=False
+[14:51:18.777] line         seq=70 state=TRACK sensors=1 junction=NONE line_pos=457
+[14:51:18.777] motion       seq=71 mode=SPEED target_cm_s=3 left_cm_s=2.1 right_cm_s=2.9 left_pwm=20 right_pwm=16
+[14:51:18.844] line         seq=72 state=TRACK sensors=1 junction=NONE line_pos=468
+[14:51:18.906] state        seq=73 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:18.943] line         seq=74 state=TRACK sensors=1 junction=NONE line_pos=459
+[14:51:18.943] terrain      seq=75 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:51:18.944] motion       seq=76 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=2.5 left_pwm=21 right_pwm=15
+[14:51:19.029] obstacle     seq=77 state=CLEAR cm=117 fault=False
+[14:51:19.129] line         seq=78 state=TRACK sensors=1 junction=NONE line_pos=460
+[14:51:19.131] line         seq=79 state=TRACK sensors=1 junction=NONE line_pos=457
+[14:51:19.183] motion       seq=80 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=2.4 left_pwm=21 right_pwm=14
+[14:51:19.183] event        seq=81 code=40 arg=58 text=hump started (5.8 mm)
+[14:51:19.264] line         seq=82 state=TRACK sensors=1 junction=NONE line_pos=460
+[14:51:19.355] obstacle     seq=83 state=CLEAR cm=115 fault=False
+[14:51:19.425] line         seq=84 state=TRACK sensors=1 junction=NONE line_pos=453
+[14:51:19.425] motion       seq=85 mode=SPEED target_cm_s=3 left_cm_s=2.6 right_cm_s=2.4 left_pwm=22 right_pwm=15
+[14:51:19.426] line         seq=86 state=TRACK sensors=1 junction=NONE line_pos=451
+[14:51:19.554] line         seq=87 state=TRACK sensors=1 junction=NONE line_pos=443
+[14:51:19.554] hb           seq=241 link=CONNECTED uptime_s=463 drops=255 cmd_ok=53 cmd_bad=0 last_will=False
+[14:51:19.567] motion       seq=88 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=2.5 left_pwm=24 right_pwm=14
+[14:51:19.644] line         seq=89 state=TRACK sensors=1 junction=NONE line_pos=406
+[14:51:19.725] obstacle     seq=90 state=CLEAR cm=114 fault=False
+[14:51:19.817] motion       seq=91 mode=SPEED target_cm_s=3 left_cm_s=2.8 right_cm_s=2.4 left_pwm=22 right_pwm=14
+[14:51:19.883] obstacle     seq=92 state=CLEAR cm=113 fault=False
+[14:51:19.883] state        seq=93 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:19.964] terrain      seq=94 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:51:19.966] motion       seq=95 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=2.2 left_pwm=22 right_pwm=15
+[14:51:20.133] obstacle     seq=96 state=CLEAR cm=111 fault=False
+[14:51:20.271] motion       seq=97 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=3.2 left_pwm=21 right_pwm=17
+[14:51:20.363] motion       seq=98 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=3.1 left_pwm=18 right_pwm=20
+[14:51:20.459] obstacle     seq=99 state=CLEAR cm=112 fault=False
+[14:51:20.603] motion       seq=100 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=2.6 left_pwm=25 right_pwm=15
+[14:51:20.684] line         seq=101 state=TRACK sensors=1 junction=BOTH line_pos=472
+[14:51:20.684] obstacle     seq=102 state=CLEAR cm=111 fault=False
+[14:51:20.768] line         seq=103 state=TRACK sensors=1 junction=BOTH line_pos=475
+[14:51:20.849] motion       seq=104 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=2.3 left_pwm=26 right_pwm=14
+[14:51:20.998] line         seq=105 state=TRACK sensors=1 junction=BOTH line_pos=460
+[14:51:20.999] state        seq=106 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:21.077] line         seq=107 state=TRACK sensors=1 junction=BOTH line_pos=456
+[14:51:21.077] terrain      seq=108 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:51:21.078] motion       seq=109 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=3.0 left_pwm=29 right_pwm=12
+[14:51:21.078] line         seq=110 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:51:21.158] line         seq=112 state=TRACK sensors=1 junction=NONE line_pos=442
+[14:51:21.158] motion       seq=113 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.3 left_pwm=29 right_pwm=10
+[14:51:21.159] line         seq=114 state=TRACK sensors=1 junction=NONE line_pos=456
+[14:51:21.251] line         seq=115 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:51:21.321] obstacle     seq=116 state=CLEAR cm=112 fault=False
+[14:51:21.404] motion       seq=117 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=3.9 left_pwm=26 right_pwm=10
+[14:51:21.404] line         seq=118 state=TRACK sensors=1 junction=NONE line_pos=445
+[14:51:21.463] hb           seq=242 link=CONNECTED uptime_s=465 drops=255 cmd_ok=57 cmd_bad=0 last_will=False
+[14:51:21.482] line         seq=119 state=TRACK sensors=1 junction=NONE line_pos=433
+[14:51:21.558] obstacle     seq=120 state=CLEAR cm=110 fault=False
+[14:51:21.625] motion       seq=121 mode=SPEED target_cm_s=3 left_cm_s=4.2 right_cm_s=3.6 left_pwm=26 right_pwm=7
+[14:51:21.625] line         seq=122 state=TRACK sensors=1 junction=NONE line_pos=445
+[14:51:21.707] line         seq=123 state=TRACK sensors=1 junction=NONE line_pos=455
+[14:51:21.797] motion       seq=124 mode=SPEED target_cm_s=3 left_cm_s=4.7 right_cm_s=3.3 left_pwm=26 right_pwm=8
+[14:51:21.797] line         seq=125 state=TRACK sensors=1 junction=NONE line_pos=460
+[14:51:21.893] obstacle     seq=126 state=CLEAR cm=107 fault=False
+[14:51:21.893] line         seq=127 state=TRACK sensors=1 junction=NONE line_pos=431
+[14:51:21.985] line         seq=128 state=LINE_LOST sensors=0 junction=NONE line_pos=410
+[14:51:21.985] state        seq=129 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:21.986] line         seq=130 state=TRACK sensors=2 junction=NONE line_pos=410
+[14:51:21.987] terrain      seq=131 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=0
+[14:51:22.048] line         seq=133 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:51:22.125] obstacle     seq=134 state=CLEAR cm=107 fault=False
+[14:51:22.204] line         seq=135 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:51:22.204] motion       seq=136 mode=SPEED target_cm_s=3 left_cm_s=4.1 right_cm_s=3.6 left_pwm=20 right_pwm=10
+[14:51:22.285] line         seq=137 state=TRACK sensors=2 junction=NONE line_pos=-498
+[14:51:22.344] line         seq=138 state=TRACK sensors=2 junction=NONE line_pos=-456
+[14:51:22.344] motion       seq=139 mode=SPEED target_cm_s=3 left_cm_s=3.7 right_cm_s=4.0 left_pwm=19 right_pwm=10
+[14:51:22.423] obstacle     seq=140 state=CLEAR cm=104 fault=False
+[14:51:22.423] line         seq=141 state=LINE_LOST sensors=0 junction=NONE line_pos=-471
+[14:51:22.585] motion       seq=142 mode=SPEED target_cm_s=3 left_cm_s=3.5 right_cm_s=4.4 left_pwm=15 right_pwm=11
+[14:51:22.745] motion       seq=143 mode=SPEED target_cm_s=3 left_cm_s=3.2 right_cm_s=4.8 left_pwm=14 right_pwm=13
+[14:51:22.828] obstacle     seq=144 state=CLEAR cm=104 fault=False
+[14:51:22.905] state        seq=145 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:22.989] terrain      seq=146 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=11 hump_count=1 lift_peak=1
+[14:51:22.990] motion       seq=147 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=4.9 left_pwm=11 right_pwm=15
+[14:51:23.113] obstacle     seq=148 state=CLEAR cm=102 fault=False
+[14:51:23.196] motion       seq=149 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=5.1 left_pwm=12 right_pwm=13
+[14:51:23.263] terrain      seq=150 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=2
+[14:51:23.347] line         seq=151 state=TRACK sensors=2 junction=NONE line_pos=-471
+[14:51:23.347] hb           seq=243 link=CONNECTED uptime_s=467 drops=255 cmd_ok=61 cmd_bad=0 last_will=False
+[14:51:23.366] motion       seq=152 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=5.1 left_pwm=12 right_pwm=14
+[14:51:23.366] obstacle     seq=153 state=CLEAR cm=102 fault=False
+[14:51:23.429] line         seq=154 state=TRACK sensors=2 junction=NONE line_pos=-488
+[14:51:23.564] line         seq=155 state=TRACK sensors=2 junction=NONE line_pos=-474
+[14:51:23.564] motion       seq=156 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.8 left_pwm=12 right_pwm=14
+[14:51:23.652] line         seq=157 state=TRACK sensors=2 junction=NONE line_pos=-471
+[14:51:23.725] obstacle     seq=158 state=CLEAR cm=88 fault=False
+[14:51:23.725] line         seq=159 state=TRACK sensors=2 junction=NONE line_pos=-464
+[14:51:23.784] motion       seq=160 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=3.7 left_pwm=13 right_pwm=14
+[14:51:23.843] line         seq=161 state=LINE_LOST sensors=0 junction=NONE line_pos=-450
+[14:51:23.924] state        seq=162 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:23.982] motion       seq=163 mode=SPEED target_cm_s=3 left_cm_s=2.0 right_cm_s=4.1 left_pwm=10 right_pwm=18
+[14:51:23.983] obstacle     seq=164 state=CLEAR cm=109 fault=False
+[14:51:23.984] line         seq=165 state=TRACK sensors=2 junction=NONE line_pos=-450
+[14:51:24.146] line         seq=166 state=TRACK sensors=2 junction=NONE line_pos=-492
+[14:51:24.147] motion       seq=167 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=4.1 left_pwm=11 right_pwm=16
+[14:51:24.221] line         seq=168 state=TRACK sensors=2 junction=NONE line_pos=-487
+[14:51:24.287] terrain      seq=169 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=2
+[14:51:24.288] obstacle     seq=170 state=CLEAR cm=86 fault=False
+[14:51:24.371] line         seq=171 state=TRACK sensors=2 junction=NONE line_pos=-494
+[14:51:24.453] motion       seq=172 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=3.9 left_pwm=12 right_pwm=16
+[14:51:24.454] line         seq=173 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:51:24.502] line         seq=174 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:51:24.571] motion       seq=175 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=4.0 left_pwm=11 right_pwm=15
+[14:51:24.644] obstacle     seq=176 state=CLEAR cm=84 fault=False
+[14:51:24.644] line         seq=177 state=TRACK sensors=2 junction=NONE line_pos=-466
+[14:51:24.735] line         seq=178 state=TRACK sensors=2 junction=NONE line_pos=-484
+[14:51:24.804] motion       seq=179 mode=SPEED target_cm_s=3 left_cm_s=2.0 right_cm_s=4.2 left_pwm=12 right_pwm=15
+[14:51:24.804] line         seq=180 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:51:24.918] state        seq=181 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:25.073] line         seq=182 state=TRACK sensors=2 junction=NONE line_pos=-486
+[14:51:25.073] obstacle     seq=183 state=CLEAR cm=84 fault=False
+[14:51:25.075] motion       seq=184 mode=SPEED target_cm_s=3 left_cm_s=2.1 right_cm_s=4.2 left_pwm=12 right_pwm=16
+[14:51:25.154] line         seq=185 state=TRACK sensors=2 junction=NONE line_pos=-472
+[14:51:25.155] line         seq=186 state=TRACK sensors=2 junction=NONE line_pos=-465
+[14:51:25.282] motion       seq=187 mode=SPEED target_cm_s=3 left_cm_s=2.0 right_cm_s=4.1 left_pwm=10 right_pwm=16
+[14:51:25.282] line         seq=188 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:51:25.282] hb           seq=244 link=CONNECTED uptime_s=469 drops=255 cmd_ok=65 cmd_bad=0 last_will=False
+[14:51:25.289] obstacle     seq=189 state=CLEAR cm=93 fault=False
+[14:51:25.304] terrain      seq=190 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=1
+[14:51:25.377] line         seq=191 state=TRACK sensors=2 junction=NONE line_pos=-476
+[14:51:25.378] motion       seq=192 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=4.1 left_pwm=11 right_pwm=17
+[14:51:25.423] line         seq=193 state=TRACK sensors=2 junction=NONE line_pos=-460
+[14:51:25.587] obstacle     seq=194 state=CLEAR cm=93 fault=False
+[14:51:25.587] line         seq=195 state=TRACK sensors=2 junction=NONE line_pos=-463
+[14:51:25.588] motion       seq=196 mode=SPEED target_cm_s=3 left_cm_s=1.9 right_cm_s=4.2 left_pwm=11 right_pwm=16
+[14:51:25.664] line         seq=197 state=LINE_LOST sensors=0 junction=NONE line_pos=-459
+[14:51:25.757] motion       seq=198 mode=SPEED target_cm_s=3 left_cm_s=1.7 right_cm_s=4.4 left_pwm=10 right_pwm=17
+[14:51:25.827] obstacle     seq=199 state=CLEAR cm=72 fault=False
+[14:51:25.827] line         seq=200 state=TRACK sensors=2 junction=NONE line_pos=-459
+[14:51:25.894] state        seq=201 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:25.990] line         seq=202 state=TRACK sensors=2 junction=NONE line_pos=-492
+[14:51:25.990] motion       seq=203 mode=SPEED target_cm_s=3 left_cm_s=1.4 right_cm_s=4.8 left_pwm=10 right_pwm=17
+[14:51:26.091] line         seq=204 state=TRACK sensors=2 junction=NONE line_pos=-466
+[14:51:26.092] obstacle     seq=205 state=CLEAR cm=73 fault=False
+[14:51:26.168] motion       seq=206 mode=SPEED target_cm_s=3 left_cm_s=1.7 right_cm_s=4.5 left_pwm=11 right_pwm=15
+[14:51:26.241] line         seq=207 state=TRACK sensors=2 junction=NONE line_pos=-488
+[14:51:26.303] line         seq=208 state=TRACK sensors=2 junction=NONE line_pos=-486
+[14:51:26.303] terrain      seq=209 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=3
+[14:51:26.384] obstacle     seq=210 state=CLEAR cm=78 fault=False
+[14:51:26.384] motion       seq=211 mode=SPEED target_cm_s=3 left_cm_s=1.7 right_cm_s=4.4 left_pwm=11 right_pwm=18
+[14:51:26.386] line         seq=212 state=TRACK sensors=2 junction=NONE line_pos=-490
+[14:51:26.474] line         seq=213 state=TRACK sensors=2 junction=NONE line_pos=-463
+[14:51:26.573] motion       seq=214 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=4.5 left_pwm=11 right_pwm=15
+[14:51:26.573] line         seq=215 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:51:26.623] obstacle     seq=216 state=CLEAR cm=63 fault=False
+[14:51:26.706] line         seq=217 state=TRACK sensors=2 junction=NONE line_pos=-459
+[14:51:26.780] motion       seq=218 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=4.6 left_pwm=10 right_pwm=15
+[14:51:26.849] line         seq=219 state=TRACK sensors=2 junction=NONE line_pos=-461
+[14:51:26.849] line         seq=220 state=TRACK sensors=2 junction=NONE line_pos=-465
+[14:51:26.934] obstacle     seq=221 state=CLEAR cm=62 fault=False
+[14:51:26.935] state        seq=222 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:27.019] motion       seq=223 mode=SPEED target_cm_s=3 left_cm_s=1.7 right_cm_s=4.3 left_pwm=10 right_pwm=17
+[14:51:27.019] line         seq=224 state=TRACK sensors=2 junction=NONE line_pos=-482
+[14:51:27.141] line         seq=225 state=TRACK sensors=2 junction=NONE line_pos=-487
+[14:51:27.204] hb           seq=245 link=CONNECTED uptime_s=471 drops=255 cmd_ok=69 cmd_bad=0 last_will=False
+[14:51:27.205] motion       seq=226 mode=SPEED target_cm_s=3 left_cm_s=1.5 right_cm_s=4.4 left_pwm=11 right_pwm=16
+[14:51:27.205] line         seq=227 state=TRACK sensors=2 junction=NONE line_pos=-473
+[14:51:27.209] obstacle     seq=228 state=CLEAR cm=60 fault=False
+[14:51:27.243] line         seq=229 state=TRACK sensors=2 junction=NONE line_pos=-470
+[14:51:27.309] terrain      seq=230 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=0
+[14:51:27.378] motion       seq=231 mode=SPEED target_cm_s=3 left_cm_s=1.8 right_cm_s=4.6 left_pwm=9 right_pwm=17
+[14:51:27.444] line         seq=232 state=TRACK sensors=2 junction=NONE line_pos=-478
+[14:51:27.444] line         seq=233 state=TRACK sensors=2 junction=NONE line_pos=-475
+[14:51:27.527] obstacle     seq=234 state=CLEAR cm=57 fault=False
+[14:51:27.597] motion       seq=235 mode=SPEED target_cm_s=3 left_cm_s=1.7 right_cm_s=4.5 left_pwm=11 right_pwm=17
+[14:51:27.597] line         seq=236 state=TRACK sensors=2 junction=NONE line_pos=-466
+[14:51:27.666] line         seq=237 state=TRACK sensors=2 junction=NONE line_pos=-421
+[14:51:27.753] obstacle     seq=238 state=CLEAR cm=65 fault=False
+[14:51:27.753] motion       seq=239 mode=SPEED target_cm_s=3 left_cm_s=1.7 right_cm_s=4.1 left_pwm=11 right_pwm=17
+[14:51:27.754] line         seq=240 state=LINE_LOST sensors=0 junction=NONE line_pos=-43
+[14:51:27.856] line         seq=241 state=TRACK sensors=1 junction=NONE line_pos=-43
+[14:51:27.923] state        seq=242 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:27.924] line         seq=243 state=TRACK sensors=1 junction=NONE line_pos=418
+[14:51:28.011] motion       seq=244 mode=SPEED target_cm_s=3 left_cm_s=2.0 right_cm_s=3.8 left_pwm=14 right_pwm=14
+[14:51:28.044] obstacle     seq=245 state=CLEAR cm=60 fault=False
+[14:51:28.044] line         seq=246 state=TRACK sensors=1 junction=NONE line_pos=381
+[14:51:28.146] line         seq=247 state=TRACK sensors=1 junction=NONE line_pos=271
+[14:51:28.230] motion       seq=248 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=3.1 left_pwm=14 right_pwm=14
+[14:51:28.230] line         seq=249 state=LINE_LOST sensors=0 junction=NONE line_pos=175
+[14:51:28.294] line         seq=250 state=TRACK sensors=2 junction=NONE line_pos=175
+[14:51:28.294] terrain      seq=251 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=1
+[14:51:28.365] obstacle     seq=252 state=CLEAR cm=57 fault=False
+[14:51:28.365] motion       seq=253 mode=SPEED target_cm_s=3 left_cm_s=2.3 right_cm_s=3.2 left_pwm=12 right_pwm=14
+[14:51:28.445] line         seq=254 state=TRACK sensors=2 junction=NONE line_pos=-415
+[14:51:28.519] line         seq=255 state=LINE_LOST sensors=0 junction=NONE line_pos=-260
+[14:51:28.551] motion       seq=0 mode=SPEED target_cm_s=3 left_cm_s=2.2 right_cm_s=3.7 left_pwm=9 right_pwm=19
+[14:51:28.625] obstacle     seq=1 state=CLEAR cm=59 fault=False
+[14:51:28.625] line         seq=2 state=TRACK sensors=1 junction=NONE line_pos=-260
+[14:51:28.687] line         seq=3 state=TRACK sensors=1 junction=NONE line_pos=447
+[14:51:28.756] motion       seq=4 mode=SPEED target_cm_s=3 left_cm_s=2.0 right_cm_s=3.9 left_pwm=15 right_pwm=14
+[14:51:28.828] line         seq=5 state=TRACK sensors=1 junction=NONE line_pos=439
+[14:51:28.828] obstacle     seq=6 state=CLEAR cm=57 fault=False
+[14:51:28.903] line         seq=7 state=TRACK sensors=1 junction=NONE line_pos=429
+[14:51:28.904] state        seq=8 state=FOLLOWING obstacle=CLEAR link_lost=0 speed_cm_s=3 cruise_cm_s=3
+[14:51:28.965] motion       seq=9 mode=SPEED target_cm_s=3 left_cm_s=2.7 right_cm_s=2.9 left_pwm=15 right_pwm=13
+[14:51:29.032] line         seq=10 state=TRACK sensors=1 junction=NONE line_pos=356
+[14:51:29.032] hb           seq=246 link=CONNECTED uptime_s=473 drops=255 cmd_ok=72 cmd_bad=0 last_will=False
+[14:51:29.103] line         seq=11 state=LINE_LOST sensors=0 junction=NONE line_pos=344
+[14:51:29.104] obstacle     seq=12 state=CLEAR cm=57 fault=False
+[14:51:29.134] line         seq=13 state=TRACK sensors=2 junction=NONE line_pos=344
+[14:51:29.134] motion       seq=14 mode=SPEED target_cm_s=3 left_cm_s=3.0 right_cm_s=2.5 left_pwm=15 right_pwm=13
+[14:51:29.238] line         seq=15 state=TRACK sensors=2 junction=NONE line_pos=-483
+[14:51:29.306] line         seq=16 state=TRACK sensors=2 junction=NONE line_pos=-468
+[14:51:29.306] terrain      seq=17 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=0
+[14:51:29.371] motion       seq=18 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=3.2 left_pwm=11 right_pwm=15
+[14:51:29.371] obstacle     seq=19 state=CLEAR cm=57 fault=False
+[14:51:29.451] line         seq=20 state=TRACK sensors=2 junction=NONE line_pos=-486
+[14:51:29.577] line         seq=21 state=TRACK sensors=2 junction=NONE line_pos=-479
+[14:51:29.678] motion       seq=22 mode=SPEED target_cm_s=3 left_cm_s=2.4 right_cm_s=3.8 left_pwm=13 right_pwm=15
+[14:51:29.679] obstacle     seq=23 state=CLEAR cm=57 fault=False
+[14:51:29.679] line         seq=24 state=TRACK sensors=2 junction=NONE line_pos=-477
+[14:51:30.785] line         seq=25 state=TRACK sensors=2 junction=NONE line_pos=-456
+[14:51:30.891] motion       seq=26 mode=SPEED target_cm_s=3 left_cm_s=2.5 right_cm_s=4.1 left_pwm=11 right_pwm=15
+[14:51:30.891] line         seq=27 state=TRACK sensors=2 junction=NONE line_pos=-425
+[14:51:30.892] obstacle     seq=28 state=CLEAR cm=78 fault=False
+[14:51:30.892] line         seq=29 state=LINE_LOST sensors=0 junction=NONE line_pos=-386
+[14:51:30.979] state        seq=52 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:30.980] hb           seq=247 link=CONNECTED uptime_s=475 drops=255 cmd_ok=76 cmd_bad=0 last_will=False
+[14:51:30.980] obstacle     seq=53 state=CLEAR cm=62 fault=False
+[14:51:31.149] terrain      seq=54 motion=LIFTED overturned=1 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=73
+[14:51:31.445] obstacle     seq=55 state=CLEAR cm=203 fault=False
+[14:51:31.772] motion       seq=56 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:31.845] line         seq=57 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:31.930] state        seq=58 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:32.003] obstacle     seq=59 state=CLEAR cm=0 fault=False
+[14:51:32.167] terrain      seq=60 motion=LIFTED overturned=1 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=0
+[14:51:32.463] obstacle     seq=61 state=CLEAR cm=206 fault=False
+[14:51:32.769] motion       seq=62 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:32.850] line         seq=63 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:32.850] hb           seq=248 link=CONNECTED uptime_s=476 drops=255 cmd_ok=80 cmd_bad=0 last_will=False
+[14:51:32.883] state        seq=64 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:32.964] obstacle     seq=65 state=CLEAR cm=185 fault=False
+[14:51:32.965] terrain      seq=66 motion=STATIONARY overturned=1 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=0
+[14:51:33.379] obstacle     seq=67 state=CLEAR cm=156 fault=False
+[14:51:33.465] terrain      seq=68 motion=LIFTED overturned=1 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=45
+[14:51:33.538] terrain      seq=69 motion=LIFTED overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=52
+[14:51:35.105] obstacle     seq=70 state=CLEAR cm=92 fault=False
+[14:51:35.105] motion       seq=71 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:35.108] line         seq=72 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:35.109] state        seq=73 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:35.225] obstacle     seq=83 state=CLEAR cm=56 fault=False
+[14:51:35.560] obstacle     seq=84 state=CLEAR cm=56 fault=False
+[14:51:35.604] terrain      seq=85 motion=LIFTED overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=39
+[14:51:35.704] motion       seq=86 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:35.929] obstacle     seq=87 state=CLEAR cm=57 fault=False
+[14:51:35.929] line         seq=88 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:36.066] state        seq=89 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:36.106] obstacle     seq=90 state=CLEAR cm=57 fault=False
+[14:51:36.307] obstacle     seq=91 state=CLEAR cm=58 fault=False
+[14:51:36.557] terrain      seq=92 motion=LIFTED overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=27
+[14:51:36.644] obstacle     seq=93 state=CLEAR cm=57 fault=False
+[14:51:36.644] hb           seq=250 link=CONNECTED uptime_s=480 drops=255 cmd_ok=87 cmd_bad=0 last_will=False
+[14:51:36.723] motion       seq=94 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:36.845] line         seq=95 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:36.917] obstacle     seq=96 state=CLEAR cm=57 fault=False
+[14:51:38.075] terrain      seq=97 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=16
+[14:51:38.076] state        seq=98 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:38.125] obstacle     seq=99 state=CLEAR cm=57 fault=False
+[14:51:38.125] obstacle     seq=100 state=CLEAR cm=57 fault=False
+[14:51:38.125] obstacle     seq=101 state=CLEAR cm=57 fault=False
+[14:51:38.125] motion       seq=102 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:38.366] obstacle     seq=107 state=CLEAR cm=57 fault=False
+[14:51:38.527] hb           seq=251 link=CONNECTED uptime_s=482 drops=255 cmd_ok=91 cmd_bad=0 last_will=False
+[14:51:38.561] obstacle     seq=108 state=CLEAR cm=57 fault=False
+[14:51:38.769] motion       seq=109 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:38.880] line         seq=110 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:38.881] obstacle     seq=111 state=CLEAR cm=57 fault=False
+[14:51:38.944] state        seq=112 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:38.945] terrain      seq=113 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=8
+[14:51:39.123] obstacle     seq=114 state=CLEAR cm=57 fault=False
+[14:51:39.375] obstacle     seq=115 state=CLEAR cm=57 fault=False
+[14:51:39.663] obstacle     seq=116 state=CLEAR cm=57 fault=False
+[14:51:39.762] motion       seq=117 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:39.860] line         seq=118 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:39.923] state        seq=119 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:39.924] terrain      seq=120 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=6
+[14:51:40.003] obstacle     seq=121 state=CLEAR cm=57 fault=False
+[14:51:40.326] obstacle     seq=122 state=CLEAR cm=57 fault=False
+[14:51:40.412] hb           seq=252 link=CONNECTED uptime_s=484 drops=255 cmd_ok=95 cmd_bad=0 last_will=False
+[14:51:40.506] obstacle     seq=123 state=CLEAR cm=57 fault=False
+[14:51:40.868] motion       seq=124 mode=STOP target_cm_s=0 left_cm_s=0.0 right_cm_s=0.0 left_pwm=0 right_pwm=0
+[14:51:40.868] obstacle     seq=125 state=CLEAR cm=57 fault=False
+[14:51:40.868] line         seq=126 state=LINE_LOST sensors=0 junction=NONE line_pos=0
+[14:51:40.929] state        seq=127 state=STOPPED obstacle=CLEAR link_lost=0 speed_cm_s=0 cruise_cm_s=3
+[14:51:41.011] terrain      seq=128 motion=STATIONARY overturned=0 imu_fault=0 hump_ok=1 hump_mm=12 hump_count=2 lift_peak=4

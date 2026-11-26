@@ -1,0 +1,57 @@
+14:57:45.8  mission  NEW RUN: dashboard cleared, humps counted from 0 (car not changed)
+14:58:16.9  line  TRACK -> LINE_LOST
+14:58:16.9  line  LINE_LOST -> TRACK
+14:58:17.8  cmd  sent MAP W -> STRAIGHT  (seq 70)
+14:58:19.5  cmd  sent CALIBRATE  (seq 75)
+14:58:19.6  mission  car: sweep calibration started
+14:58:19.6  mission  STOPPED -> CALIBRATING
+14:58:21.8  line  IR calibration sweep: L 156/1834  C 171/1834  R 136/2734
+14:58:22.3  line  TRACK -> LINE_LOST
+14:58:22.6  line  LINE_LOST -> TRACK
+14:58:22.6  line  TRACK -> LINE_LOST
+14:58:22.8  line  LINE_LOST -> TRACK
+14:58:22.9  line  TRACK -> LINE_LOST
+14:58:23.0  line  car: calibration done, but the line is NOT under the middle sensor
+14:58:23.0  mission  CALIBRATING -> STOPPED
+14:58:23.6  cmd  sent START  (seq 84)
+14:58:23.6  mission  STOPPED -> FOLLOWING
+14:58:23.8  line  LINE_LOST -> TRACK
+14:58:24.6  line  TRACK -> LINE_LOST
+14:58:24.7  line  LINE_LOST -> TRACK
+14:58:25.3  line  TRACK -> LINE_LOST
+14:58:25.5  line  LINE_LOST -> TRACK
+14:58:25.9  line  TRACK -> LINE_LOST
+14:58:26.0  line  LINE_LOST -> TRACK
+14:58:26.4  line  TRACK -> LINE_LOST
+14:58:26.7  line  LINE_LOST -> TRACK
+14:58:27.0  line  TRACK -> LINE_LOST
+14:58:27.2  line  LINE_LOST -> TRACK
+14:58:28.0  line  TRACK -> LINE_LOST
+14:58:28.2  line  LINE_LOST -> TRACK
+14:58:36.5  barcode  read 'W' -> STRAIGHT (map)
+14:58:36.6  barcode  car: barcode W: STRAIGHT at the next junction
+14:58:36.7  line  TRACK -> LINE_LOST
+14:58:36.8  line  LINE_LOST -> TRACK
+14:58:37.3  line  TRACK -> LINE_LOST
+14:58:37.3  line  LINE_LOST -> TRACK
+14:58:37.7  line  TRACK -> LINE_LOST
+14:58:37.9  line  LINE_LOST -> TRACK
+14:58:38.4  line  TRACK -> LINE_LOST
+14:58:38.5  line  LINE_LOST -> TRACK
+14:58:40.8  line  TRACK -> LINE_LOST
+14:58:40.9  line  LINE_LOST -> TRACK
+14:58:41.4  line  TRACK -> LINE_LOST
+14:58:41.6  line  LINE_LOST -> TRACK
+14:58:42.2  line  TRACK -> LINE_LOST
+14:58:42.2  line  LINE_LOST -> TRACK
+14:58:42.6  line  junction RIGHT
+14:58:43.0  mission  FOLLOWING -> TURNING
+14:58:43.0  line  TRACK -> LINE_LOST
+14:58:45.7  line  LINE_LOST -> TRACK
+14:58:47.4  line  TRACK -> LINE_LOST
+14:58:47.9  line  LINE_LOST -> TRACK
+14:58:49.1  line  TRACK -> LINE_LOST
+14:58:49.1  mission  TURNING -> FOLLOWING
+14:58:49.6  line  LINE_LOST -> TRACK
+14:58:49.7  cmd  sent STOP  (seq 136)
+14:58:49.9  mission  FOLLOWING -> STOPPED
