@@ -23,7 +23,7 @@ EXPORT void consumer_task(INT stacd, void *exinf)
 
 	(void)stacd; (void)exinf;
 
-	while (1) {
+	for (;;) {
 		/* 1. Wait for the next sample (TMO_FEVR = wait forever) */
 		er = tk_rcv_mbx(mbx_samples, (T_MSG **)&msg, TMO_FEVR);
 		if (er < E_OK) {

@@ -54,13 +54,13 @@ IMPORT ID mbf_motion_req;
 IMPORT ID flg_motion;
 
 /* Safe public line-steering hook; positive position steers right. */
-IMPORT void s2_setLineCorrection(int line_pos);
+IMPORT void s2_set_line_correction(int line_pos);
 
 /* Motion sets this bit when a distance/turn completes. The VC clears it after reading. */
 #define S2_MOTION_DONE (1u << 0)
 
 /* Caller must validate command and argument before packing. Reserved command numbers: 6-7. */
-static inline uint16_t motion_packRequest(uint8_t command,
+static inline uint16_t motion_pack_request(uint8_t command,
                                           uint16_t argument)
 {
     return (uint16_t)(
@@ -69,17 +69,17 @@ static inline uint16_t motion_packRequest(uint8_t command,
     );
 }
 
-static inline uint8_t motion_unpackCommand(uint16_t request)
+static inline uint8_t motion_unpack_command(uint16_t request)
 {
     return (uint8_t)(request & S2_MOTION_COMMAND_MASK);
 }
 
-static inline uint16_t motion_unpackArgument(uint16_t request)
+static inline uint16_t motion_unpack_argument(uint16_t request)
 {
     return (uint16_t)(request >> 3);
 }
 
-static inline uint16_t motion_decodeRequest(const uint8_t bytes[2])
+static inline uint16_t motion_decode_request(const uint8_t bytes[2])
 {
     return (uint16_t)(
         (uint16_t)bytes[0] | ((uint16_t)bytes[1] << 8)

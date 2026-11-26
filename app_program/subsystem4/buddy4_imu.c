@@ -167,15 +167,21 @@ LOCAL ER b4_check_mag_id(void)
 
     er = b4_read_reg(B4_IMU_MAG_ADDR, MAG_IRA_REG_M, &a);
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(B4_IMU_MAG_ADDR, MAG_IRB_REG_M, &b);
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(B4_IMU_MAG_ADDR, MAG_IRC_REG_M, &c);
     if (er < E_OK)
+    {
         return er;
+    }
 
     if (a != MAG_ID_A || b != MAG_ID_B || c != MAG_ID_C)
     {
@@ -209,7 +215,9 @@ LOCAL ER b4_configure_sensor(void)
         0x57u);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_write_reg(
         b4_accel_address,
@@ -217,7 +225,9 @@ LOCAL ER b4_configure_sensor(void)
         0x08u);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     /*
      * Magnetometer:
@@ -229,7 +239,9 @@ LOCAL ER b4_configure_sensor(void)
         0x14u);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_write_reg(
         B4_IMU_MAG_ADDR,
@@ -237,7 +249,9 @@ LOCAL ER b4_configure_sensor(void)
         0x20u);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_write_reg(
         B4_IMU_MAG_ADDR,
@@ -284,12 +298,16 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
     er = b4_read_block(b4_accel_address,
                        ACC_OUT_X_L_A | ACC_AUTO_INCREMENT, a, 6);
     if (er < E_OK)
+    {
         return er;
+    }
 
     /* Magnetometer: X, Z, Y, big-endian (pointer auto-increments). */
     er = b4_read_block(B4_IMU_MAG_ADDR, MAG_OUT_X_H_M, m, 6);
     if (er < E_OK)
+    {
         return er;
+    }
 
     sample->accel_x = b4_make_i16(a[0], a[1]);
     sample->accel_y = b4_make_i16(a[2], a[3]);
@@ -316,7 +334,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &xl);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         b4_accel_address,
@@ -324,7 +344,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &xh);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         b4_accel_address,
@@ -332,7 +354,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &yl);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         b4_accel_address,
@@ -340,7 +364,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &yh);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         b4_accel_address,
@@ -348,7 +374,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &zl);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         b4_accel_address,
@@ -356,7 +384,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &zh);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     sample->accel_x = b4_make_i16(xl, xh);
     sample->accel_y = b4_make_i16(yl, yh);
@@ -370,7 +400,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &xh_m);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         B4_IMU_MAG_ADDR,
@@ -378,7 +410,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &xl_m);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         B4_IMU_MAG_ADDR,
@@ -386,7 +420,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &zh_m);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         B4_IMU_MAG_ADDR,
@@ -394,7 +430,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &zl_m);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         B4_IMU_MAG_ADDR,
@@ -402,7 +440,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &yh_m);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     er = b4_read_reg(
         B4_IMU_MAG_ADDR,
@@ -410,7 +450,9 @@ LOCAL ER b4_read_raw(B4_IMU_RAW *sample)
         &yl_m);
 
     if (er < E_OK)
+    {
         return er;
+    }
 
     sample->mag_x = (int16_t)((UW)(((UW)xh_m << 8) | xl_m));
 
@@ -445,10 +487,14 @@ LOCAL int32_t b4_abs_difference(int16_t current, int16_t previous)
 LOCAL int16_t b4_limit_i16(int32_t value)
 {
     if (value > 32767)
+    {
         return 32767;
+    }
 
     if (value < -32768)
+    {
         return -32768;
+    }
 
     return (int16_t)value;
 }
@@ -596,8 +642,8 @@ typedef struct {
 
 LOCAL int16_t b4_turn_comp_mg(B4_TURN_COMP *tc, int32_t dt_ms)
 {
-    float left = encoder_getLeftDistance();
-    float right = encoder_getRightDistance();
+    float left = encoder_get_left_distance();
+    float right = encoder_get_right_distance();
     float dt_s;
     float v;
     float omega;
@@ -633,8 +679,14 @@ LOCAL int16_t b4_turn_comp_mg(B4_TURN_COMP *tc, int32_t dt_ms)
         float diff = tc->speed_right_cms - tc->speed_left_cms;
         float fwd = tc->speed_right_cms + tc->speed_left_cms;
 
-        if (diff < 0.0f) diff = -diff;
-        if (fwd < 0.0f)  fwd = -fwd;
+        if (diff < 0.0f)
+        {
+            diff = -diff;
+        }
+        if (fwd < 0.0f)
+        {
+            fwd = -fwd;
+        }
         tc->spinning = (diff > (fwd + 1.0f)) ? 1u : 0u;
     }
 
@@ -644,8 +696,14 @@ LOCAL int16_t b4_turn_comp_mg(B4_TURN_COMP *tc, int32_t dt_ms)
           / ((float)B4_HUMP_TRACK_MM / 10.0f);
     mg = v * omega * (1000.0f / 981.0f);      /* cm/s^2 -> mg */
 
-    if (mg > 500.0f)  mg = 500.0f;
-    if (mg < -500.0f) mg = -500.0f;
+    if (mg > 500.0f)
+    {
+        mg = 500.0f;
+    }
+    if (mg < -500.0f)
+    {
+        mg = -500.0f;
+    }
     return (int16_t)mg;
 #else
     (void)v;
@@ -677,7 +735,7 @@ LOCAL void b4_publish_hump_event(uint32_t code, int32_t dmm)
 
 LOCAL int32_t b4_right_travel_mm(void)
 {
-    return (int32_t)(encoder_getRightDistance() * 10.0f);
+    return (int32_t)(encoder_get_right_distance() * 10.0f);
 }
 
 /* --------------------------------------------------------- */
@@ -705,26 +763,45 @@ LOCAL void b4_imu_connect(void)
             b4_i2c_device = tk_opn_dev((const UB *)"iica", TD_UPDATE);
         }
 
+        /* Each step runs only if the one before it succeeded. */
+        er = E_OK;
         if (b4_i2c_device < E_OK)
         {
             er = b4_i2c_device;
             tm_printf((UB *)"[B4-IMU] cannot open iica: %d\n", er);
         }
-        else if ((er = b4_read_accel_id()) < E_OK)
+
+        if (er >= E_OK)
         {
-            tm_printf((UB *)"[B4-IMU] accelerometer not detected: %d "
-                            "(check SDA=GP4, SCL=GP5, 3V3, GND)\n", er);
+            er = b4_read_accel_id();
+            if (er < E_OK)
+            {
+                tm_printf((UB *)"[B4-IMU] accelerometer not detected: %d "
+                                "(check SDA=GP4, SCL=GP5, 3V3, GND)\n", er);
+            }
         }
-        else if ((er = b4_check_mag_id()) < E_OK)
+
+        if (er >= E_OK)
         {
-            tm_printf((UB *)"[B4-IMU] magnetometer not detected: %d\n", er);
+            er = b4_check_mag_id();
+            if (er < E_OK)
+            {
+                tm_printf((UB *)"[B4-IMU] magnetometer not detected: %d\n",
+                          er);
+            }
         }
-        else if ((er = b4_configure_sensor()) < E_OK)
+
+        if (er >= E_OK)
         {
-            tm_printf((UB *)"[B4-IMU] sensor configuration failed: %d\n",
-                      er);
+            er = b4_configure_sensor();
+            if (er < E_OK)
+            {
+                tm_printf((UB *)"[B4-IMU] sensor configuration failed: %d\n",
+                          er);
+            }
         }
-        else
+
+        if (er >= E_OK)
         {
             break;                          /* IMU ready. */
         }
@@ -802,7 +879,7 @@ EXPORT void b4_imu_task(INT stacd, void *exinf)
     /*
      * Main sensor sampling and classification loop.
      */
-    while (1)
+    for (;;)
     {
         /* Real time since the last sample: the detector works in ms. */
         (void)tk_get_otm(&now_tm);

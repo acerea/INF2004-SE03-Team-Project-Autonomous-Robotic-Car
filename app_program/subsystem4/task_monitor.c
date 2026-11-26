@@ -40,7 +40,7 @@ EXPORT void monitor_task(INT stacd, void *exinf)
 
 	tm_printf((UB*)"monitor: I am task %d\n", tk_get_tid());
 
-	while (1) {
+	for (;;) {
 		/* 1. Arm the one-shot alarm, then wait for EITHER bit.
 		      TWF_ORW = wake on any of the bits, TWF_CLR = clear them
 		      on wake-up.  The extra timeout is just a safety net. */

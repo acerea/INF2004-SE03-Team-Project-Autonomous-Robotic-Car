@@ -12,8 +12,8 @@ Define a test here before running it. Test IDs never change.
 |---|---|---|---|---|---|
 | S2-U01 | Sample value range | Existing subsystem test | auto | Run `subsystem2_test.c` | `[TEST] S2-U01 PASS` |
 | S2-U02 | Semaphore and memory pool bounds | IF-02 | auto | Run `subsystem2_test.c` | `[TEST] S2-U02 PASS` |
-| S2-U03 | Left wheel speed calculation | FR4 | auto | Call `encoder_calculateLeftSpeed(100, 1.0f)` and check expected speed | Speed between 0.72 and 0.74 cm/s (2576 counts/rev since the 18 Nov tuning; was 0.74-0.76) |
-| S2-U04 | Right wheel speed calculation | FR4 | auto | Call `encoder_calculateRightSpeed(100, 1.0f)` and check expected speed | Speed between 0.74 and 0.76 cm/s |
+| S2-U03 | Left wheel speed calculation | FR4 | auto | Call `encoder_calculate_left_speed(100, 1.0f)` and check expected speed | Speed between 0.72 and 0.74 cm/s (2576 counts/rev since the 18 Nov tuning; was 0.74-0.76) |
+| S2-U04 | Right wheel speed calculation | FR4 | auto | Call `encoder_calculate_right_speed(100, 1.0f)` and check expected speed | Speed between 0.74 and 0.76 cm/s |
 | S2-U05 | P controller PWM calculation | FR5 | auto | Call `speed_p_update(15, 12, 40, 2)` | PWM between 45.9% and 46.1% |
 | S2-U06 | PI controller calculation | FR5 | auto | Run two PI updates with target=15 cm/s, measured=12 cm/s, dt=0.2 s | PWM approximately 46.6% then 47.2% |
 | S2-U07 | PID controller calculation | FR5 | auto | Run three PID updates with measured speeds of 12, 13 and 14 cm/s | PWM approximately 46.6%, 44.5% and 42.7% |

@@ -30,7 +30,7 @@ static float left_start_distance = 0.0f;
 static float right_start_distance = 0.0f;
 static float target_distance = 0.0f;
 static int distance_mode = 0;
-/* +1 forward, -1 reverse (only set by motion_pidMoveBackDistance). The PID
+/* +1 forward, -1 reverse (only set by motion_pid_move_back_distance). The PID
  * works on forward speeds; reverse flips the measured speeds and travel
  * going in, and the wheel PWM coming out. */
 static int drive_dir = 1;
@@ -50,7 +50,7 @@ static int line_error_filtered = 0;
 #define SPEED_FF_MIN_PWM      12.0f
 #define SPEED_FF_PWM_PER_CMS  1.5f
 
-/* Line steering strength (see motion_pidSetLineCorrection). */
+/* Line steering strength (see motion_pid_set_line_correction). */
 #define LINE_GAIN_PCT 2      /* was 3: oversteered on curves at 30 mm/s */
 #define LINE_MAX_PWM  15     /* was 30: base PWM at 30 mm/s is only ~14 */
 /* Wheel-target steering: each wheel's target = speed x (1 +/- GAIN x pos/1000).
@@ -88,14 +88,14 @@ static float turn_right_start = 0.0f;
 /* Initialisation and speed commands */
 
 /* Initialise controllers and action flags. */
-void motion_pidInit(void)
+void motion_pid_init(void)
 {
     /* Preliminary gains from recorded PID tests */
     speed_pid_init(&left_pid, 2.0f, 1.0f, 0.01f, 30.0f);
     speed_pid_init(&right_pid, 2.0f, 1.0f, 0.01f, 30.0f);
 
-    left_previous_count = encoder_getLeftCount();
-    right_previous_count = encoder_getRightCount();
+    left_previous_count = encoder_get_left_count();
+    right_previous_count = encoder_get_right_count();
 
     target_speed = 0.0f;
     pid_active = 0;
@@ -107,10 +107,10 @@ void motion_pidInit(void)
 }
 
 /* Set the target speed for forward movement */
-void motion_pidSetTargetSpeed(float speed_cm_s)
+void motion_pid_set_target_speed(float speed_cm_s)
 {
     if (speed_cm_s <= 0.0f) {
-        motion_pidStop();
+        motion_pid_stop();
         return;
     }
 
@@ -120,13 +120,16 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
     {
         float ff = SPEED_FF_MIN_PWM + SPEED_FF_PWM_PER_CMS * speed_cm_s;
 
-        if (ff > 100.0f) ff = 100.0f;
+        if (ff > 100.0f)
+        {
+            ff = 100.0f;
+        }
         speed_pid_init(&left_pid, SPEED_KP, SPEED_KI, SPEED_KD, ff);
         speed_pid_init(&right_pid, SPEED_KP, SPEED_KI, SPEED_KD, ff);
     }
 
-    left_previous_count = encoder_getLeftCount();
-    right_previous_count = encoder_getRightCount();
+    left_previous_count = encoder_get_left_count();
+    right_previous_count = encoder_get_right_count();
 
     target_speed = speed_cm_s;
     pid_active = 1;
@@ -135,12 +138,18 @@ void motion_pidSetTargetSpeed(float speed_cm_s)
     motion_complete = 0;
 }
 
-void motion_pidSetLineCorrection(int line_pos)
+void motion_pid_set_line_correction(int line_pos)
 {
     int correction;
 
-    if (line_pos > 1000) line_pos = 1000;
-    if (line_pos < -1000) line_pos = -1000;
+    if (line_pos > 1000)
+    {
+        line_pos = 1000;
+    }
+    if (line_pos < -1000)
+    {
+        line_pos = -1000;
+    }
 
     /* Smooth the IR position so small sensor edges do not jerk the wheels.
      * LINE_GAIN_PCT PWM per 100 position units, capped at LINE_MAX_PWM.
@@ -149,15 +158,21 @@ void motion_pidSetLineCorrection(int line_pos)
      * ~30 PWM base swung the car from side to side. Tune these two. */
     line_error_filtered = (line_error_filtered * 3 + line_pos) / 4;
     correction = (line_error_filtered * LINE_GAIN_PCT) / 100;
-    if (correction > LINE_MAX_PWM) correction = LINE_MAX_PWM;
-    if (correction < -LINE_MAX_PWM) correction = -LINE_MAX_PWM;
+    if (correction > LINE_MAX_PWM)
+    {
+        correction = LINE_MAX_PWM;
+    }
+    if (correction < -LINE_MAX_PWM)
+    {
+        correction = -LINE_MAX_PWM;
+    }
     line_correction_pwm = correction;
 }
 /* Change speed without cancelling an active distance target. */
-void motion_pidChangeSpeed(float speed_cm_s)
+void motion_pid_change_speed(float speed_cm_s)
 {
     if (speed_cm_s <= 0.0f) {
-        motion_pidStop();
+        motion_pid_stop();
         return;
     }
 
@@ -172,35 +187,39 @@ void motion_pidChangeSpeed(float speed_cm_s)
          * state every 10 ms when the requested cruise speed is unchanged. */
         return;
     } else {
-        motion_pidSetTargetSpeed(speed_cm_s);
+        motion_pid_set_target_speed(speed_cm_s);
     }
 }
 
 /* Periodic control update */
 
 /* Handle turning first, then forward distance/speed control. */
-void motion_pidUpdate(float dt_seconds)
+void motion_pid_update(float dt_seconds)
 {
     if (turn_mode) {
         float left_travelled =
-            encoder_getLeftDistance() - turn_left_start;
+            encoder_get_left_distance() - turn_left_start;
 
         float right_travelled =
-            encoder_getRightDistance() - turn_right_start;
+            encoder_get_right_distance() - turn_right_start;
 
         /* Convert to absolute distances */
         if (left_travelled < 0.0f)
+        {
             left_travelled = -left_travelled;
+        }
 
         if (right_travelled < 0.0f)
+        {
             right_travelled = -right_travelled;
+        }
 
         /* The car's rotation follows the AVERAGE of the two wheels. Both
          * keep driving until that reaches the target. (Stopping each wheel
          * on its own target left the slower one to pivot the car alone,
          * and at TURN_PWM it stalled: the turn never completed.) */
         if ((left_travelled + right_travelled) * 0.5f >= turn_target_cm) {
-            motion_pidStop();
+            motion_pid_stop();
             motion_complete = 1;
             return;
         }
@@ -223,7 +242,7 @@ void motion_pidUpdate(float dt_seconds)
             turn_check_s = 0.0f;
         }
 
-        motion_setWheelPWM(turn_direction * (TURN_PWM + turn_boost_left),
+        motion_set_wheel_pwm(turn_direction * (TURN_PWM + turn_boost_left),
                            -turn_direction * (TURN_PWM + turn_boost_right));
 
         return;
@@ -237,28 +256,34 @@ void motion_pidUpdate(float dt_seconds)
 
     if (distance_mode) {
         float left_travelled = (float)drive_dir
-            * (encoder_getLeftDistance() - left_start_distance);
+            * (encoder_get_left_distance() - left_start_distance);
 
         float right_travelled = (float)drive_dir
-            * (encoder_getRightDistance() - right_start_distance);
+            * (encoder_get_right_distance() - right_start_distance);
 
         float travelled =
             (left_travelled + right_travelled) / 2.0f;
 
         /* Slow the leading wheel and boost the trailing wheel. */
         distance_correction = 2.0f * (left_travelled - right_travelled);
-        if (distance_correction > 5.0f) distance_correction = 5.0f;
-        if (distance_correction < -5.0f) distance_correction = -5.0f;
+        if (distance_correction > 5.0f)
+        {
+            distance_correction = 5.0f;
+        }
+        if (distance_correction < -5.0f)
+        {
+            distance_correction = -5.0f;
+        }
 
         if (travelled >= target_distance) {
-            motion_pidStop();
+            motion_pid_stop();
             motion_complete = 1;
             return;
         }
     }
 
-    int32_t left_now = encoder_getLeftCount();
-    int32_t right_now = encoder_getRightCount();
+    int32_t left_now = encoder_get_left_count();
+    int32_t right_now = encoder_get_right_count();
 
     int32_t left_change = left_now - left_previous_count;
     int32_t right_change = right_now - right_previous_count;
@@ -267,10 +292,10 @@ void motion_pidUpdate(float dt_seconds)
     right_previous_count = right_now;
 
     float left_speed = (float)drive_dir
-        * encoder_calculateLeftSpeed(left_change, dt_seconds);
+        * encoder_calculate_left_speed(left_change, dt_seconds);
 
     float right_speed = (float)drive_dir
-        * encoder_calculateRightSpeed(right_change, dt_seconds);
+        * encoder_calculate_right_speed(right_change, dt_seconds);
 
     /* No line steering when reversing: the sensors are at the front. */
     float steer = (drive_dir < 0) ? 0.0f
@@ -279,8 +304,14 @@ void motion_pidUpdate(float dt_seconds)
     float left_target = target_speed + steer;
     float right_target = target_speed - steer;
 
-    if (left_target < 0.0f) left_target = 0.0f;
-    if (right_target < 0.0f) right_target = 0.0f;
+    if (left_target < 0.0f)
+    {
+        left_target = 0.0f;
+    }
+    if (right_target < 0.0f)
+    {
+        right_target = 0.0f;
+    }
 
     float left_pwm =
         speed_pid_update(&left_pid, left_target,
@@ -303,20 +334,32 @@ void motion_pidUpdate(float dt_seconds)
     (void)line_correction_pwm;
 
     /* Limit PWM to forward range */
-    if (left_pwm < 0.0f) left_pwm = 0.0f;
-    if (left_pwm > 100.0f) left_pwm = 100.0f;
+    if (left_pwm < 0.0f)
+    {
+        left_pwm = 0.0f;
+    }
+    if (left_pwm > 100.0f)
+    {
+        left_pwm = 100.0f;
+    }
 
-    if (right_pwm < 0.0f) right_pwm = 0.0f;
-    if (right_pwm > 100.0f) right_pwm = 100.0f;
+    if (right_pwm < 0.0f)
+    {
+        right_pwm = 0.0f;
+    }
+    if (right_pwm > 100.0f)
+    {
+        right_pwm = 100.0f;
+    }
 
-    motion_setWheelPWM(drive_dir * (int)left_pwm, drive_dir * (int)right_pwm);
+    motion_set_wheel_pwm(drive_dir * (int)left_pwm, drive_dir * (int)right_pwm);
 }
 
 
 /* Stop and distance commands */
 
 /* Disable the active action and stop both motors. */
-void motion_pidStop(void)
+void motion_pid_stop(void)
 {
     pid_active = 0;
     target_speed = 0.0f;
@@ -329,18 +372,18 @@ void motion_pidStop(void)
 }
 
 /* Start a forward movement for a specified distance */
-void motion_pidMoveDistance(float distance_cm, float speed_cm_s)
+void motion_pid_move_distance(float distance_cm, float speed_cm_s)
 {
     if (distance_cm <= 0.0f || speed_cm_s <= 0.0f) {
-        motion_pidStop();
+        motion_pid_stop();
         motion_complete = 0;
         return;
     }
 
-    motion_pidSetTargetSpeed(speed_cm_s);
+    motion_pid_set_target_speed(speed_cm_s);
 
-    left_start_distance = encoder_getLeftDistance();
-    right_start_distance = encoder_getRightDistance();
+    left_start_distance = encoder_get_left_distance();
+    right_start_distance = encoder_get_right_distance();
 
     target_distance = distance_cm;
     distance_mode = 1;
@@ -348,16 +391,16 @@ void motion_pidMoveDistance(float distance_cm, float speed_cm_s)
 }
 
 /* Reverse straight for distance_cm: same controller, direction flipped. */
-void motion_pidMoveBackDistance(float distance_cm, float speed_cm_s)
+void motion_pid_move_back_distance(float distance_cm, float speed_cm_s)
 {
-    motion_pidMoveDistance(distance_cm, speed_cm_s);
+    motion_pid_move_distance(distance_cm, speed_cm_s);
     if (distance_mode) {
         drive_dir = -1;
     }
 }
 
 /* Return the completion flag for the last distance or turn action. */
-int motion_pidIsComplete(void)
+int motion_pid_is_complete(void)
 {
     return motion_complete;
 }
@@ -365,20 +408,20 @@ int motion_pidIsComplete(void)
 
 /* Encoder-based turning */
 
-static void motion_pidStartTurn(float angle_degrees, int direction)
+static void motion_pid_start_turn(float angle_degrees, int direction)
 {
     if (angle_degrees <= 0.0f) {
-        motion_pidStop();
+        motion_pid_stop();
         motion_complete = 0;
         return;
     }
 
     /* Disable forward PID and distance movement */
-    motion_pidStop();
+    motion_pid_stop();
     motion_complete = 0;
 
-    turn_left_start = encoder_getLeftDistance();
-    turn_right_start = encoder_getRightDistance();
+    turn_left_start = encoder_get_left_distance();
+    turn_right_start = encoder_get_right_distance();
 
     /* Distance each wheel travels for an in-place turn */
     turn_target_cm =
@@ -394,18 +437,18 @@ static void motion_pidStartTurn(float angle_degrees, int direction)
 
     /* Opposite wheel directions */
     if (direction < 0) {
-        motion_setWheelPWM(-TURN_PWM, TURN_PWM);
+        motion_set_wheel_pwm(-TURN_PWM, TURN_PWM);
     } else {
-        motion_setWheelPWM(TURN_PWM, -TURN_PWM);
+        motion_set_wheel_pwm(TURN_PWM, -TURN_PWM);
     }
 }
 
-void motion_pidTurnLeft(float angle_degrees)
+void motion_pid_turn_left(float angle_degrees)
 {
-    motion_pidStartTurn(angle_degrees, -1);
+    motion_pid_start_turn(angle_degrees, -1);
 }
 
-void motion_pidTurnRight(float angle_degrees)
+void motion_pid_turn_right(float angle_degrees)
 {
-    motion_pidStartTurn(angle_degrees, 1);
+    motion_pid_start_turn(angle_degrees, 1);
 }

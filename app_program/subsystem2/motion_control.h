@@ -5,10 +5,10 @@
 void motion_init(void);
 
 /* Basic movement of the motors (speed: 0-100% PWM) */ 
-void motion_moveForward(int speed);
-void motion_moveBackward(int speed);
-void motion_turnLeft(int speed);
-void motion_turnRight(int speed);
+void motion_move_forward(int speed);
+void motion_move_backward(int speed);
+void motion_turn_left(int speed);
+void motion_turn_right(int speed);
 
 /* Stop both motor outputs. */
 void motion_stop(void);
@@ -16,9 +16,9 @@ void motion_stop(void);
 /* Independent wheel PWM: -100 to +100.
  * Positive = forward, negative = backward, zero = stop.
  */
-void motion_setWheelPWM(int left_pwm, int right_pwm);
+void motion_set_wheel_pwm(int left_pwm, int right_pwm);
 
 /* Last PWM set on each wheel, -100 to +100 (for telemetry). */
-void motion_getWheelPWM(int *left_pwm, int *right_pwm);
+void motion_get_wheel_pwm(int *left_pwm, int *right_pwm);
 
 #endif /* MOTION_CONTROL_H */

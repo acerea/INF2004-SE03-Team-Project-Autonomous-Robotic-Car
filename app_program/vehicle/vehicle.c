@@ -502,7 +502,7 @@ vc_check_link (void)
         tm_printf((UB*)"vc: laptop link lost (quiet %u ms), stopping\n",
                   (unsigned int) quiet_ms);
         ir_lock_steering(false);
-        s2_setLineCorrection(0);
+        s2_set_line_correction(0);
         vc_dispatch(VC_EV_STOP);
     }
 
@@ -613,7 +613,7 @@ vc_junction_start (void)
     tm_printf((UB*)"vc: junction, doing barcode %c action %u\n",
               (int) ('A' + g_vc_pending_letter), (unsigned int) cmd);
 
-    s2_setLineCorrection(0);
+    s2_set_line_correction(0);
     ir_lock_steering(true);
     vc_set_state(VC_STATE_TURNING);
     (void) vc_take_motion_done();           // No stale "done".
@@ -649,7 +649,7 @@ vc_poll_line_following (void)
     {
         uint8_t res = vc_nudge_poll(&g_vc_search_nudge, (0u != snap.sensors));
 
-        s2_setLineCorrection(0);
+        s2_set_line_correction(0);
         if (1u == res)
         {
             vc_event(VC_EVT_LINE_FOUND, 0u);
@@ -695,7 +695,7 @@ vc_poll_line_following (void)
         // later in this tick sends the speed again.
         g_vc_lost_since = 0u;
         g_vc_line_hold = false;
-        s2_setLineCorrection(snap.line_pos);
+        s2_set_line_correction(ir_line_pos(&snap));
     }
     else if (IR_BARCODE == snap.state)
     {
@@ -709,19 +709,19 @@ vc_poll_line_following (void)
         g_vc_line_hold = false;
         if (0u != (snap.sensors & (IR_SENS_CENTRE | IR_SENS_RIGHT)))
         {
-            s2_setLineCorrection(snap.line_pos);
+            s2_set_line_correction(ir_line_pos(&snap));
         }
-        else if (snap.line_pos <= -VC_LOST_ARC_MIN_POS)
+        else if (ir_line_pos(&snap) <= -VC_LOST_ARC_MIN_POS)
         {
-            s2_setLineCorrection(-1000);        // Curve left.
+            s2_set_line_correction(-1000);        // Curve left.
         }
-        else if (snap.line_pos >= VC_LOST_ARC_MIN_POS)
+        else if (ir_line_pos(&snap) >= VC_LOST_ARC_MIN_POS)
         {
-            s2_setLineCorrection(1000);         // Curve right.
+            s2_set_line_correction(1000);         // Curve right.
         }
         else
         {
-            s2_setLineCorrection(0);
+            s2_set_line_correction(0);
         }
     }
     else if ((IR_LINE_LOST == snap.state)
@@ -743,17 +743,17 @@ vc_poll_line_following (void)
                 g_vc_lost_since = 1u;
             }
         }
-        if (snap.line_pos >= VC_LOST_ARC_MIN_POS)
+        if (ir_line_pos(&snap) >= VC_LOST_ARC_MIN_POS)
         {
-            s2_setLineCorrection(1000);         // Curve right.
+            s2_set_line_correction(1000);         // Curve right.
         }
-        else if (snap.line_pos <= -VC_LOST_ARC_MIN_POS)
+        else if (ir_line_pos(&snap) <= -VC_LOST_ARC_MIN_POS)
         {
-            s2_setLineCorrection(-1000);        // Curve left.
+            s2_set_line_correction(-1000);        // Curve left.
         }
         else
         {
-            s2_setLineCorrection(0);
+            s2_set_line_correction(0);
         }
     }
     else if (IR_LINE_LOST == snap.state)
@@ -762,16 +762,16 @@ vc_poll_line_following (void)
         // first towards the side the line was last seen, then the other
         // way. Only if both fail, stop and HOLD (without the hold the
         // obstacle dispatch would restart the motors every tick).
-        s2_setLineCorrection(0);
+        s2_set_line_correction(0);
         if (!g_vc_line_hold)
         {
             g_vc_lost_since  = 0u;
             g_vc_search_step = 1u;
-            vc_event(VC_EVT_LINE_SEARCH, (snap.line_pos >= 0) ? 1u : 0u);
+            vc_event(VC_EVT_LINE_SEARCH, (ir_line_pos(&snap) >= 0) ? 1u : 0u);
             tm_printf((UB*)"vc: line lost, searching %s\n",
-                      (snap.line_pos >= 0) ? "right" : "left");
+                      (ir_line_pos(&snap) >= 0) ? "right" : "left");
             vc_motion(S2_MOTION_STOP, 0u);
-            vc_nudge_start(&g_vc_search_nudge, (snap.line_pos >= 0),
+            vc_nudge_start(&g_vc_search_nudge, (ir_line_pos(&snap) >= 0),
                            VC_SEARCH_DEG);
         }
         else
@@ -781,7 +781,7 @@ vc_poll_line_following (void)
     }
     else
     {
-        s2_setLineCorrection(0);
+        s2_set_line_correction(0);
     }
 
     return;
@@ -826,8 +826,12 @@ vc_poll_motion_done (void)
         else if (0u != (ptn & S2_MOTION_DONE))
         {
             ir_lock_steering(false);
-            s2_setLineCorrection(0);
+            s2_set_line_correction(0);
             vc_enter_following();
+        }
+        else
+        {
+            // No motion finished this tick.
         }
     }
 
@@ -926,6 +930,10 @@ vc_dispatch (vc_event_t ev)
         {
             vc_set_state(VC_STATE_FOLLOWING);
             vc_follow_speed(vc_slow_speed());
+        }
+        else
+        {
+            // Other events do not change BLOCKED.
         }
       break;
 
@@ -1085,7 +1093,7 @@ vc_dispatch (vc_event_t ev)
     static float
     vc_wheel_cm (void)
     {
-        return 0.5f * (encoder_getLeftDistance() + encoder_getRightDistance());
+        return 0.5f * (encoder_get_left_distance() + encoder_get_right_distance());
     }
 
     /* Turn towards the chosen side (toward = true) or back (false). */
@@ -1380,7 +1388,7 @@ vc_motion_send (void)
     // Send only changes, so polling every tick does not flood subsystem 2.
     if ((g_vc_want_cmd != g_vc_sent_cmd) || (g_vc_want_arg != g_vc_sent_arg))
     {
-        uint16_t req = motion_packRequest((uint8_t) g_vc_want_cmd,
+        uint16_t req = motion_pack_request((uint8_t) g_vc_want_cmd,
                                           (uint16_t) g_vc_want_arg);
         ER       err = tk_snd_mbf(mbf_motion_req, &req, S2_MOTION_REQUEST_BYTES,
                                   TMO_POL);
@@ -1572,6 +1580,10 @@ vc_poll_calibration (void)
             vc_motion(S2_MOTION_STOP, 0u);
             vc_set_state(g_vc_cal_return);      // Cancels the sweep.
         }
+        else
+        {
+            // Calibration turn still running.
+        }
         return;
     }
 
@@ -1600,7 +1612,7 @@ vc_poll_calibration (void)
             {
                 // Towards the side the line is on (+ = right); with no
                 // sensor on the line, the side it was last seen.
-                bool b_right = (snap.line_pos >= 0);
+                bool b_right = (ir_line_pos(&snap) >= 0);
 
                 tm_printf((UB*)"vc: centring on the line, nudging %s\n",
                           b_right ? "right" : "left");
@@ -1613,6 +1625,10 @@ vc_poll_calibration (void)
         {
             tm_printf((UB*)"vc: IR did not leave calibration, not centring\n");
             vc_cal_finish(false);
+        }
+        else
+        {
+            // Still waiting for the IR task.
         }
         return;
     }
@@ -1668,6 +1684,10 @@ vc_check_ir (void)
     {
         b_warned = false;
         tm_printf((UB*)"vc: IR task responding again\n");
+    }
+    else
+    {
+        // No change in IR task health.
     }
 
     return;

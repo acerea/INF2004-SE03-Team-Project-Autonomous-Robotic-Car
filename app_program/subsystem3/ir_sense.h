@@ -42,7 +42,7 @@
 typedef struct
 {
     uint32_t     timestamp_ms;          // Time of the last update.
-    signed int   line_pos     : 11;     // -1000..+1000, + = line to the right.
+    unsigned int line_pos_enc : 11;     // Line position + 1000 (0..2000); use ir_line_pos().
     unsigned int state        : 2;      // IR_CALI .. IR_LINE_LOST.
     unsigned int sensors      : 3;      // IR_SENS_xxx bits.
     unsigned int junction     : 2;      // IR_JUNC_xxx.
@@ -51,6 +51,37 @@ typedef struct
     unsigned int letter       : 5;      // Last barcode letter, 0-25 / 31.
     unsigned int barcode_seq  : 4;      // +1 per barcode read (wraps).
 } ir_snapshot_t;
+
+// The line position is -1000..+1000 (+ = line to the right). Bit-fields
+// must not be signed (Barr-C 5.3.a), so it is stored offset by
+// IR_LINE_POS_OFFSET in an unsigned 11-bit field (0..2000 fits 0..2047).
+// Read and write it only through these two functions.
+#define IR_LINE_POS_OFFSET      (1000)
+
+static inline int16_t
+ir_line_pos (ir_snapshot_t const * p_snap)
+{
+    return (int16_t) ((int32_t) p_snap->line_pos_enc - IR_LINE_POS_OFFSET);
+}
+
+static inline void
+ir_set_line_pos (ir_snapshot_t * p_snap, int32_t pos)
+{
+    if (pos < -IR_LINE_POS_OFFSET)
+    {
+        pos = -IR_LINE_POS_OFFSET;
+    }
+    else if (pos > IR_LINE_POS_OFFSET)
+    {
+        pos = IR_LINE_POS_OFFSET;
+    }
+    else
+    {
+        // In range.
+    }
+    // NOTE: pos + offset is 0..2000 after the clamp, so the cast is safe.
+    p_snap->line_pos_enc = (unsigned int) (pos + IR_LINE_POS_OFFSET);
+}
 
 typedef struct
 {

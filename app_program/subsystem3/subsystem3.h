@@ -1,7 +1,6 @@
 /*
  *	subsystem3.h
  *	Subsystem 3 -- IR line following and barcode decoding.
- *	Student ID: <student ID>.
  *
  *	Public interface of subsystem 3.  Other subsystems include it as
  *	"../subsystem3/subsystem3.h".

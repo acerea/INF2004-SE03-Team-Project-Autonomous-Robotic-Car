@@ -175,7 +175,7 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-08 | S1 → VC | shared data, one writer (owned by S1) | `g_s1_fault_bits` | comms fault bits, read only | S1 / VC |
 | IF-09 | S1 → WiFi service | message buffers read inside `mqtt_utk.c` (owned by S1) | `g_mbf_telemetry`, `g_mbf_cmd_raw` | frames read and written with `TMO_POL` | S1 / team |
 | IF-10 | all → S1 | message buffer (owned by S1) | `g_mbf_telemetry` | frame from `s1_publish()`, `wire_format.h` | S1 / all |
-| IF-11 | VC → S2 | message buffer (owned by S2) | `mbf_motion_req` | 2 bytes, `motion_packRequest()` | S2 / VC |
+| IF-11 | VC → S2 | message buffer (owned by S2) | `mbf_motion_req` | 2 bytes, `motion_pack_request()` | S2 / VC |
 | IF-12 | S2 → VC | event flag (owned by S2) | `flg_motion` | `S2_MOTION_DONE`, VC clears | S2 / VC |
 | IF-13 | S4 → VC | event flag, level bits (owned by S4) | `flg_s4_imu` | `S4_FLG_LIFTED`, `S4_FLG_OVERTURNED`, `S4_FLG_IMU_FAULT`; written only by `b4_imu_task`, VC reads with `tk_ref_flg`. VC stops the motors on LIFTED (→ STOPPED, end of run) or OVERTURNED (→ FAULT) and refuses START while either is set | S4 / VC |
 | IF-14 | S3 → any | function under a mutex (owned by S3) | `ir_get_telemetry()` | `ir_snapshot_t`: line position (11 bits), state, sensors, junction, lost timeout, last barcode | S3 / VC |

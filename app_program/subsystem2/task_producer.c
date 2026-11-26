@@ -35,7 +35,7 @@ EXPORT void producer_task(INT stacd, void *exinf)
 
 	(void)stacd; (void)exinf;
 
-	while (1) {
+	for (;;) {
 		/* 1. Take a free slot.  If the consumer is behind and all
 		      slots are in use, this task blocks here until one is
 		      returned (flow control). */

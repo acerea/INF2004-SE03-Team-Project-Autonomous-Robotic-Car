@@ -25,7 +25,10 @@ EXPORT void subsystem2_test(void)
 	/* S2-U01: every sample value is inside the documented 0..100 range */
 	for (seq = 0; seq < 40; seq++) {
 		v = s2_make_value(seq);
-		if (v < 0 || v > 100) bad++;
+		if (v < 0 || v > 100)
+		{
+			bad++;
+		}
 	}
 	TEST_CHECK("S2-U01", bad == 0, "sample values stay within 0..100");
 
@@ -41,7 +44,7 @@ EXPORT void subsystem2_test(void)
 	   2576 counts/rev since the 18 Nov tape-test tuning (was 2513.4),
 	   so 100 counts in 1 s is 100 / 2576 x 18.85 cm = 0.732 cm/s. */
 	{
-		float speed = encoder_calculateLeftSpeed(100, 1.0f);
+		float speed = encoder_calculate_left_speed(100, 1.0f);
 
 		BOOL speed_ok = (speed > 0.72f && speed < 0.74f);
 
@@ -51,7 +54,7 @@ EXPORT void subsystem2_test(void)
 
 	/* S2-U04: Right wheel speed calculation (FR4)*/
 	{
-		float speed = encoder_calculateRightSpeed(100, 1.0f);
+		float speed = encoder_calculate_right_speed(100, 1.0f);
 
 		BOOL speed_ok = (speed > 0.74f && speed < 0.76f);
 
@@ -156,22 +159,22 @@ EXPORT void subsystem2_test(void)
 		tk_dly_tsk(5000);
 
 		tm_printf((UB*)"[S2-M01] Moving forward\n");
-		motion_moveForward(40);
+		motion_move_forward(40);
 		tk_dly_tsk(300);
 		motion_stop();
 
 		tm_printf((UB*)"[S2-M01] Moving backward\n");
-		motion_moveBackward(40);
+		motion_move_backward(40);
 		tk_dly_tsk(300);
 		motion_stop();
 
 		tm_printf((UB*)"[S2-M01] Turning left\n");
-		motion_turnLeft(40);
+		motion_turn_left(40);
 		tk_dly_tsk(300);
 		motion_stop();
 
 		tm_printf((UB*)"[S2-M01] Turning right\n");
-		motion_turnRight(40);
+		motion_turn_right(40);
 		tk_dly_tsk(300);
 		motion_stop();
 
@@ -193,8 +196,8 @@ EXPORT void subsystem2_test(void)
 		for (i = 0; i < 100; ++i) {
 
 			tm_printf((UB*)"[S2-E01] Left: %ld | Right: %ld\n",
-					(long)encoder_getLeftCount(),
-					(long)encoder_getRightCount());
+					(int32_t)encoder_get_left_count(),
+					(int32_t)encoder_get_right_count());
 
 			tk_dly_tsk(200);
 		}
@@ -217,32 +220,32 @@ EXPORT void subsystem2_test(void)
 		/* LEFT WHEEL */
 		tm_printf((UB*)"[S2-E02] Rotate LEFT wheel 5 full turns\n");
 
-		l0 = encoder_getLeftCount();
+		l0 = encoder_get_left_count();
 
 		tk_dly_tsk(30000);
 
-		dl = encoder_getLeftCount() - l0;
+		dl = encoder_get_left_count() - l0;
 
 		tm_printf((UB*)"[S2-E02] Left five turns: %ld\n",
-				(long)dl);
+				(int32_t)dl);
 
 		tm_printf((UB*)"[S2-E02] Left CPR: %ld\n",
-				(long)(dl / 5));
+				(int32_t)(dl / 5));
 
 		/* RIGHT WHEEL */
 		tm_printf((UB*)"[S2-E02] Rotate RIGHT wheel 5 full turns\n");
 
-		r0 = encoder_getRightCount();
+		r0 = encoder_get_right_count();
 
 		tk_dly_tsk(30000);
 
-		dr = encoder_getRightCount() - r0;
+		dr = encoder_get_right_count() - r0;
 
 		tm_printf((UB*)"[S2-E02] Right five turns: %ld\n",
-				(long)dr);
+				(int32_t)dr);
 
 		tm_printf((UB*)"[S2-E02] Right CPR: %ld\n",
-				(long)(dr / 5));
+				(int32_t)(dr / 5));
 
 		tm_printf((UB*)"[S2-E02] Calibration completed\n");
 	}
@@ -257,23 +260,23 @@ EXPORT void subsystem2_test(void)
 
 		tk_dly_tsk(5000);
 
-		int32_t left_before = encoder_getLeftCount();
-		int32_t right_before = encoder_getRightCount();
+		int32_t left_before = encoder_get_left_count();
+		int32_t right_before = encoder_get_right_count();
 
 		/* Run motors briefly */
-		motion_moveForward(40);
+		motion_move_forward(40);
 		tk_dly_tsk(500);
 		motion_stop();
 
 		/* Read counts after movement */
-		int32_t left_after = encoder_getLeftCount();
-		int32_t right_after = encoder_getRightCount();
+		int32_t left_after = encoder_get_left_count();
+		int32_t right_after = encoder_get_right_count();
 
 		tm_printf((UB*)"[S2-E03] Left count change: %ld\n",
-				(long)(left_after - left_before));
+				(int32_t)(left_after - left_before));
 
 		tm_printf((UB*)"[S2-E03] Right count change: %ld\n",
-				(long)(right_after - right_before));
+				(int32_t)(right_after - right_before));
 
 		tm_printf((UB*)"[S2-E03] Test completed\n");
 	}
@@ -292,19 +295,19 @@ EXPORT void subsystem2_test(void)
 		SYSTIM end_time;
 
 		/* Start motors */
-		motion_moveForward(40);
+		motion_move_forward(40);
 
 		/* Record start time and encoder counts */
 		tk_get_tim(&start_time);
-		int32_t left_before = encoder_getLeftCount();
-		int32_t right_before = encoder_getRightCount();
+		int32_t left_before = encoder_get_left_count();
+		int32_t right_before = encoder_get_right_count();
 
 		/* Allow wheels to rotate */
 		tk_dly_tsk(200);
 
 		/* Record final counts and time */
-		int32_t left_after = encoder_getLeftCount();
-		int32_t right_after = encoder_getRightCount();
+		int32_t left_after = encoder_get_left_count();
+		int32_t right_after = encoder_get_right_count();
 		tk_get_tim(&end_time);
 
 		tk_get_tim(&end_time);
@@ -328,17 +331,17 @@ EXPORT void subsystem2_test(void)
 
 		/* Calculate wheel speeds */
 		float left_speed =
-			encoder_calculateLeftSpeed(left_change, dt_seconds);
+			encoder_calculate_left_speed(left_change, dt_seconds);
 
 		float right_speed =
-			encoder_calculateRightSpeed(right_change, dt_seconds);
+			encoder_calculate_right_speed(right_change, dt_seconds);
 
 		/* Convert for serial printing */
 		int left_speed10 = (int)(left_speed * 10.0f);
 		int right_speed10 = (int)(right_speed * 10.0f);
 
 		tm_printf((UB*)"[S2-S01] Elapsed time: %lu ms\n",
-				(unsigned long)(end_ms - start_ms));
+				(uint32_t)(end_ms - start_ms));
 
 		tm_printf((UB*)"[S2-S01] Left speed: %d.%01d cm/s\n",
 				left_speed10 / 10, left_speed10 % 10);
@@ -369,16 +372,16 @@ EXPORT void subsystem2_test(void)
 			uint64_t start_ms, end_ms;
 			float dt, ls, rs;
 
-			motion_moveForward(pwms[i]);
+			motion_move_forward(pwms[i]);
 
-			l0 = encoder_getLeftCount();
-			r0 = encoder_getRightCount();
+			l0 = encoder_get_left_count();
+			r0 = encoder_get_right_count();
 			tk_get_tim(&start);
 
 			tk_dly_tsk(200);
 
-			l1 = encoder_getLeftCount();
-			r1 = encoder_getRightCount();
+			l1 = encoder_get_left_count();
+			r1 = encoder_get_right_count();
 			tk_get_tim(&end);
 
 			motion_stop();
@@ -392,11 +395,11 @@ EXPORT void subsystem2_test(void)
 
 			dt = (float)(end_ms - start_ms) / 1000.0f;
 
-			ls = encoder_calculateLeftSpeed(l1 - l0, dt);
-			rs = encoder_calculateRightSpeed(r1 - r0, dt);
+			ls = encoder_calculate_left_speed(l1 - l0, dt);
+			rs = encoder_calculate_right_speed(r1 - r0, dt);
 
 			tm_printf((UB*)"[S2-S02] PWM=%d%%, elapsed=%lu ms\n",
-					pwms[i], (unsigned long)(end_ms - start_ms));
+					pwms[i], (uint32_t)(end_ms - start_ms));
 
 			tm_printf((UB*)"[S2-S02] Left speed: %d.%01d cm/s\n",
 					(int)ls, ((int)(ls * 10)) % 10);
@@ -422,24 +425,24 @@ EXPORT void subsystem2_test(void)
 		tm_printf((UB*)"[S2-S03] Manual speed estimation test\n");
 		tk_dly_tsk(5000);
 
-		l0 = encoder_getLeftCount();
-		r0 = encoder_getRightCount();
+		l0 = encoder_get_left_count();
+		r0 = encoder_get_right_count();
 
 		tm_printf((UB*)"[S2-S03] Rotate wheels for 5 seconds\n");
 		tk_dly_tsk(5000);
 
-		l1 = encoder_getLeftCount();
-		r1 = encoder_getRightCount();
+		l1 = encoder_get_left_count();
+		r1 = encoder_get_right_count();
 
-		ls = encoder_calculateLeftSpeed(l1 - l0, 5.0f);
-		rs = encoder_calculateRightSpeed(r1 - r0, 5.0f);
+		ls = encoder_calculate_left_speed(l1 - l0, 5.0f);
+		rs = encoder_calculate_right_speed(r1 - r0, 5.0f);
 
 		tm_printf((UB*)"[S2-S03] Left speed: %d cm/s\n", (int)ls);
 		tm_printf((UB*)"[S2-S03] Right speed: %d cm/s\n", (int)rs);
 
 		/* Stationary check */
-		l0 = encoder_getLeftCount();
-		r0 = encoder_getRightCount();
+		l0 = encoder_get_left_count();
+		r0 = encoder_get_right_count();
 
 		tm_printf((UB*)"[S2-S03] Stop rotating both wheels\n");
 
@@ -447,16 +450,16 @@ EXPORT void subsystem2_test(void)
 		tk_dly_tsk(5000);
 
 		/* Begin stationary measurement */
-		l0 = encoder_getLeftCount();
-		r0 = encoder_getRightCount();
+		l0 = encoder_get_left_count();
+		r0 = encoder_get_right_count();
 
 		tk_dly_tsk(5000);
 
-		l1 = encoder_getLeftCount();
-		r1 = encoder_getRightCount();
+		l1 = encoder_get_left_count();
+		r1 = encoder_get_right_count();
 
-		ls = encoder_calculateLeftSpeed(l1 - l0, 5.0f);
-		rs = encoder_calculateRightSpeed(r1 - r0, 5.0f);
+		ls = encoder_calculate_left_speed(l1 - l0, 5.0f);
+		rs = encoder_calculate_right_speed(r1 - r0, 5.0f);
 
 		tm_printf((UB*)"[S2-S03] Stationary left speed: %d cm/s\n", (int)ls);
 		tm_printf((UB*)"[S2-S03] Stationary right speed: %d cm/s\n", (int)rs);
@@ -475,30 +478,30 @@ EXPORT void subsystem2_test(void)
 		uint64_t start_ms, end_ms;
 		float dt, ls, rs;
 
-		motion_pidStop();
+		motion_pid_stop();
 
 		tm_printf((UB *)
 			"[S2-S04] 100%% PWM test starts in 5 seconds\n");
 
 		tk_dly_tsk(5000);
 
-		motion_moveForward(100);
+		motion_move_forward(100);
 
 		/* Allow acceleration before measuring. */
 		tk_dly_tsk(500);
 
 		start_result = tk_get_tim(&start);
-		l0 = encoder_getLeftCount();
-		r0 = encoder_getRightCount();
+		l0 = encoder_get_left_count();
+		r0 = encoder_get_right_count();
 
 		tk_dly_tsk(200);
 
-		l1 = encoder_getLeftCount();
-		r1 = encoder_getRightCount();
+		l1 = encoder_get_left_count();
+		r1 = encoder_get_right_count();
 		end_result = tk_get_tim(&end);
 
 		/* Stop before calculations and printing. */
-		motion_pidStop();
+		motion_pid_stop();
 
 		if (start_result != E_OK || end_result != E_OK) {
 			tm_printf((UB *)"[S2-S04] Time read failed\n");
@@ -512,12 +515,12 @@ EXPORT void subsystem2_test(void)
 			if (end_ms > start_ms) {
 				dt = (float)(end_ms - start_ms) / 1000.0f;
 
-				ls = encoder_calculateLeftSpeed(l1 - l0, dt);
-				rs = encoder_calculateRightSpeed(r1 - r0, dt);
+				ls = encoder_calculate_left_speed(l1 - l0, dt);
+				rs = encoder_calculate_right_speed(r1 - r0, dt);
 
 				tm_printf((UB *)
 					"[S2-S04] PWM=100%%, elapsed=%lu ms\n",
-					(unsigned long)(end_ms - start_ms));
+					(uint32_t)(end_ms - start_ms));
 
 				tm_printf((UB *)
 					"[S2-S04] Left speed: %d.%01d cm/s\n",
@@ -545,36 +548,36 @@ EXPORT void subsystem2_test(void)
 		tk_dly_tsk(5000);
 
 		/* Read counts before movement */
-		int32_t left_before = encoder_getLeftCount();
-		int32_t right_before = encoder_getRightCount();
+		int32_t left_before = encoder_get_left_count();
+		int32_t right_before = encoder_get_right_count();
 
-		float left_distance_before = encoder_getLeftDistance();
-		float right_distance_before = encoder_getRightDistance();
+		float left_distance_before = encoder_get_left_distance();
+		float right_distance_before = encoder_get_right_distance();
 
 		/* Move forward at 40% PWM for 500 ms */
-		motion_moveForward(40);
+		motion_move_forward(40);
 		tk_dly_tsk(500);
 		motion_stop();
 
 		tk_dly_tsk(500);
 
 		/* Read counts after movement */
-		int32_t left_after = encoder_getLeftCount();
-		int32_t right_after = encoder_getRightCount();
+		int32_t left_after = encoder_get_left_count();
+		int32_t right_after = encoder_get_right_count();
 
 		/* Calculate encoder count changes */
 		int32_t left_change = left_after - left_before;
 		int32_t right_change = right_after - right_before;
 
 		tm_printf((UB*)"[S2-ED01] Left count change: %ld\n",
-				(long)left_change);
+				(int32_t)left_change);
 
 		tm_printf((UB*)"[S2-ED01] Right count change: %ld\n",
-				(long)right_change);
+				(int32_t)right_change);
 
 		/* Calculate distance travelled during the test (cm) */
-		float left_distance = encoder_getLeftDistance() - left_distance_before;
-		float right_distance = encoder_getRightDistance() - right_distance_before;
+		float left_distance = encoder_get_left_distance() - left_distance_before;
+		float right_distance = encoder_get_right_distance() - right_distance_before;
 
 		/* Convert to cm */
 		int left_distance10 = (int)(left_distance * 10.0f);
@@ -602,7 +605,7 @@ EXPORT void subsystem2_test(void)
 		tk_dly_tsk(5000);
 
 		tm_printf((UB*)"[S2-M02] Left=40%%, Right=60%%\n");
-		motion_setWheelPWM(40, 60);
+		motion_set_wheel_pwm(40, 60);
 
 		tk_dly_tsk(2000);
 		motion_stop();
@@ -653,17 +656,17 @@ EXPORT void subsystem2_test(void)
 		tm_printf((UB*)"[S2-P02] P control feedback test\n");
 		tk_dly_tsk(5000);
 
-		motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+		motion_set_wheel_pwm((int)left_pwm, (int)right_pwm);
 
 		for (i = 0; i < 10; i++) {
-			l0 = encoder_getLeftCount();
-			r0 = encoder_getRightCount();
+			l0 = encoder_get_left_count();
+			r0 = encoder_get_right_count();
 			tk_get_tim(&start);
 
 			tk_dly_tsk(200);
 
-			l1 = encoder_getLeftCount();
-			r1 = encoder_getRightCount();
+			l1 = encoder_get_left_count();
+			r1 = encoder_get_right_count();
 			tk_get_tim(&end);
 
 			start_ms = ((uint64_t)(uint32_t)start.hi << 32)
@@ -678,8 +681,8 @@ EXPORT void subsystem2_test(void)
 				break;
 			}
 
-			left_speed = encoder_calculateLeftSpeed(l1 - l0, dt);
-			right_speed = encoder_calculateRightSpeed(r1 - r0, dt);
+			left_speed = encoder_calculate_left_speed(l1 - l0, dt);
+			right_speed = encoder_calculate_right_speed(r1 - r0, dt);
 
 			left_pwm = speed_p_update(
 				target_speed, left_speed, base_pwm, kp);
@@ -687,7 +690,7 @@ EXPORT void subsystem2_test(void)
 			right_pwm = speed_p_update(
 				target_speed, right_speed, base_pwm, kp);
 
-			motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+			motion_set_wheel_pwm((int)left_pwm, (int)right_pwm);
 
 			tm_printf((UB*)"[S2-P02] Cycle %d: L PWM=%d%%, R PWM=%d%%\n",
 					i + 1, (int)left_pwm, (int)right_pwm);
@@ -758,18 +761,18 @@ EXPORT void subsystem2_test(void)
 
 		tk_dly_tsk(5000);
 
-		motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+		motion_set_wheel_pwm((int)left_pwm, (int)right_pwm);
 
 		for (i = 0; i < 10; i++) {
 
-			l0 = encoder_getLeftCount();
-			r0 = encoder_getRightCount();
+			l0 = encoder_get_left_count();
+			r0 = encoder_get_right_count();
 			tk_get_tim(&start);
 
 			tk_dly_tsk(200);
 
-			l1 = encoder_getLeftCount();
-			r1 = encoder_getRightCount();
+			l1 = encoder_get_left_count();
+			r1 = encoder_get_right_count();
 			tk_get_tim(&end);
 
 			start_ms = ((uint64_t)(uint32_t)start.hi << 32)
@@ -785,8 +788,8 @@ EXPORT void subsystem2_test(void)
 
 			dt = (float)(end_ms - start_ms) / 1000.0f;
 
-			left_speed = encoder_calculateLeftSpeed(l1 - l0, dt);
-			right_speed = encoder_calculateRightSpeed(r1 - r0, dt);
+			left_speed = encoder_calculate_left_speed(l1 - l0, dt);
+			right_speed = encoder_calculate_right_speed(r1 - r0, dt);
 
 			left_pwm = speed_pi_update(
 				&left_pi, target_speed, left_speed, dt);
@@ -794,7 +797,7 @@ EXPORT void subsystem2_test(void)
 			right_pwm = speed_pi_update(
 				&right_pi, target_speed, right_speed, dt);
 
-			motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+			motion_set_wheel_pwm((int)left_pwm, (int)right_pwm);
 
 			tm_printf((UB*)"[S2-P04] Cycle %d: L PWM=%d%%, R PWM=%d%%\n",
 					i + 1, (int)left_pwm, (int)right_pwm);
@@ -864,7 +867,7 @@ EXPORT void subsystem2_test(void)
 
 		tk_dly_tsk(5000);
 
-		motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+		motion_set_wheel_pwm((int)left_pwm, (int)right_pwm);
 
 		for (int i = 0; i < 10; i++) {
 			int32_t l0, r0, l1, r1;
@@ -872,14 +875,14 @@ EXPORT void subsystem2_test(void)
 			uint64_t start_ms, end_ms;
 			float dt, left_speed, right_speed;
 
-			l0 = encoder_getLeftCount();
-			r0 = encoder_getRightCount();
+			l0 = encoder_get_left_count();
+			r0 = encoder_get_right_count();
 			tk_get_tim(&start);
 
 			tk_dly_tsk(200);
 
-			l1 = encoder_getLeftCount();
-			r1 = encoder_getRightCount();
+			l1 = encoder_get_left_count();
+			r1 = encoder_get_right_count();
 			tk_get_tim(&end);
 
 			start_ms = ((uint64_t)(uint32_t)start.hi << 32)
@@ -894,8 +897,8 @@ EXPORT void subsystem2_test(void)
 
 			dt = (float)(end_ms - start_ms) / 1000.0f;
 
-			left_speed = encoder_calculateLeftSpeed(l1 - l0, dt);
-			right_speed = encoder_calculateRightSpeed(r1 - r0, dt);
+			left_speed = encoder_calculate_left_speed(l1 - l0, dt);
+			right_speed = encoder_calculate_right_speed(r1 - r0, dt);
 
 			left_pwm = speed_pid_update(
 				&left_pid, target_speed, left_speed, dt);
@@ -903,7 +906,7 @@ EXPORT void subsystem2_test(void)
 			right_pwm = speed_pid_update(
 				&right_pid, target_speed, right_speed, dt);
 
-			motion_setWheelPWM((int)left_pwm, (int)right_pwm);
+			motion_set_wheel_pwm((int)left_pwm, (int)right_pwm);
 
 			tm_printf((UB*)"[S2-P06] Cycle %d: L PWM=%d%%, R PWM=%d%%\n",
 					i + 1, (int)left_pwm, (int)right_pwm);
@@ -934,14 +937,14 @@ EXPORT void subsystem2_test(void)
 		tk_dly_tsk(5000);
 
 		/* Initialise PID and set target speed */
-		motion_pidInit();
-		motion_pidSetTargetSpeed(15.0f);
+		motion_pid_init();
+		motion_pid_set_target_speed(15.0f);
 
 		/* Begin at the preliminary base PWM */
-		motion_setWheelPWM(30, 30);
+		motion_set_wheel_pwm(30, 30);
 
-		left_before = encoder_getLeftCount();
-		right_before = encoder_getRightCount();
+		left_before = encoder_get_left_count();
+		right_before = encoder_get_right_count();
 
 		tk_get_tim(&previous_time);
 
@@ -966,21 +969,21 @@ EXPORT void subsystem2_test(void)
 
 			dt = (float)(current_ms - previous_ms) / 1000.0f;
 
-			left_after = encoder_getLeftCount();
-			right_after = encoder_getRightCount();
+			left_after = encoder_get_left_count();
+			right_after = encoder_get_right_count();
 
-			left_speed = encoder_calculateLeftSpeed(
+			left_speed = encoder_calculate_left_speed(
 				left_after - left_before, dt);
 
-			right_speed = encoder_calculateRightSpeed(
+			right_speed = encoder_calculate_right_speed(
 				right_after - right_before, dt);
 
 			/* Integrated PID performs its own encoder feedback */
-			motion_pidUpdate(dt);
+			motion_pid_update(dt);
 
 			tm_printf((UB*)"[S2-P07] Cycle %d, dt=%lu ms\n",
 					i + 1,
-					(unsigned long)(current_ms - previous_ms));
+					(uint32_t)(current_ms - previous_ms));
 
 			tm_printf((UB*)"[S2-P07] Left=%d, Right=%d cm/s\n",
 					(int)left_speed,
@@ -991,7 +994,7 @@ EXPORT void subsystem2_test(void)
 			right_before = right_after;
 		}
 
-		motion_pidStop();
+		motion_pid_stop();
 
 		tm_printf((UB*)"[S2-P07] Test completed\n");
 	}
@@ -1010,9 +1013,9 @@ EXPORT void subsystem2_test(void)
 		tm_printf((UB*)"[S2-P08] PID timing test\n");
 		tk_dly_tsk(5000);
 
-		motion_pidInit();
-		motion_pidSetTargetSpeed(15.0f);
-		motion_setWheelPWM(30, 30);
+		motion_pid_init();
+		motion_pid_set_target_speed(15.0f);
+		motion_set_wheel_pwm(30, 30);
 
 		tk_get_tim(&previous);
 		previous_ms =
@@ -1034,13 +1037,17 @@ EXPORT void subsystem2_test(void)
 
 			elapsed_ms = current_ms - previous_ms;
 
-			motion_pidUpdate((float)elapsed_ms / 1000.0f);
+			motion_pid_update((float)elapsed_ms / 1000.0f);
 
 			if (completed == 0 || elapsed_ms < min_ms)
+			{
 				min_ms = elapsed_ms;
+			}
 
 			if (elapsed_ms > max_ms)
+			{
 				max_ms = elapsed_ms;
+			}
 
 			total_ms += elapsed_ms;
 			completed++;
@@ -1048,13 +1055,13 @@ EXPORT void subsystem2_test(void)
 			previous_ms = current_ms;
 		}
 
-		motion_pidStop();
+		motion_pid_stop();
 
 		if (completed > 0) {
 			tm_printf((UB*)"[S2-P08] Min=%lu ms, Max=%lu ms, Avg=%lu ms\n",
-					(unsigned long)min_ms,
-					(unsigned long)max_ms,
-					(unsigned long)(total_ms / completed));
+					(uint32_t)min_ms,
+					(uint32_t)max_ms,
+					(uint32_t)(total_ms / completed));
 		}
 
 		tm_printf((UB*)"[S2-P08] Completed=%d/20\n", completed);
@@ -1078,14 +1085,14 @@ EXPORT void subsystem2_test(void)
 		tm_printf((UB*)"[S2-P09] Straight-line correction test\n");
 		tk_dly_tsk(5000);
 
-		motion_pidInit();
-		motion_pidSetTargetSpeed(15.0f);
+		motion_pid_init();
+		motion_pid_set_target_speed(15.0f);
 
 		/* Begin with preliminary base PWM */
-		motion_setWheelPWM(30, 30);
+		motion_set_wheel_pwm(30, 30);
 
-		l0 = encoder_getLeftCount();
-		r0 = encoder_getRightCount();
+		l0 = encoder_get_left_count();
+		r0 = encoder_get_right_count();
 		tk_get_tim(&start);
 
 		for (int i = 0; i < 20; i++) {
@@ -1105,17 +1112,19 @@ EXPORT void subsystem2_test(void)
 
 			dt = (float)(end_ms - start_ms) / 1000.0f;
 
-			l1 = encoder_getLeftCount();
-			r1 = encoder_getRightCount();
+			l1 = encoder_get_left_count();
+			r1 = encoder_get_right_count();
 
-			left_speed = encoder_calculateLeftSpeed(l1 - l0, dt);
-			right_speed = encoder_calculateRightSpeed(r1 - r0, dt);
+			left_speed = encoder_calculate_left_speed(l1 - l0, dt);
+			right_speed = encoder_calculate_right_speed(r1 - r0, dt);
 
 			speed_difference = left_speed - right_speed;
 			if (speed_difference < 0.0f)
+			{
 				speed_difference = -speed_difference;
+			}
 
-			motion_pidUpdate(dt);
+			motion_pid_update(dt);
 
 			tm_printf((UB*)"[S2-P09] Cycle %d: L=%d, R=%d, Diff=%d cm/s\n",
 					i + 1, (int)left_speed, (int)right_speed,
@@ -1126,7 +1135,7 @@ EXPORT void subsystem2_test(void)
 			start = end;
 		}
 
-		motion_pidStop();
+		motion_pid_stop();
 		tm_printf((UB*)"[S2-P09] Test completed\n");
 	}
 	#endif
@@ -1143,11 +1152,11 @@ EXPORT void subsystem2_test(void)
 		tm_printf((UB*)"[S2-D01] Move forward 30 cm test\n");
 		tk_dly_tsk(5000);
 
-		motion_pidInit();
-		motion_pidMoveDistance(20.0f, 15.0f);
+		motion_pid_init();
+		motion_pid_move_distance(20.0f, 15.0f);
 
 		/* Start movement */
-		motion_setWheelPWM(30, 30);
+		motion_set_wheel_pwm(30, 30);
 
 		tk_get_tim(&start);
 
@@ -1167,16 +1176,16 @@ EXPORT void subsystem2_test(void)
 
 			dt = (float)(end_ms - start_ms) / 1000.0f;
 
-			motion_pidUpdate(dt);
+			motion_pid_update(dt);
 
-			if (motion_pidIsComplete()) {
+			if (motion_pid_is_complete()) {
 				completed = 1;
 
 				tm_printf((UB*)"[S2-D01] Left encoder: %d cm\n",
-						(int)encoder_getLeftDistance());
+						(int)encoder_get_left_distance());
 
 				tm_printf((UB*)"[S2-D01] Right encoder: %d cm\n",
-						(int)encoder_getRightDistance());
+						(int)encoder_get_right_distance());
 
 				break;
 			}
@@ -1185,12 +1194,12 @@ EXPORT void subsystem2_test(void)
 		}
 
 		/* Always stop motors after the test */
-		motion_pidStop();
+		motion_pid_stop();
 
 		tk_dly_tsk(500);
 
-		float left = encoder_getLeftDistance();
-		float right = encoder_getRightDistance();
+		float left = encoder_get_left_distance();
+		float right = encoder_get_right_distance();
 
 		tm_printf((UB*)"[S2-D01] Final left: %d.%02d cm\n",
 				(int)left, ((int)(left * 100)) % 100);
@@ -1207,51 +1216,57 @@ EXPORT void subsystem2_test(void)
 	/* S2-T01: Encoder-Based 90 Degree Turning Test (FR6) */
 	#if 0
 	{
-		// tm_printf((UB*)"[S2-T01] Starting 90-degree left turn\n");
-		// tm_printf((UB*)"[S2-T01] Starting 90-degree right turn\n");
-		// tm_printf((UB*)"[S2-T01] Starting 180-degree right turn\n");
+#if 0	/* Other turns this test can run instead: */
+		tm_printf((UB*)"[S2-T01] Starting 90-degree left turn\n");
+		tm_printf((UB*)"[S2-T01] Starting 90-degree right turn\n");
+		tm_printf((UB*)"[S2-T01] Starting 180-degree right turn\n");
+#endif
 		tm_printf((UB*)"[S2-T01] Starting 180-degree left turn\n");
 
 		tk_dly_tsk(5000);
 
-		motion_pidInit();
+		motion_pid_init();
 
-		float left_start = encoder_getLeftDistance();
-		float right_start = encoder_getRightDistance();
+		float left_start = encoder_get_left_distance();
+		float right_start = encoder_get_right_distance();
 
 		/* 90° turn test */
-		// motion_pidTurnLeft(90.0f);
-		// motion_pidTurnRight(90.0f);
+#if 0
+		motion_pid_turn_left(90.0f);
+		motion_pid_turn_right(90.0f);
+#endif
 
 		/* 180° turn test */
-		// motion_pidTurnRight(180.0f);
-		motion_pidTurnLeft(180.0f);
+#if 0
+		motion_pid_turn_right(180.0f);
+#endif
+		motion_pid_turn_left(180.0f);
 		
 		int completed = 0;
 
 		for (int i = 0; i < 200; i++) {
 			tk_dly_tsk(10);
-			motion_pidUpdate(0.02f);
+			motion_pid_update(0.02f);
 
-			if (motion_pidIsComplete()) {
+			if (motion_pid_is_complete()) {
 				completed = 1;
 				break;
 			}
 		}
 
-		motion_pidStop();
+		motion_pid_stop();
 
 		float left_travel =
-		encoder_getLeftDistance() - left_start;
+		encoder_get_left_distance() - left_start;
 
 		float right_travel =
-			encoder_getRightDistance() - right_start;
+			encoder_get_right_distance() - right_start;
 
 		tm_printf((UB*)"[S2-T01] Left travel: %ld mm\n",
-				(long)(left_travel * 10.0f));
+				(int32_t)(left_travel * 10.0f));
 
 		tm_printf((UB*)"[S2-T01] Right travel: %ld mm\n",
-				(long)(right_travel * 10.0f));
+				(int32_t)(right_travel * 10.0f));
 
 		tm_printf((UB*)"[S2-T01] Completed=%d\n", completed);
 		tm_printf((UB*)"[S2-T01] Test finished\n");

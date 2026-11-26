@@ -365,6 +365,10 @@ static inline uint8_t b4_hump_update(B4_HUMP *h,
     {
         h->hold_left--;
     }
+    else
+    {
+        /* No hold active: nothing to count down. */
+    }
 
     /* Remove the turning acceleration (a left turn reads as -X). */
     x_c = (int32_t)x_mg + (int32_t)lat_comp_mg;
@@ -630,6 +634,10 @@ static inline uint8_t b4_hump_update(B4_HUMP *h,
             h->reject_peak_dmm = peak;
         }
         return 0u;
+    }
+    else
+    {
+        /* Still within the time and travel limits: keep measuring. */
     }
 
     return done;

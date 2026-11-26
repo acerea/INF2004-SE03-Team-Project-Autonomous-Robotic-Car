@@ -70,12 +70,18 @@ static float ultrasonic_ping(BOOL *p_disturbed)
     /* 1. Settle LOW for 10 us */
     gpio_set_val(TRIG_PIN, 0);
     UW t0 = get_time_us();
-    while ((get_time_us() - t0) < 10);
+    while ((get_time_us() - t0) < 10)
+    {
+        /* Busy-wait: the pin must stay LOW for 10 us before the pulse. */
+    }
 
     /* 2. Emit 10 us trigger pulse */
     gpio_set_val(TRIG_PIN, 1);
     UW t1 = get_time_us();
-    while ((get_time_us() - t1) < 12);
+    while ((get_time_us() - t1) < 12)
+    {
+        /* Busy-wait: hold the trigger HIGH for at least 10 us. */
+    }
     gpio_set_val(TRIG_PIN, 0);
 
     /* 3. Wait for Echo to go HIGH */
@@ -132,12 +138,18 @@ float ultrasonic_read_distance_cm(void)
 /* Helper: Sort 3 floats and return median */
 static float median_of_3(float a, float b, float c)
 {
-    if ((a <= b && b <= c) || (c <= b && b <= a)) return b;
-    if ((b <= a && a <= c) || (c <= a && a <= b)) return a;
+    if ((a <= b && b <= c) || (c <= b && b <= a))
+    {
+        return b;
+    }
+    if ((b <= a && a <= c) || (c <= a && a <= b))
+    {
+        return a;
+    }
     return c;
 }
 
-float ultrasonic_read_distance_filtered(void)
+float ultrasonic_read_filtered_cm(void)
 {
     float r1 = ultrasonic_read_distance_cm();
     tk_dly_tsk(15); /* Short acoustic decay */
@@ -153,14 +165,32 @@ float ultrasonic_read_distance_filtered(void)
     }
 
     /* Only one valid echo: keep it, so two dropouts cannot hide an obstacle */
-    if (r1 > 0.0f && r2 < 0.0f && r3 < 0.0f) return r1;
-    if (r2 > 0.0f && r1 < 0.0f && r3 < 0.0f) return r2;
-    if (r3 > 0.0f && r1 < 0.0f && r2 < 0.0f) return r3;
+    if (r1 > 0.0f && r2 < 0.0f && r3 < 0.0f)
+    {
+        return r1;
+    }
+    if (r2 > 0.0f && r1 < 0.0f && r3 < 0.0f)
+    {
+        return r2;
+    }
+    if (r3 > 0.0f && r1 < 0.0f && r2 < 0.0f)
+    {
+        return r3;
+    }
 
     /* If 1 sample timed out but other 2 are valid, use the valid average */
-    if (r1 < 0.0f && r2 > 0.0f && r3 > 0.0f) return (r2 + r3) / 2.0f;
-    if (r2 < 0.0f && r1 > 0.0f && r3 > 0.0f) return (r1 + r3) / 2.0f;
-    if (r3 < 0.0f && r1 > 0.0f && r2 > 0.0f) return (r1 + r2) / 2.0f;
+    if (r1 < 0.0f && r2 > 0.0f && r3 > 0.0f)
+    {
+        return (r2 + r3) / 2.0f;
+    }
+    if (r2 < 0.0f && r1 > 0.0f && r3 > 0.0f)
+    {
+        return (r1 + r3) / 2.0f;
+    }
+    if (r3 < 0.0f && r1 > 0.0f && r2 > 0.0f)
+    {
+        return (r1 + r2) / 2.0f;
+    }
 
     return median_of_3(r1, r2, r3);
 }

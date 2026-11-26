@@ -30,8 +30,14 @@ void servo_init(void)
 void servo_set_angle(INT angle_deg)
 {
     /* Clamp angle between -45 and +45 */
-    if (angle_deg < -45) angle_deg = -45;
-    if (angle_deg > 45)  angle_deg = 45;
+    if (angle_deg < -45)
+    {
+        angle_deg = -45;
+    }
+    if (angle_deg > 45)
+    {
+        angle_deg = 45;
+    }
 
     /* Linearly map:
      * -45 deg -> 1000 us

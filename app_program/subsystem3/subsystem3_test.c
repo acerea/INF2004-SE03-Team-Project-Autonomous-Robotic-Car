@@ -170,8 +170,8 @@ EXPORT void subsystem3_test(void)
 		   "ir_sensor_task running and calibrated");
 
 	/* S3-U16: snapshot fields stay within their bit ranges */
-	TEST_CHECK("S3-U16", snap.line_pos >= -IR_POS_MAX &&
-		   snap.line_pos <= IR_POS_MAX && snap.nav_cmd <= IR_NAV_UTURN,
+	TEST_CHECK("S3-U16", ir_line_pos(&snap) >= -IR_POS_MAX &&
+		   ir_line_pos(&snap) <= IR_POS_MAX && snap.nav_cmd <= IR_NAV_UTURN,
 		   "snapshot values within range");
 
 	/* S3-U17: the snapshot fits in 8 bytes (timestamp + one word) */

@@ -47,8 +47,14 @@ void motion_init(void)
 /* Set PWM duty cycle (0-100%) */
 static void motor_pwm(UINT pin, int speed)
 {
-    if (speed < 0) speed = 0;
-    if (speed > 100) speed = 100;
+    if (speed < 0)
+    {
+        speed = 0;
+    }
+    if (speed > 100)
+    {
+        speed = 100;
+    }
 
     pwm_set_cc(pin, (UW)speed * 10u);
 }
@@ -135,42 +141,42 @@ static int motion_ramp(int target, int current)
 /* Public movement commands */
 
 /* Set signed wheel PWM independently: -100 to +100. */
-void motion_setWheelPWM(int left_pwm, int right_pwm)
+void motion_set_wheel_pwm(int left_pwm, int right_pwm)
 {
     motor_leftm1(motion_ramp(left_pwm, last_left_pwm));
     motor_rightm2(motion_ramp(right_pwm, last_right_pwm));
 }
 
 /* Move both wheels forward */
-void motion_moveForward(int speed)
+void motion_move_forward(int speed)
 {
     motor_leftm1(speed);
     motor_rightm2(speed);
 }
 
 /* Move both wheels backward */
-void motion_moveBackward(int speed)
+void motion_move_backward(int speed)
 {
     motor_leftm1(-speed);
     motor_rightm2(-speed);
 }
 
 /* Turn left by rotating wheels in opposite directions */
-void motion_turnLeft(int speed)
+void motion_turn_left(int speed)
 {
     motor_leftm1(-speed);
     motor_rightm2(speed);
 }
 
 /* Turn right by rotating wheels in opposite directions */
-void motion_turnRight(int speed)
+void motion_turn_right(int speed)
 {
     motor_leftm1(speed);
     motor_rightm2(-speed);
 }
 
 /* Read the last PWM set on each wheel (-100 to +100). */
-void motion_getWheelPWM(int *left_pwm, int *right_pwm)
+void motion_get_wheel_pwm(int *left_pwm, int *right_pwm)
 {
     *left_pwm = last_left_pwm;
     *right_pwm = last_right_pwm;

@@ -189,11 +189,13 @@ b4_handling_update_dt(B4_HANDLING *p_h, int16_t x_mg, int16_t y_mg,
     // is ~1060-1090 mg on the robot, not 1000, and starting at 1000 made
     // LIFTED fire for ~2 s after every boot (2026-11-18 log).
 
-    // if (0u == p_h->b_seeded)
-    // {
-    //     p_h->base_q8 = (int32_t)z_mg * 256;
-    //     p_h->b_seeded = 1u;
-    // }
+#if 0   /* Old version, kept for reference: seeded on the first reading. */
+    if (0u == p_h->b_seeded)
+    {
+        p_h->base_q8 = (int32_t)z_mg * 256;
+        p_h->b_seeded = 1u;
+    }
+#endif
 
     // Skip the first 5 startup readings so the sensor settles before locking in the baseline.
     if (p_h->b_seeded < 5u)

@@ -228,6 +228,10 @@ ir_read_adc (INT channel)
         tm_printf((UB*)"ir: DEBUG ADC ch%d first reading %u\n",
                   (int) channel, (unsigned int) (value & IR_ADC_MAX));
     }
+    else
+    {
+        // Channel already reported once: nothing to print.
+    }
 
     return ((uint16_t) (value & IR_ADC_MAX));
 }
@@ -402,7 +406,7 @@ ir_handle_track (uint32_t now)
 {
     if (g_b_lift_override)
     {
-        g_next.line_pos = 0;
+        ir_set_line_pos(&g_next, 0);
         g_next.sensors = 0u;
         g_next.junction = IR_JUNC_NONE;
         g_next.lost_timeout = 1u;
@@ -452,16 +456,16 @@ ir_handle_track (uint32_t now)
     if (0u == line_bits)
     {
         g_next.lost_timeout = 0u;
-        g_next.line_pos = g_ctx.last_line_pos;
+        ir_set_line_pos(&g_next, g_ctx.last_line_pos);
         ir_set_state(IR_LINE_LOST, now);
         return;
     }
 
     g_next.lost_timeout = 0u;
-    g_next.line_pos = 0;
+    ir_set_line_pos(&g_next, 0);
     if (ir_line_position_lr(dark[0], dark[1], &pos))
     {
-        g_next.line_pos = (signed int) pos;      // |pos| <= 1000: fits 11 bits.
+        ir_set_line_pos(&g_next, pos);      // |pos| <= 1000: fits 11 bits.
         g_ctx.last_line_pos = pos;
     }
 
@@ -868,7 +872,7 @@ ir_handle_barcode (uint32_t now)
 {
     if (g_b_lift_override)
     {
-        g_next.line_pos = 0;
+        ir_set_line_pos(&g_next, 0);
         g_next.sensors = 0u;
         g_next.junction = IR_JUNC_NONE;
         g_next.lost_timeout = 1u;
@@ -897,12 +901,12 @@ ir_handle_barcode (uint32_t now)
             g_next.sensors = ir_read_line_sensors(dark);
             if (ir_line_position_lr(dark[0], dark[1], &pos))
             {
-                g_next.line_pos     = (signed int) pos;
+                ir_set_line_pos(&g_next, pos);
                 g_ctx.last_line_pos = pos;
             }
             else
             {
-                g_next.line_pos = g_ctx.last_line_pos;
+                ir_set_line_pos(&g_next, g_ctx.last_line_pos);
             }
         }
     }
@@ -1109,7 +1113,7 @@ ir_handle_lost (uint32_t now)
 {
     if (g_b_lift_override)
     {
-        g_next.line_pos = 0;
+        ir_set_line_pos(&g_next, 0);
         g_next.sensors = 0u;
         g_next.junction = IR_JUNC_NONE;
         g_next.lost_timeout = 1u;
@@ -1123,7 +1127,7 @@ ir_handle_lost (uint32_t now)
     uint8_t bits = line_bits;
 
     g_next.sensors = line_bits;
-    g_next.line_pos = g_ctx.last_line_pos;
+    ir_set_line_pos(&g_next, g_ctx.last_line_pos);
     g_next.junction = IR_JUNC_NONE;
 
     if ((0u != (barcode & IR_SENS_LEFT))
@@ -1181,7 +1185,7 @@ ir_publish_line (uint32_t now)
     // that only wobbles goes out at most every IR_POS_PUB_MS, and the
     // frame is refreshed every IR_LINE_PUB_MS so the panel stays live.
     if (!b_event
-        && !((g_next.line_pos != g_last_pub_pos) && (age >= IR_POS_PUB_MS))
+        && !((ir_line_pos(&g_next) != g_last_pub_pos) && (age >= IR_POS_PUB_MS))
         && (age < IR_LINE_PUB_MS))
     {
         return;
@@ -1192,7 +1196,7 @@ ir_publish_line (uint32_t now)
     proto_put(&bits, g_next.state, PROTO_LN_STATE_BITS);
     proto_put(&bits, g_next.sensors, PROTO_LN_SENSORS_BITS);
     proto_put(&bits, g_next.junction, PROTO_LN_JUNCTION_BITS);
-    proto_put_s(&bits, g_next.line_pos, PROTO_LN_POS_BITS);
+    proto_put_s(&bits, ir_line_pos(&g_next), PROTO_LN_POS_BITS);
     (void) s1_publish(frame, proto_end(&bits), false);
 
     // Console: only real changes, never the line_pos wobble.
@@ -1202,14 +1206,14 @@ ir_publish_line (uint32_t now)
                   (unsigned int)g_next.state,
                   (unsigned int)g_next.sensors,
                   (unsigned int)g_next.junction,
-                  (int)g_next.line_pos,
+                  (int)ir_line_pos(&g_next),
                   (unsigned int)g_next.lost_timeout);
     }
 
     g_last_pub_state   = (uint8_t) g_next.state;
     g_last_pub_junc    = (uint8_t) g_next.junction;
     g_last_pub_sensors = (uint8_t) g_next.sensors;
-    g_last_pub_pos     = (int16_t) g_next.line_pos;
+    g_last_pub_pos     = (int16_t) ir_line_pos(&g_next);
     g_ctx.last_pub_ms = now;
 
     return;
@@ -1447,7 +1451,7 @@ ir_sense_init (void)
     g_ctx.b_armed       = 1u;
     g_ctx.last_line_pos = 0;
     g_next.state        = IR_CALI;
-    g_next.line_pos     = 0;
+    ir_set_line_pos(&g_next, 0);
     g_next.letter       = IR_LETTER_BAD;
     g_next.nav_cmd      = IR_NAV_NONE;
     g_snap              = g_next;

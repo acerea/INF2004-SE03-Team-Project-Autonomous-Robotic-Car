@@ -7,21 +7,21 @@
 void encoder_init(void);
 
 /* Get encoder counts */
-int32_t encoder_getLeftCount(void);
-int32_t encoder_getRightCount(void);
+int32_t encoder_get_left_count(void);
+int32_t encoder_get_right_count(void);
 
 /* Read encoder GPIO states */
-int encoder_getLeftA(void);
-int encoder_getLeftB(void);
-int encoder_getRightA(void);
-int encoder_getRightB(void);
+int encoder_get_left_a(void);
+int encoder_get_left_b(void);
+int encoder_get_right_a(void);
+int encoder_get_right_b(void);
 
 /* Get wheel distance (cm) */
-float encoder_getLeftDistance(void);
-float encoder_getRightDistance(void);
+float encoder_get_left_distance(void);
+float encoder_get_right_distance(void);
 
 /* Calculate average wheel speed (cm/s) */
-float encoder_calculateLeftSpeed(int32_t count_change, float dt_seconds);
-float encoder_calculateRightSpeed(int32_t count_change, float dt_seconds);
+float encoder_calculate_left_speed(int32_t count_change, float dt_seconds);
+float encoder_calculate_right_speed(int32_t count_change, float dt_seconds);
 
 #endif /* WHEEL_ENCODER_H */

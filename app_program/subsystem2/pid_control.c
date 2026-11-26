@@ -7,8 +7,14 @@ float speed_p_update(float target_speed, float measured_speed,
     float error = target_speed - measured_speed;
     float pwm = base_pwm + kp * error;
 
-    if (pwm > 100.0f) pwm = 100.0f;
-    if (pwm < 0.0f) pwm = 0.0f;
+    if (pwm > 100.0f)
+    {
+        pwm = 100.0f;
+    }
+    if (pwm < 0.0f)
+    {
+        pwm = 0.0f;
+    }
 
     return pwm;
 }
@@ -45,12 +51,16 @@ float speed_pi_update(SpeedPI *controller, float target_speed,
     if (pwm > 100.0f) {
         pwm = 100.0f;
         if (error < 0.0f)
+        {
             controller->integral = proposed_integral;
+        }
     }
     else if (pwm < 0.0f) {
         pwm = 0.0f;
         if (error > 0.0f)
+        {
             controller->integral = proposed_integral;
+        }
     }
     else {
         controller->integral = proposed_integral;
@@ -107,12 +117,16 @@ float speed_pid_update(SpeedPID *controller, float target_speed,
     if (pwm > 100.0f) {
         pwm = 100.0f;
         if (error < 0.0f)
+        {
             controller->integral = proposed_integral;
+        }
     }
     else if (pwm < 0.0f) {
         pwm = 0.0f;
         if (error > 0.0f)
+        {
             controller->integral = proposed_integral;
+        }
     }
     else {
         controller->integral = proposed_integral;

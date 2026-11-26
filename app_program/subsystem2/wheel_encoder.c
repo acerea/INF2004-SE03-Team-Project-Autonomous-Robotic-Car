@@ -110,7 +110,7 @@ static int8_t encoder_decode(uint8_t previous, uint8_t current)
 }
 
 /* Read both encoder A and B as a 2-bit state */
-static uint8_t encoder_readState(int pin_a, int pin_b)
+static uint8_t encoder_read_state(int pin_a, int pin_b)
 {
     uint32_t pins = in_w(GPIO_IN);
 
@@ -125,7 +125,7 @@ static uint8_t encoder_readState(int pin_a, int pin_b)
  * 6. Encoder Initialisation
  * ----------------------------------------- */
 
-static ER encoder_registerInterrupt(void);
+static ER encoder_register_interrupt(void);
 
 void encoder_init(void)
 {
@@ -136,15 +136,15 @@ void encoder_init(void)
     gpio_set_pin(RIGHT_ENCODER_B, GPIO_MODE_IN);
 
     /* Capture initial encoder states */
-    left_prev = encoder_readState(LEFT_ENCODER_A, LEFT_ENCODER_B);
-    right_prev = encoder_readState(RIGHT_ENCODER_A, RIGHT_ENCODER_B);
+    left_prev = encoder_read_state(LEFT_ENCODER_A, LEFT_ENCODER_B);
+    right_prev = encoder_read_state(RIGHT_ENCODER_A, RIGHT_ENCODER_B);
 
     /* Reset encoder counters */
     left_count = 0;
     right_count = 0;
 
     /* Register GPIO interrupt handler with micro T-Kernel */
-    ER er = encoder_registerInterrupt();
+    ER er = encoder_register_interrupt();
 
     if (er != E_OK) {
         tm_printf((UB*)"[S2-ENC] Interrupt registration failed: %d\n", er);
@@ -176,11 +176,11 @@ void encoder_init(void)
  * ----------------------------------------- */
 
 /* Update encoder counts based on interrupt events only */
-static void encoder_updateCounts(uint32_t left_events, uint32_t right_events)
+static void encoder_update_counts(uint32_t left_events, uint32_t right_events)
 {
     if (left_events != 0u) {
         uint8_t left_now =
-            encoder_readState(LEFT_ENCODER_A, LEFT_ENCODER_B);
+            encoder_read_state(LEFT_ENCODER_A, LEFT_ENCODER_B);
 
         /* Forward rotation increases the count */
         left_count += encoder_decode(left_prev, left_now);
@@ -189,7 +189,7 @@ static void encoder_updateCounts(uint32_t left_events, uint32_t right_events)
 
     if (right_events != 0u) {
         uint8_t right_now =
-            encoder_readState(RIGHT_ENCODER_A, RIGHT_ENCODER_B);
+            encoder_read_state(RIGHT_ENCODER_A, RIGHT_ENCODER_B);
 
         /* Forward rotation increases the count */
         right_count -= encoder_decode(right_prev, right_now);
@@ -208,7 +208,7 @@ static void encoder_inthdr(void)
         in_w(ENCODER_INTR0) & RIGHT_IRQ_MASK;
 
     /* Update counts before acknowledging the events */
-    encoder_updateCounts(left_events, right_events);
+    encoder_update_counts(left_events, right_events);
 
     /* Clear the GPIO events handled */
     if (left_events != 0u) {
@@ -221,7 +221,7 @@ static void encoder_inthdr(void)
 }
 
 /* Register GPIO IRQ 13 with micro T-Kernel */
-static ER encoder_registerInterrupt(void)
+static ER encoder_register_interrupt(void)
 {
     const T_DINT dint = {
         .intatr = TA_HLNG,
@@ -237,23 +237,23 @@ static ER encoder_registerInterrupt(void)
  * ----------------------------------------- */
 
 /* Read left encoder's current GPIO state */
-int encoder_getLeftA(void)
+int encoder_get_left_a(void)
 {
     return gpio_get_val(LEFT_ENCODER_A);
 }
 
-int encoder_getLeftB(void)
+int encoder_get_left_b(void)
 {
     return gpio_get_val(LEFT_ENCODER_B);
 }
 
 /* Read right encoder's current GPIO state */
-int encoder_getRightA(void)
+int encoder_get_right_a(void)
 {
     return gpio_get_val(RIGHT_ENCODER_A);
 }
 
-int encoder_getRightB(void)
+int encoder_get_right_b(void)
 {
     return gpio_get_val(RIGHT_ENCODER_B);
 }
@@ -264,13 +264,13 @@ int encoder_getRightB(void)
  * ----------------------------------------- */
 
 /* Get the left wheel's encoder count */
-int32_t encoder_getLeftCount(void)
+int32_t encoder_get_left_count(void)
 {
     return left_count;
 }
 
 /* Get the right wheel's encoder count */
-int32_t encoder_getRightCount(void)
+int32_t encoder_get_right_count(void)
 {
     return right_count;
 }
@@ -284,15 +284,15 @@ int32_t encoder_getRightCount(void)
  */
 
 /* Get the distance traveled by the left wheel */
-float encoder_getLeftDistance(void)
+float encoder_get_left_distance(void)
 {
-    return ((float)encoder_getLeftCount() / LEFT_COUNTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM;
+    return ((float)encoder_get_left_count() / LEFT_COUNTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM;
 }
 
 /* Get the distance traveled by the right wheel */
-float encoder_getRightDistance(void)
+float encoder_get_right_distance(void)
 {
-    return ((float)encoder_getRightCount() / RIGHT_COUNTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM;
+    return ((float)encoder_get_right_count() / RIGHT_COUNTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM;
 }
 
 
@@ -305,7 +305,7 @@ float encoder_getRightDistance(void)
  */
 
 /* Calculate the speed of the left wheel (cm/s) */
-float encoder_calculateLeftSpeed(int32_t count_change, float dt_seconds)
+float encoder_calculate_left_speed(int32_t count_change, float dt_seconds)
 {
     if (dt_seconds <= 0.0f) {
         return 0.0f;
@@ -315,7 +315,7 @@ float encoder_calculateLeftSpeed(int32_t count_change, float dt_seconds)
 }
 
 /* Calculate the speed of the right wheel (cm/s) */
-float encoder_calculateRightSpeed(int32_t count_change, float dt_seconds)
+float encoder_calculate_right_speed(int32_t count_change, float dt_seconds)
 {
     if (dt_seconds <= 0.0f) {
         return 0.0f;

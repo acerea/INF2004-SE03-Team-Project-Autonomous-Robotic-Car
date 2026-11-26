@@ -1,19 +1,13 @@
 /*
- *	subsystem5.c
- *	Subsystem 5 -- <name>.  EMPTY TEMPLATE.
+ * subsystem5.c
+ * Subsystem 5 -- obstacle detection with the ultrasonic sensor on a servo.
  *
- *	subsystem5_init():  create this subsystem's kernel objects
- *	                    (semaphores, mailboxes, ...).  Do not start
- *	                    tasks here.
- *	subsystem5_start(): create and start this subsystem's tasks, e.g.
- *	    ID tid = app_start_task(my_task, S5_PRI_MAIN, 0, "my_task");
- *	    return (tid < E_OK) ? tid : E_OK;
- *
- *	Drivers for this subsystem's hardware go in this folder as
- *	drv_<name>.c / drv_<name>.h, called only from the task that owns
- *	the peripheral (TEAM.md section 3).
- *
- *	Record every pin, task, object and interface in TEAM.md.
+ * s5_scan_task measures the distance ahead, sets the obstacle state bits
+ * in flg_s5_obstacle (clear / emergency), and when the car is stopped for
+ * an obstacle sweeps the servo once to find the obstacle's edges, its
+ * width and the side to go round (AVOID_LEFT / AVOID_RIGHT). Results are
+ * published as OBSTACLE and OBST_PROFILE telemetry through subsystem 1.
+ * Drivers: drv_ultrasonic.c, drv_servo.c. Pins and objects: TEAM.md.
  */
 
 #include <stdint.h>
@@ -50,6 +44,10 @@ s5_cm_field (float cm, UW max_cm)
     {
         value = (UW) (cm + 0.5f);
     }
+    else
+    {
+        /* Zero or no echo: value stays 0. */
+    }
 
     return (value);
 }
@@ -84,6 +82,8 @@ s5_publish_profile (S5_BYPASS_DIR dir, float width_cm, UW left_field,
         side_val = 1u;
     } else if (dir == S5_DIR_RIGHT) {
         side_val = 2u;
+    } else {
+        /* S5_DIR_NONE: side field stays 0. */
     }
 
     proto_init(&bits, frame, sizeof(frame));
@@ -154,8 +154,18 @@ static void s5_point(INT angle)
     }
     while (s5_servo_angle != angle) {
         INT diff = angle - s5_servo_angle;
-        if (diff > S5_PAN_STEP_DEG)        diff = S5_PAN_STEP_DEG;
-        else if (diff < -S5_PAN_STEP_DEG)  diff = -S5_PAN_STEP_DEG;
+        if (diff > S5_PAN_STEP_DEG)
+        {
+            diff = S5_PAN_STEP_DEG;
+        }
+        else if (diff < -S5_PAN_STEP_DEG)
+        {
+            diff = -S5_PAN_STEP_DEG;
+        }
+        else
+        {
+            /* Within one step: move straight there. */
+        }
         s5_servo_angle += diff;
         servo_set_angle(s5_servo_angle);
         tk_dly_tsk(S5_PAN_STEP_MS);
@@ -237,7 +247,7 @@ static void s5_sweep(S5_PROFILE *p)
     for (INT i = 0; i < S5_SWEEP_N; i++) {
         INT a = -S5_SWEEP_MAX_DEG + (i * S5_SWEEP_STEP_DEG);
         s5_point(a * S5_SERVO_RIGHT_SIGN);
-        p->d_cm[i] = ultrasonic_read_distance_filtered();
+        p->d_cm[i] = ultrasonic_read_filtered_cm();
         tk_dly_tsk(60);             /* Acoustic decay before the next one. */
     }
     s5_point(SERVO_ANGLE_CENTER);
@@ -278,13 +288,13 @@ LOCAL void s5_scan_task(INT stacd, void *param)
     ultrasonic_init();
     servo_init();
 
-    while (1) {
+    for (;;) {
         /* 1. Normal forward observation */
         s5_point(SERVO_ANGLE_CENTER);
 
         /* Read forward distance: median of 3 pings, so one bad ping cannot
            flip the state. */
-        float d_center = ultrasonic_read_distance_filtered();
+        float d_center = ultrasonic_read_filtered_cm();
         tk_dly_tsk(60);  /* Ultrasonic acoustic decay holdoff */
 
         /* 2. Decide the state first, so EMERGENCY is not delayed by the
@@ -398,6 +408,8 @@ LOCAL void s5_scan_task(INT stacd, void *param)
                                s5_extent_field(s5_prof.left_cm, s5_prof.left_open),
                                s5_extent_field(s5_prof.right_cm, s5_prof.right_open));
             s5_swept = 1u;
+        } else {
+            /* Already swept for this stop. */
         }
 
         tk_dly_tsk(100);
@@ -432,7 +444,10 @@ EXPORT ER subsystem5_start(void)
 /* Lightweight square root using Newton-Raphson (no <math.h> / libm dependency) */
 static float fast_sqrtf(float val)
 {
-    if (val <= 0.0f) return 0.0f;
+    if (val <= 0.0f)
+    {
+        return 0.0f;
+    }
     float x = val;
     for (int i = 0; i < 10; i++) {
         x = 0.5f * (x + (val / x));
@@ -448,8 +463,14 @@ S5_BYPASS_DIR s5_calculate_clearance(float d_left, float d_right)
         return S5_DIR_RIGHT;
     }
     /* If one side has no obstacle reflection, pick the open side */
-    if (d_left < 0.0f) return S5_DIR_LEFT;
-    if (d_right < 0.0f) return S5_DIR_RIGHT;
+    if (d_left < 0.0f)
+    {
+        return S5_DIR_LEFT;
+    }
+    if (d_right < 0.0f)
+    {
+        return S5_DIR_RIGHT;
+    }
 
     /* Pick the side with larger open clearance */
     return (d_left > d_right) ? S5_DIR_LEFT : S5_DIR_RIGHT;

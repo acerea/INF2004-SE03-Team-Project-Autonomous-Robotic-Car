@@ -1,56 +1,36 @@
 /*
- *	app_main.c
- *	START HERE.  usermain() below is your program's entry point.
+ * app_main.c
+ * usermain() below is the program's entry point.
  *
- *	How micro T-Kernel starts your code
- *	-----------------------------------
- *	  reset -> kernel initialises itself -> creates the "initial task"
- *	        -> initial task calls usermain()
+ * How micro T-Kernel starts the code
+ * ----------------------------------
+ *   reset -> kernel initialises itself -> creates the "initial task"
+ *         -> initial task calls usermain()
  *
- *	usermain() runs inside that initial task at priority 1 (the highest).
- *	On a single core nothing you create runs until usermain() blocks, but
- *	on the dual-core build the OTHER core may start a new task at once.
- *	So usermain() works in two phases:
- *	  1. every subsystem creates its kernel objects  (subsystemN_init)
- *	  2. every subsystem starts its tasks             (subsystemN_start)
- *	and then puts the initial task to sleep forever.
- *	If usermain() RETURNS, the kernel shuts the whole system down.
+ * usermain() runs inside that initial task at priority 1 (the highest).
+ * On a single core nothing created runs until usermain() blocks, but on
+ * the dual-core build the OTHER core may start a new task at once. So
+ * usermain() works in two phases:
+ *   1. every subsystem creates its kernel objects  (subsystemN_init)
+ *   2. every subsystem starts its tasks             (subsystemN_start)
+ * and then puts the initial task to sleep forever.
+ * If usermain() RETURNS, the kernel shuts the whole system down.
  *
- *	The example system: one subsystem per folder, one task each
- *	------------------------------------------------------------
- *	  subsystem1/  LED       blinks GP19, paced by a cyclic handler
- *	  subsystem2/  Producer  makes a "sample" every 300 ms     (core 1)
- *	  subsystem3/  Consumer  collects samples into statistics  (core 0)
- *	  subsystem4/  Monitor   prints reports, pauses/resumes the LED
- *	  subsystem5/  (empty template for the fifth student)
+ * The subsystems (one folder each)
+ * --------------------------------
+ *   subsystem1/  Comms: Wi-Fi, MQTT telemetry and remote commands
+ *   subsystem2/  Motion: motors, wheel encoders, PID speed control
+ *   subsystem3/  IR: line following and barcode decoding
+ *   subsystem4/  IMU: hump height, lift and overturn detection
+ *   subsystem5/  Obstacle: ultrasonic sensor on a servo, side sweep
+ *   vehicle/     Vehicle Controller: mission state, the only task that
+ *                sends motion requests to subsystem 2
  *
- *	How they talk to each other (the interfaces, see TEAM.md section 5):
- *	  IF-01  S2 -> S3  mailbox mbx_samples      (owned by S3)
- *	  IF-02  S3 -> S2  semaphore sem_slots + memory pool mpf_samples
- *	                   (owned by S2: S3 hands slots and blocks back)
- *	  IF-03  S3 -> S4  message buffer mbf_summary + event flag flg_events
- *	                   (owned by S4)
- *	  IF-04  S4 -> S3  reads app_stats under mutex mtx_stats (owned by S3)
- *	  IF-05  S4 -> S1  suspends/resumes the LED task tid_led (owned by S1)
- *	The subsystem that RECEIVES or OWNS the data creates the object and
- *	publishes its ID in its header; the other side just uses it.
+ * The interfaces between them are listed in TEAM.md section 5. The
+ * subsystem that RECEIVES or OWNS the data creates the kernel object and
+ * publishes its ID in its header; the other side just uses it.
  *
- *	micro T-Kernel APIs used, and where to find them:
- *	  tasks       tk_cre_tsk tk_sta_tsk tk_slp_tsk tk_wup_tsk tk_can_wup
- *	              tk_dly_tsk tk_sus_tsk tk_rsm_tsk tk_chg_pri tk_ref_tsk
- *	              tk_get_tid tk_get_prc                         app_main.c, S1-S4
- *	  semaphore   tk_cre_sem tk_wai_sem tk_sig_sem tk_ref_sem       S2, S3, S4
- *	  mem. pool   tk_cre_mpf tk_get_mpf tk_rel_mpf tk_ref_mpf       S2, S3, S4
- *	  mailbox     tk_cre_mbx tk_snd_mbx tk_rcv_mbx                  S2, S3
- *	  mutex       tk_cre_mtx tk_loc_mtx tk_unl_mtx                  S3, S4
- *	  msg buffer  tk_cre_mbf tk_snd_mbf tk_rcv_mbf                  S3, S4
- *	  event flag  tk_cre_flg tk_set_flg tk_wai_flg                  S3, S4
- *	  cyclic      tk_cre_cyc tk_ref_cyc                             S1
- *	  alarm       tk_cre_alm tk_sta_alm tk_stp_alm                  S4
- *	  time        tk_get_tim                                        S2, S4
- *	  system      tk_ref_ver                                        app_main.c
- *
- *	Output appears on the USB serial port (115200 8N1 in any terminal).
+ * Output appears on the USB serial port (115200 8N1 in any terminal).
  */
 
 #include "app.h"
@@ -130,7 +110,7 @@ EXPORT INT usermain(void)
 	/* Test build (make TEST=1): run every subsystem's tests in turn,
 	   here in the initial task, while the system is running.  Tests may
 	   call tk_dly_tsk() to let the other tasks work for a while. */
-	tk_dly_tsk(3000); /*wy added this*/
+	tk_dly_tsk(3000); /* Let the other tasks start up first. */
 	tm_printf((UB*)"[TEST] === test run start ===\n");
 	subsystem1_test();
 	subsystem2_test();
@@ -138,7 +118,7 @@ EXPORT INT usermain(void)
 	subsystem4_test();
 	subsystem5_test();
 	tm_printf((UB*)"[TEST] === test run end ===\n");
-	tk_dly_tsk(4000); /* repeats every 4 seconds */
+	tk_dly_tsk(4000); /* Let the last test lines reach the console. */
 #endif
 
 	/* Sleep forever.  Returning from usermain() would shut down. */
